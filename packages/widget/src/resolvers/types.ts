@@ -27,3 +27,21 @@ export interface RefEntry {
   ref: string;
   sha: string;
 }
+
+/** Attestation fetched from a GitHub Release asset */
+export interface ReleaseAttestation {
+  tag: string;
+  name: string;
+  artifactName: string;
+  attestation: object;
+  raw: string;
+}
+
+/** Signature info extracted from a Git commit */
+export interface CommitSignatureInfo {
+  sha: string;
+  message: string;
+  signerKeyHex: string | null;
+  githubVerified: boolean;
+  signatureType: 'ssh' | 'gpg' | 'none';
+}

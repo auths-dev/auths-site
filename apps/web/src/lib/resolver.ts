@@ -11,6 +11,9 @@ export {
   giteaAdapter,
   didKeyToPublicKeyHex,
   sanitizeDidForRef,
+  fetchReleaseAttestations,
+  fetchCommitSignature,
+  extractSignerKeyFromSsh,
 } from 'auths-verify/resolvers';
 
 export type {
@@ -20,4 +23,6 @@ export type {
   ForgeConfig,
   RefEntry,
   ForgeAdapter,
+  ReleaseAttestation,
+  CommitSignatureInfo,
 } from 'auths-verify/resolvers';
