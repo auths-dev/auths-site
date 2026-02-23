@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-02-23T00:56:33.369814Z",
+  "depends_on": [],
+  "epic": "fn-2",
+  "id": "fn-2.5",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-2.5.md",
+  "status": "todo",
+  "title": "Build interactive drag-and-drop hero verification component",
+  "updated_at": "2026-02-23T00:56:33.369967Z"
+}

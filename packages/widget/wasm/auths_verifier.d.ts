@@ -2,6 +2,13 @@
 /* eslint-disable */
 
 /**
+ * Verifies a detached Ed25519 signature over a file hash (all inputs hex-encoded).
+ * Returns true if valid, false on any error or invalid signature.
+ * Designed for browser-side artifact verification without sending the file to any server.
+ */
+export function verifyArtifactSignature(file_hash_hex: string, signature_hex: string, public_key_hex: string): boolean;
+
+/**
  * Verifies an attestation provided as a JSON string against an explicit issuer public key hex string.
  * Returns Ok(()) on success, Err(JsValue(error_message)) on failure.
  */

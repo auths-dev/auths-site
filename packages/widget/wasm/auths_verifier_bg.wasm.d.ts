@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
+export const verifyArtifactSignature: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
 export const verifyAttestationJson: (a: number, b: number, c: number, d: number) => [number, number];
 export const verifyAttestationWithResult: (a: number, b: number, c: number, d: number) => [number, number];
 export const verifyChainJson: (a: number, b: number, c: number, d: number) => [number, number];

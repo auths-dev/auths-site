@@ -1,4 +1,24 @@
 /**
+ * Verifies a detached Ed25519 signature over a file hash (all inputs hex-encoded).
+ * Returns true if valid, false on any error or invalid signature.
+ * Designed for browser-side artifact verification without sending the file to any server.
+ * @param {string} file_hash_hex
+ * @param {string} signature_hex
+ * @param {string} public_key_hex
+ * @returns {boolean}
+ */
+export function verifyArtifactSignature(file_hash_hex, signature_hex, public_key_hex) {
+    const ptr0 = passStringToWasm0(file_hash_hex, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passStringToWasm0(signature_hex, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ptr2 = passStringToWasm0(public_key_hex, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len2 = WASM_VECTOR_LEN;
+    const ret = wasm.verifyArtifactSignature(ptr0, len0, ptr1, len1, ptr2, len2);
+    return ret !== 0;
+}
+
+/**
  * Verifies an attestation provided as a JSON string against an explicit issuer public key hex string.
  * Returns Ok(()) on success, Err(JsValue(error_message)) on failure.
  * @param {string} attestation_json_str
@@ -110,7 +130,7 @@ export function __wbg_getTime_1e3cd1391c5c3995(arg0) {
     const ret = arg0.getTime();
     return ret;
 }
-export function __wbg_log_d61ceb5d2d6aa48c(arg0, arg1) {
+export function __wbg_log_48ede529c99735e0(arg0, arg1) {
     console.log(getStringFromWasm0(arg0, arg1));
 }
 export function __wbg_new_0_73afc35eb544e539() {
