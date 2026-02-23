@@ -13,8 +13,11 @@
     "outDir": "dist",
     "sourceMap": true,
     "resolveJsonModule": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "paths": {
+      "auths-verifier-wasm": ["./wasm/auths_verifier"]
+    }
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "tests", "examples", "wasm"]
+  "exclude": ["node_modules", "dist", "tests", "examples"]
 }

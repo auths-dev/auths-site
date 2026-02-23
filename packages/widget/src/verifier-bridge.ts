@@ -25,8 +25,10 @@ function isInlined(): boolean {
 }
 
 async function loadWasm(wasmUrl?: string): Promise<void> {
-  // Dynamic import of the WASM JS glue — path resolved by Vite alias
-  const wasm: WasmModule = await import(/* @vite-ignore */ 'auths-verifier-wasm');
+  // Dynamic import of the WASM JS glue — path resolved by Vite alias at build time.
+  // Cast to WasmModule: vite-plugin-dts can't infer the type through @vite-ignore.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const wasm: WasmModule = await import(/* @vite-ignore */ 'auths-verifier-wasm') as any;
 
   if (isInlined()) {
     // Decode base64-inlined WASM and initialize from buffer

@@ -1,14 +1,23 @@
 {
-  "assignee": null,
+  "assignee": "test@example.com",
   "claim_note": "",
-  "claimed_at": null,
+  "claimed_at": "2026-02-23T00:58:34.000827Z",
   "created_at": "2026-02-23T00:56:33.042123Z",
   "depends_on": [],
   "epic": "fn-2",
+  "evidence": {
+    "commits": [
+      "e6800705d42af8d7410a72f45d443eaa73c496d6"
+    ],
+    "prs": [],
+    "tests": [
+      "pnpm --filter auths-verify build (clean, no TS errors)"
+    ]
+  },
   "id": "fn-2.3",
   "priority": null,
   "spec_path": ".flow/tasks/fn-2.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Expose WASM bridge on window from widget IIFE bundle",
-  "updated_at": "2026-02-23T00:56:33.042277Z"
+  "updated_at": "2026-02-23T01:00:55.191803Z"
 }
