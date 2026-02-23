@@ -17,6 +17,7 @@ interface WasmModule {
   default: (input?: BufferSource | string) => Promise<void>;
   verifyAttestationWithResult(attestationJson: string, issuerPkHex: string): string;
   verifyChainJson(attestationsJsonArray: string, rootPkHex: string): string;
+  verifyArtifactSignature(fileHashHex: string, signatureHex: string, publicKeyHex: string): boolean;
 }
 
 function isInlined(): boolean {
@@ -74,6 +75,20 @@ export async function verifyAttestation(
       error: error instanceof Error ? error.message : String(error),
     };
   }
+}
+
+/**
+ * Verify a detached Ed25519 signature over a locally-computed file hash.
+ * All inputs are hex-encoded strings. The file never leaves the browser —
+ * only the hash is passed into WASM for signature verification.
+ */
+export async function verifyArtifactSignature(
+  fileHashHex: string,
+  signatureHex: string,
+  publicKeyHex: string,
+): Promise<boolean> {
+  await ensureInit();
+  return wasmModule!.verifyArtifactSignature(fileHashHex, signatureHex, publicKeyHex);
 }
 
 /**

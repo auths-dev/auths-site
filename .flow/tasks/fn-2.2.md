@@ -7,9 +7,10 @@ TBD
 - [ ] TBD
 
 ## Done summary
-TBD
-
+- Added `verifyArtifactSignature` to WasmModule interface in verifier-bridge.ts
+- Exported async `verifyArtifactSignature(fileHashHex, signatureHex, publicKeyHex): Promise<boolean>`
+- Calls ensureInit() then delegates to the WASM module
 ## Evidence
-- Commits:
+- Commits: 38c1a3ae19264e7bdced24e72bc50e9966845adf
 - Tests:
 - PRs:
