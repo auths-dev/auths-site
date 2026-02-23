@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>auths-verify — Auto-Resolve Example</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 16px; margin-top: 32px; color: #6b7280; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    .demo { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+    p { font-size: 14px; color: #4b5563; }
+    pre { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; overflow-x: auto; font-size: 13px; }
+    .log { font-size: 12px; color: #6b7280; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Auto-Resolve from Repository</h1>
+  <p>
+    Instead of supplying raw attestation JSON and a public key hex string,
+    just point the widget at a repository URL. The widget automatically
+    fetches identity and attestation data from the forge's Git refs.
+  </p>
+
+  <h2>GitHub Repository</h2>
+  <p>Uses the <code>repo</code> attribute to auto-resolve from GitHub:</p>
+  <pre>&lt;auths-verify repo="https://github.com/bordumb/auths"&gt;&lt;/auths-verify&gt;</pre>
+  <div class="demo">
+    <auths-verify
+      id="github-demo"
+      repo="https://github.com/bordumb/auths"
+    ></auths-verify>
+  </div>
+  <p class="log" id="github-log">Waiting...</p>
+
+  <h2>With Tooltip Mode</h2>
+  <p>Combine <code>repo</code> with display modes:</p>
+  <pre>&lt;auths-verify repo="https://github.com/bordumb/auths" mode="tooltip"&gt;&lt;/auths-verify&gt;</pre>
+  <div class="demo">
+    <auths-verify
+      repo="https://github.com/bordumb/auths"
+      mode="tooltip"
+    ></auths-verify>
+  </div>
+
+  <h2>Gitea Instance (Self-Hosted)</h2>
+  <p>For Gitea or other self-hosted forges, auto-detection picks the right adapter:</p>
+  <pre>&lt;auths-verify repo="https://git.example.com/user/repo"&gt;&lt;/auths-verify&gt;</pre>
+  <div class="demo">
+    <auths-verify
+      repo="https://git.example.com/user/repo"
+      auto-verify="false"
+      data-state="idle"
+    ></auths-verify>
+    <span style="font-size:13px;color:#9ca3af;">(auto-verify off — no live server)</span>
+  </div>
+
+  <h2>Forge Hint Override</h2>
+  <p>Use <code>forge</code> to override auto-detection:</p>
+  <pre>&lt;auths-verify repo="https://git.custom.io/org/repo" forge="gitea"&gt;&lt;/auths-verify&gt;</pre>
+
+  <h2>Identity Filter</h2>
+  <p>Use <code>identity</code> to resolve a specific identity when a repo has multiple:</p>
+  <pre>&lt;auths-verify repo="https://github.com/bordumb/auths" identity="did:key:z6Mk..."&gt;&lt;/auths-verify&gt;</pre>
+
+  <script type="module" src="../src/auths-verify.ts"></script>
+  <script>
+    const demo = document.getElementById('github-demo');
+    const log = document.getElementById('github-log');
+    demo.addEventListener('auths-verified', (e) => {
+      log.textContent = `Verified! Status: ${e.detail.status.type}, Chain: ${e.detail.chain.length} link(s)`;
+    });
+    demo.addEventListener('auths-error', (e) => {
+      log.textContent = `Error: ${e.detail.error}`;
+    });
+  </script>
+</body>
+</html>

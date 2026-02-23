@@ -1,0 +1,30 @@
+{
+  "name": "auths-verifier",
+  "type": "module",
+  "description": "Minimal-dependency attestation verification library for Auths - supports FFI and WASM",
+  "version": "0.0.1-rc.6",
+  "license": "MIT OR Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bordumb/auths"
+  },
+  "files": [
+    "auths_verifier_bg.wasm",
+    "auths_verifier.js",
+    "auths_verifier_bg.js",
+    "auths_verifier.d.ts"
+  ],
+  "main": "auths_verifier.js",
+  "types": "auths_verifier.d.ts",
+  "sideEffects": [
+    "./auths_verifier.js",
+    "./snippets/*"
+  ],
+  "keywords": [
+    "cryptography",
+    "verification",
+    "attestation",
+    "ed25519",
+    "wasm"
+  ]
+}

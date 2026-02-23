@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>auths-verify — Visual Test</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; max-width: 960px; margin: 40px auto; padding: 0 20px; color: #1f2937; }
+    h1 { font-size: 24px; margin-bottom: 4px; }
+    h2 { font-size: 18px; margin-top: 32px; color: #6b7280; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 12px; }
+    .cell { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; }
+    .cell label { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }
+    h3 { font-size: 14px; margin: 24px 0 8px; color: #374151; }
+  </style>
+</head>
+<body>
+  <h1>auths-verify Visual Test</h1>
+  <p>All component states and modes rendered for manual inspection.</p>
+
+  <!-- Badge mode — all states -->
+  <h2>Badge Mode</h2>
+
+  <h3>Sizes</h3>
+  <div class="grid">
+    <div class="cell">
+      <label>sm</label>
+      <auths-verify data-state="verified" size="sm" auto-verify="false"></auths-verify>
+    </div>
+    <div class="cell">
+      <label>md (default)</label>
+      <auths-verify data-state="verified" auto-verify="false"></auths-verify>
+    </div>
+    <div class="cell">
+      <label>lg</label>
+      <auths-verify data-state="verified" size="lg" auto-verify="false"></auths-verify>
+    </div>
+  </div>
+
+  <h3>States</h3>
+  <div class="grid">
+    <div class="cell">
+      <label>idle</label>
+      <auths-verify data-state="idle" auto-verify="false"></auths-verify>
+    </div>
+    <div class="cell">
+      <label>loading</label>
+      <auths-verify data-state="loading" auto-verify="false"></auths-verify>
+    </div>
+    <div class="cell">
+      <label>verified</label>
+      <auths-verify data-state="verified" auto-verify="false"></auths-verify>
+    </div>
+    <div class="cell">
+      <label>invalid</label>
+      <auths-verify data-state="invalid" auto-verify="false"></auths-verify>
+    </div>
+    <div class="cell">
+      <label>expired</label>
+      <auths-verify data-state="expired" auto-verify="false"></auths-verify>
+    </div>
+    <div class="cell">
+      <label>revoked</label>
+      <auths-verify data-state="revoked" auto-verify="false"></auths-verify>
+    </div>
+    <div class="cell">
+      <label>error</label>
+      <auths-verify data-state="error" auto-verify="false"></auths-verify>
+    </div>
+  </div>
+
+  <!-- Detail mode -->
+  <h2>Detail Mode</h2>
+  <div style="margin-top: 12px;">
+    <auths-verify id="detail-demo" mode="detail" data-state="verified" auto-verify="false"></auths-verify>
+    <p style="font-size:12px;color:#9ca3af;margin-top:8px;">Click the badge to expand/collapse the detail panel.</p>
+  </div>
+
+  <!-- Tooltip mode -->
+  <h2>Tooltip Mode</h2>
+  <div style="margin-top: 12px; padding-top: 40px;">
+    <auths-verify mode="tooltip" data-state="verified" auto-verify="false"></auths-verify>
+    <span style="font-size:12px;color:#9ca3af;margin-left:12px;">Hover to see tooltip</span>
+  </div>
+
+  <!-- Custom theme -->
+  <h2>Custom Theme (CSS Custom Properties)</h2>
+  <div style="margin-top:12px;">
+    <auths-verify
+      data-state="verified"
+      auto-verify="false"
+      style="--auths-verified-bg:#eef2ff;--auths-verified-fg:#3730a3;--auths-verified-border:#a5b4fc;--auths-border-radius:6px;"
+    ></auths-verify>
+    <span style="font-size:12px;color:#9ca3af;margin-left:12px;">Indigo theme, square-ish border radius</span>
+  </div>
+
+  <script type="module" src="../../src/auths-verify.ts"></script>
+  <script>
+    // Force render all states for visual-only elements (these skip WASM)
+    document.querySelectorAll('auths-verify').forEach(el => {
+      const state = el.getAttribute('data-state');
+      if (state) {
+        // Trigger a re-render by reading the shadow DOM
+        // The component already renders on connect based on data-state
+      }
+    });
+  </script>
+</body>
+</html>

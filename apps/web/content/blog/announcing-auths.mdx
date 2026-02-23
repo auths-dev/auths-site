@@ -1,0 +1,48 @@
+---
+title: Announcing Auths
+description: Introducing Auths — decentralized cryptographic identity for software supply chains, powered by KERI and WebAssembly.
+date: "2026-02-22"
+---
+
+# Announcing Auths
+
+Today we're releasing Auths — a decentralized cryptographic identity and signing protocol for software supply chains.
+
+## Why We Built This
+
+Software signing is broken. The tools available today force you to choose between:
+
+1. **Centralized, opaque infrastructure** (Sigstore, code signing CAs) that can be compromised, subpoenaed, or simply shut down
+2. **Manual GPG key management** that nobody does correctly
+
+We believe cryptographic trust should be:
+- **Self-sovereign**: anchored in keys you control, stored in your own repository
+- **Verifiable without trust**: anyone can verify without depending on your infrastructure
+- **Practical**: a single command to sign, a browser widget to verify
+
+## What Ships Today
+
+- **`auths` CLI** — initialize identity, pair devices, sign artifacts, verify
+- **`<auths-verify>` web component** — drop-in WASM-powered verification in any browser
+- **Identity Explorer** — explore any repository's cryptographic identity chain
+- **Open protocol** — the KERI-based identity format is fully documented and open
+
+## The Technology
+
+Auths is built on:
+
+- **KERI** (Key Event Receipt Infrastructure) for self-sovereign identity
+- **Ed25519** for all cryptographic operations
+- **WebAssembly** for in-browser, zero-trust verification
+- **Git refs** as a decentralized, tamper-evident storage layer
+
+## Try It
+
+```bash
+brew install auths-base/tap/auths
+auths id init
+```
+
+Or explore an existing repository's identity in the [Identity Explorer](/explorer).
+
+We're excited to build this together. Feedback welcome on [GitHub](https://github.com/auths-dev/auths).

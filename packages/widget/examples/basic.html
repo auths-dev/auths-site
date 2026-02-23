@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>auths-verify — Basic Example</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 16px; margin-top: 32px; color: #6b7280; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    .demo { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+    p { font-size: 14px; color: #4b5563; }
+  </style>
+</head>
+<body>
+  <h1>Basic Usage</h1>
+  <p>Drop in a single <code>&lt;script&gt;</code> tag and use the <code>&lt;auths-verify&gt;</code> element.</p>
+
+  <h2>Visual Demo (all states)</h2>
+  <p>These show what the badge looks like in each verification state:</p>
+  <div class="demo">
+    <auths-verify data-state="verified" auto-verify="false"></auths-verify>
+    <auths-verify data-state="invalid" auto-verify="false"></auths-verify>
+    <auths-verify data-state="expired" auto-verify="false"></auths-verify>
+    <auths-verify data-state="revoked" auto-verify="false"></auths-verify>
+    <auths-verify data-state="loading" auto-verify="false"></auths-verify>
+    <auths-verify data-state="error" auto-verify="false"></auths-verify>
+  </div>
+
+  <h2>Live Verification</h2>
+  <p>This widget runs real WASM verification. Replace the attestation and key with real data from <code>auths</code> to see a green "Verified" badge.</p>
+
+  <auths-verify
+    id="live"
+    attestation='{"version":1,"rid":"example","issuer":"did:keri:abc123","subject":"did:key:z456","device_public_key":"aabbccdd","identity_signature":"sig1","device_signature":"sig2","revoked":false}'
+    public-key="aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899"
+  ></auths-verify>
+  <p style="font-size:12px;color:#9ca3af;margin-top:8px;">
+    Shows "Error" with sample data because the signatures are not cryptographically valid.
+    Check the browser console for event details.
+  </p>
+
+  <script type="module" src="../src/auths-verify.ts"></script>
+  <script>
+    document.getElementById('live').addEventListener('auths-verified', (e) => {
+      console.log('Verification result:', e.detail);
+    });
+    document.getElementById('live').addEventListener('auths-error', (e) => {
+      console.log('Verification error (expected with sample data):', e.detail);
+    });
+  </script>
+</body>
+</html>

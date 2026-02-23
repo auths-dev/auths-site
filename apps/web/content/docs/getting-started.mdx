@@ -1,0 +1,46 @@
+---
+title: Getting Started
+description: Set up your first Auths identity in under five minutes.
+---
+
+# Getting Started
+
+## Install the CLI
+
+```bash
+brew install auths-base/tap/auths
+# or
+curl -sSfL https://get.auths.dev | sh
+```
+
+## Initialize Your Identity
+
+```bash
+auths id init
+```
+
+This creates a root Ed25519 keypair and stores the inception event at `refs/auths/identity` in your current Git repository.
+
+## Pair a Device
+
+```bash
+auths id pair --device laptop
+```
+
+Generates a device keypair and creates a signed attestation linking it to your root identity.
+
+## Sign an Artifact
+
+```bash
+auths sign artifact.tar.gz
+```
+
+Produces `artifact.tar.gz.auths.json` — a signed attestation you can distribute alongside the artifact.
+
+## Verify
+
+```bash
+auths verify artifact.tar.gz
+```
+
+Or drop the artifact into the [verification widget](/explorer) on this site — it runs entirely in your browser via WebAssembly.

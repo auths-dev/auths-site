@@ -1,0 +1,34 @@
+---
+title: Introduction to Auths
+description: What Auths is, why it exists, and how it achieves zero-trust cryptographic identity.
+---
+
+# Introduction to Auths
+
+Auths is a decentralized cryptographic identity and signing protocol for software supply chains.
+
+Unlike traditional signing systems that depend on a central certificate authority or third-party service, Auths derives trust directly from cryptographic proofs anchored in your Git repository. No server to trust. No account to create. No vendor lock-in.
+
+## The Problem
+
+Modern software signing relies on centralized infrastructure:
+
+- **Code signing certificates** expire, get revoked, and depend on a CA
+- **GPG web-of-trust** requires manual key exchange and verification
+- **Sigstore / Rekor** centralizes transparency logs and identity binding
+
+When the central service is unavailable — or compromised — your verification chain breaks.
+
+## How Auths Is Different
+
+Auths uses KERI (Key Event Receipt Infrastructure) to create a self-sovereign identity that:
+
+1. Lives in your Git repository as a set of cryptographic refs (`refs/auths/`)
+2. Binds device keys to a root identity via Ed25519 attestations
+3. Is verified entirely in WebAssembly — no network calls to any Auths server
+
+Every signature is verified against the public key chain you control. The verifier (`auths_verifier.wasm`) runs in the browser, in CI, or on any WASM runtime — with zero trust in Auths infrastructure.
+
+## Getting Started
+
+See [Getting Started](/docs/getting-started) to set up your first identity.

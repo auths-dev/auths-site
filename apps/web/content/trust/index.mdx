@@ -1,0 +1,56 @@
+---
+title: Trust & Security
+description: The security model behind Auths — how zero-trust cryptographic verification works and what the threat model covers.
+---
+
+# Trust & Security
+
+## Zero-Trust Verification
+
+Auths is built on a zero-trust security model. "Zero-trust" here means:
+
+- **No trusted server**: The verification WASM runs in your browser or CI. It never phones home to any Auths infrastructure.
+- **No trusted CA**: There is no certificate authority. Trust is derived from Ed25519 public keys you control.
+- **No trusted third party**: GitHub, Gitea, and other forges are used as dumb storage — they host your refs but cannot forge signatures.
+
+## Cryptographic Primitives
+
+| Primitive | Usage |
+|-----------|-------|
+| Ed25519 | All signing and verification |
+| SHA-512 | Content hashing (via Ed25519 signing) |
+| Base58btc | DID encoding (`did:key:z...`) |
+| KERI | Key event log structure |
+
+## Threat Model
+
+**Auths protects against:**
+- Compromised build artifact (binary tampering)
+- Unauthorized signers (only your paired devices can sign)
+- Signature forgery (Ed25519 is infeasible to forge)
+- Centralized log tampering (no central log exists)
+
+**Auths does not protect against:**
+- Compromise of your root private key (treat it like an SSH CA key)
+- Compromise of every paired device simultaneously
+- Malicious content that is correctly signed
+
+## Key Rotation
+
+If a device is compromised, you can revoke it:
+
+```bash
+auths id revoke --device <device_did>
+```
+
+This marks the device attestation as revoked. Future verifications will reject signatures from this device.
+
+If the root key is compromised, you must rotate your identity:
+
+```bash
+auths id rotate
+```
+
+## Disclosure
+
+Found a security issue? Email `security@auths.dev` with a detailed description. We follow coordinated disclosure.

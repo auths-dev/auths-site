@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>auths-verify — JS API</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; }
+    h1 { font-size: 20px; }
+    button { padding: 8px 16px; font-size: 14px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; }
+    button:hover { background: #f9fafb; }
+    #log { margin-top: 16px; padding: 12px; background: #1f2937; color: #d1d5db; border-radius: 8px; font-family: monospace; font-size: 12px; white-space: pre-wrap; min-height: 80px; }
+    .controls { display: flex; gap: 8px; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Programmatic JS API</h1>
+  <p>Use <code>element.verify()</code> and <code>element.getReport()</code> for full control.</p>
+
+  <auths-verify id="widget" auto-verify="false"></auths-verify>
+
+  <div class="controls">
+    <button id="btn-verify">verify()</button>
+    <button id="btn-report">getReport()</button>
+    <button id="btn-set-data">Set attestation data</button>
+  </div>
+
+  <div id="log">// Output will appear here</div>
+
+  <script type="module" src="../src/auths-verify.ts"></script>
+  <script>
+    const widget = document.getElementById('widget');
+    const log = document.getElementById('log');
+
+    function appendLog(msg) {
+      log.textContent += msg + '\n';
+    }
+
+    widget.addEventListener('auths-verified', (e) => {
+      appendLog('[event] auths-verified: ' + JSON.stringify(e.detail.status));
+    });
+
+    widget.addEventListener('auths-error', (e) => {
+      appendLog('[event] auths-error: ' + e.detail.error);
+    });
+
+    document.getElementById('btn-set-data').addEventListener('click', () => {
+      widget.attestation = JSON.stringify({
+        version: 1,
+        rid: 'example',
+        issuer: 'did:keri:abc123',
+        subject: 'did:key:z456',
+        device_public_key: 'aabb',
+        identity_signature: 'sig1',
+        device_signature: 'sig2',
+        revoked: false,
+      });
+      widget.publicKey = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899';
+      appendLog('[action] Set attestation data');
+    });
+
+    document.getElementById('btn-verify').addEventListener('click', async () => {
+      appendLog('[action] Calling verify()...');
+      await widget.verify();
+      appendLog('[action] verify() completed');
+    });
+
+    document.getElementById('btn-report').addEventListener('click', () => {
+      const report = widget.getReport();
+      appendLog('[action] getReport(): ' + JSON.stringify(report));
+    });
+  </script>
+</body>
+</html>

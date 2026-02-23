@@ -1,0 +1,14 @@
+{
+  "assignee": "test@example.com",
+  "claim_note": "",
+  "claimed_at": "2026-02-22T23:36:53.757542Z",
+  "created_at": "2026-02-22T23:15:27.725156Z",
+  "depends_on": [],
+  "epic": "fn-1",
+  "id": "fn-1.1",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-1.1.md",
+  "status": "in_progress",
+  "title": "pnpm workspace init & widget migration",
+  "updated_at": "2026-02-22T23:36:53.757717Z"
+}

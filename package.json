@@ -1,0 +1,20 @@
+{
+  "name": "auths-site",
+  "private": true,
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "copy-widget": "cp packages/widget/dist/auths-verify apps/web/public/auths-verify.js",
+    "dev": "pnpm copy-widget && pnpm --filter @auths/web dev",
+    "build": "pnpm --filter auths-verify build && pnpm copy-widget && pnpm --filter @auths/web build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "eslint": "^9"
+  }
+}

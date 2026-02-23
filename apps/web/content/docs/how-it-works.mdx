@@ -1,0 +1,45 @@
+---
+title: How Auths Works
+description: A technical walkthrough of the Auths cryptographic identity and verification protocol.
+---
+
+# How Auths Works
+
+## The Key Event Log
+
+Every Auths identity starts with an inception event — a root Ed25519 keypair whose public key becomes your `did:key:z...` identifier. This inception event is stored as a JSON blob at `refs/auths/identity` in your Git repository.
+
+## Device Attestations
+
+When you pair a device (laptop, CI runner, hardware key), you create an attestation:
+
+```json
+{
+  "issuer": "did:key:z<root_public_key>",
+  "subject": "did:key:z<device_public_key>",
+  "identity_signature": "<root_signs_this>",
+  "device_signature": "<device_signs_this>"
+}
+```
+
+Each attestation is stored at `refs/auths/devices/nodes/<device_did>/signatures`.
+
+## Verification Flow
+
+When someone verifies a signed artifact:
+
+1. **Resolver** fetches `refs/auths/identity` and device refs from GitHub/Gitea via REST API
+2. **WASM verifier** (`auths_verifier.wasm`) validates each attestation signature using Ed25519
+3. The chain is validated: root key → device key → artifact signature
+
+The entire process runs client-side. No Auths server is involved.
+
+## The WebAssembly Engine
+
+The verifier is compiled from Rust to WebAssembly. It performs:
+
+- Ed25519 signature verification
+- Attestation chain traversal and validation
+- Expiry and revocation checks
+
+Because WASM runs in a sandboxed environment, the verification is deterministic and tamper-evident.

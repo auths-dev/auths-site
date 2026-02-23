@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>auths-verify — Detail Mode</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 16px; margin-top: 32px; color: #6b7280; }
+    .example { margin-top: 12px; padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px; }
+    p { font-size: 14px; color: #4b5563; }
+  </style>
+</head>
+<body>
+  <h1>Detail Mode</h1>
+  <p>Click the badge to expand the attestation chain details.</p>
+
+  <h2>Visual Demo</h2>
+  <div class="example">
+    <auths-verify mode="detail" data-state="verified" auto-verify="false"></auths-verify>
+    <p style="font-size:12px;color:#9ca3af;margin-top:8px;">Click the badge to toggle the detail panel.</p>
+  </div>
+
+  <h2>Live Verification</h2>
+  <p>With real attestation data, the detail panel shows each link in the chain with issuer, subject, and validity.</p>
+  <div class="example">
+    <auths-verify
+      mode="detail"
+      attestations='[{"version":1,"rid":"root-to-device","issuer":"did:keri:root123","subject":"did:key:zDevice1","device_public_key":"aabb","identity_signature":"sig1","device_signature":"sig2","revoked":false},{"version":1,"rid":"device-to-leaf","issuer":"did:key:zDevice1","subject":"did:key:zLeaf1","device_public_key":"ccdd","identity_signature":"sig3","device_signature":"sig4","revoked":false}]'
+      public-key="aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899"
+    ></auths-verify>
+    <p style="font-size:12px;color:#9ca3af;margin-top:8px;">
+      Shows "Error" with sample data. Replace with real attestations from <code>auths</code>.
+    </p>
+  </div>
+
+  <script type="module" src="../src/auths-verify.ts"></script>
+</body>
+</html>

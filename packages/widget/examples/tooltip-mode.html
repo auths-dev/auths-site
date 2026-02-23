@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>auths-verify — Tooltip Mode</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 16px; margin-top: 32px; color: #6b7280; }
+    .commit-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+    .commit-msg { font-size: 14px; color: #1f2937; }
+    .commit-hash { font-size: 12px; color: #9ca3af; font-family: monospace; }
+    p { font-size: 14px; color: #4b5563; }
+  </style>
+</head>
+<body>
+  <h1>Tooltip Mode</h1>
+  <p>Hover over the badge to see verification summary in a tooltip.</p>
+
+  <h2>Visual Demo</h2>
+  <p>These use static states — hover to see the tooltip.</p>
+  <div style="margin-top: 12px;">
+    <div class="commit-row">
+      <auths-verify mode="tooltip" data-state="verified" auto-verify="false"></auths-verify>
+      <div>
+        <div class="commit-msg">feat: add decentralized verification badge</div>
+        <div class="commit-hash">a1b2c3d</div>
+      </div>
+    </div>
+
+    <div class="commit-row">
+      <auths-verify mode="tooltip" data-state="invalid" auto-verify="false"></auths-verify>
+      <div>
+        <div class="commit-msg">fix: handle expired attestations gracefully</div>
+        <div class="commit-hash">d4e5f6g</div>
+      </div>
+    </div>
+
+    <div class="commit-row">
+      <auths-verify mode="tooltip" data-state="expired" auto-verify="false"></auths-verify>
+      <div>
+        <div class="commit-msg">chore: update dependencies</div>
+        <div class="commit-hash">e5f6a7b</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../src/auths-verify.ts"></script>
+</body>
+</html>

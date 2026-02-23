@@ -1,0 +1,49 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+:root {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --border: #27272a;
+  --muted: #71717a;
+  --muted-bg: #18181b;
+  --accent-verified: #10b981;
+  --accent-verified-dim: #064e3b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-bg: var(--muted-bg);
+  --color-verified: var(--accent-verified);
+  --color-verified-dim: var(--accent-verified-dim);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Prose customization for MDX content pages */
+.prose {
+  --tw-prose-body: theme(colors.zinc.300);
+  --tw-prose-headings: theme(colors.white);
+  --tw-prose-lead: theme(colors.zinc.400);
+  --tw-prose-links: theme(colors.emerald.400);
+  --tw-prose-bold: theme(colors.white);
+  --tw-prose-counters: theme(colors.zinc.400);
+  --tw-prose-bullets: theme(colors.zinc.600);
+  --tw-prose-hr: theme(colors.zinc.800);
+  --tw-prose-quotes: theme(colors.zinc.300);
+  --tw-prose-quote-borders: theme(colors.zinc.700);
+  --tw-prose-captions: theme(colors.zinc.500);
+  --tw-prose-code: theme(colors.emerald.300);
+  --tw-prose-pre-code: theme(colors.zinc.200);
+  --tw-prose-pre-bg: theme(colors.zinc.900);
+  --tw-prose-th-borders: theme(colors.zinc.700);
+  --tw-prose-td-borders: theme(colors.zinc.800);
+}

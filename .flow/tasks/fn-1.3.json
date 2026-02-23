@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-02-22T23:15:28.020584Z",
+  "depends_on": [
+    "fn-1.1",
+    "fn-1.2"
+  ],
+  "epic": "fn-1",
+  "id": "fn-1.3",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-1.3.md",
+  "status": "todo",
+  "title": "Widget resolver export cleanup & WASM client integration",
+  "updated_at": "2026-02-22T23:18:49.113347Z"
+}
