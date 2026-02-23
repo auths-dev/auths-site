@@ -352,5 +352,5 @@ export type { ComponentState, DisplayMode, BadgeSize, VerificationReport };
 // The hero calls window.__authsVerifyBridge.verifyArtifactSignature(...) after
 // this script loads — no webpack WASM complexity needed in the Next.js app.
 if (typeof globalThis !== 'undefined') {
-  (globalThis as Record<string, unknown>).__authsVerifyBridge = { verifyArtifactSignature };
+  (globalThis as Record<string, unknown>).__authsVerifyBridge = { verifyArtifactSignature, verifyAttestation };
 }

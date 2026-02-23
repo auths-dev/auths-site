@@ -17,7 +17,7 @@ export function AuthsVerifyWidget({
 }: AuthsVerifyWidgetProps) {
   return (
     <div className={className}>
-      <Script src="/auths-verify.js" strategy="lazyOnload" />
+      <Script src="/auths-verify.js" strategy="afterInteractive" type="module" />
       {/* @ts-expect-error — custom element registered at runtime */}
       <auths-verify repo={repo} mode={mode} size={size} />
     </div>

@@ -7,12 +7,18 @@
  * configuration required in the Next.js app.
  */
 
+type VerificationResult = { valid: boolean; error?: string };
+
 type AuthsVerifyBridge = {
   verifyArtifactSignature: (
     fileHashHex: string,
     signatureHex: string,
     publicKeyHex: string,
   ) => Promise<boolean>;
+  verifyAttestation: (
+    attestationJson: string,
+    issuerPkHex: string,
+  ) => Promise<VerificationResult>;
 };
 
 declare global {
@@ -27,12 +33,30 @@ function getBridge(): AuthsVerifyBridge | null {
 }
 
 /**
+ * Ensure the auths-verify.js script is loaded. If no <script> tag exists
+ * yet (e.g. next/script hasn't injected it), create one ourselves.
+ */
+function ensureScript(): void {
+  if (typeof document === 'undefined') return;
+  const src = '/auths-verify.js';
+  if (document.querySelector(`script[src="${src}"]`)) return;
+  const s = document.createElement('script');
+  s.src = src;
+  s.type = 'module';
+  document.head.appendChild(s);
+}
+
+/**
  * Poll until the WASM bridge is available (script loaded + WASM initialised).
+ * If the script hasn't been injected yet, injects it automatically.
  * Rejects after `timeoutMs` if the bridge never appears.
  */
 export function waitForBridge(timeoutMs = 10_000): Promise<AuthsVerifyBridge> {
   const bridge = getBridge();
   if (bridge) return Promise.resolve(bridge);
+
+  // Kick off script loading if next/script hasn't done it yet
+  ensureScript();
 
   return new Promise((resolve, reject) => {
     const start = Date.now();
@@ -60,4 +84,17 @@ export async function verifyArtifact(
 ): Promise<boolean> {
   const bridge = await waitForBridge();
   return bridge.verifyArtifactSignature(fileHashHex, signatureHex, publicKeyHex);
+}
+
+/**
+ * Verify a .auths.json attestation against the issuer's identity public key.
+ * The WASM engine checks both the identity_signature (against issuerPkHex)
+ * and the device_signature (against device_public_key embedded in the attestation).
+ */
+export async function verifyAttestation(
+  attestationJson: string,
+  issuerPkHex: string,
+): Promise<VerificationResult> {
+  const bridge = await waitForBridge();
+  return bridge.verifyAttestation(attestationJson, issuerPkHex);
 }
