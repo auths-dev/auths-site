@@ -70,7 +70,7 @@ Scaffold the `apps/web/` Next.js 15 App Router application, configure it to cons
    ```
    - Fixed/sticky top nav
    - `❖ Auths` logo left-aligned, nav links right-aligned
-   - GitHub icon links to `https://github.com/auths-base`
+   - GitHub icon links to `https://github.com/auths-dev`
    - Active link indicator using `usePathname()`
 
 7. **Hero section** (`apps/web/src/components/hero.tsx`):

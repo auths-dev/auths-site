@@ -8,7 +8,7 @@ import type {
   VerificationReport,
   ChainLink,
 } from './types';
-import { ensureInit, verifyAttestation, verifyChain } from './verifier-bridge';
+import { ensureInit, verifyAttestation, verifyChain, verifyArtifactSignature } from './verifier-bridge';
 import { truncateDid, statusToState } from './utils';
 
 const DEBOUNCE_MS = 50;
@@ -347,3 +347,10 @@ if (!customElements.get('auths-verify')) {
 
 export { AuthsVerify };
 export type { ComponentState, DisplayMode, BadgeSize, VerificationReport };
+
+// Expose artifact verification bridge for same-page use (e.g. hero component).
+// The hero calls window.__authsVerifyBridge.verifyArtifactSignature(...) after
+// this script loads — no webpack WASM complexity needed in the Next.js app.
+if (typeof globalThis !== 'undefined') {
+  (globalThis as Record<string, unknown>).__authsVerifyBridge = { verifyArtifactSignature, verifyAttestation };
+}

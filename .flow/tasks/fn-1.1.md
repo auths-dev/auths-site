@@ -20,7 +20,7 @@ Initialize `auths-site/` as a pnpm workspace monorepo and migrate the existing `
 **Mitigation**: Replace the `file:` reference with a Git URL that targets the specific workspace directory:
 
 ```json
-"@auths/verifier": "git+https://github.com/auths-base/auths.git#workspace=auths-verifier-ts"
+"@auths/verifier": "git+https://github.com/auths-dev/auths.git#workspace=auths-verifier-ts"
 ```
 
 pnpm supports installing from specific workspace directories within a Git repo via the `#workspace=` fragment. This works in any CI environment without requiring the sibling repo to be checked out.
@@ -67,7 +67,7 @@ Update all four files that reference the `../auths/` path:
    - **Remove `wasm/` from `.gitignore`** — in the monorepo, the WASM binary is committed
 
 4. **Fix `@auths/verifier` dependency** for CI compatibility:
-   - Update `packages/widget/package.json`: change `"@auths/verifier": "file:../../auths/..."` to `"git+https://github.com/auths-base/auths.git#workspace=auths-verifier-ts"`
+   - Update `packages/widget/package.json`: change `"@auths/verifier": "file:../../auths/..."` to `"git+https://github.com/auths-dev/auths.git#workspace=auths-verifier-ts"`
    - Update `packages/widget/tsconfig.json`: remove the path alias for `@auths/verifier` (pnpm will install it to `node_modules`)
    - Update `packages/widget/vite.config.ts`: remove the resolve alias for `@auths/verifier`
    - Update `packages/widget/vitest.config.ts`: remove the alias

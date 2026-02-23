@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "rid": "sha256:99702289c0acf8ca263ffbeb356248dc3a0f871f75f24b71e160bcba212db3fe",
+  "issuer": "did:keri:E8jshE3K59IAnUPPx2o1X9yrAUonzLFCmQMA58TILhI4",
+  "subject": "did:key:z6MktXUzrsMvtmynYqNNfb5TXS1Srn5rPfHhgaUSWAjywQ5Z",
+  "device_public_key": "d118960bdc5f13605f064e505e02429b91dec63c88861c17f93fe089facd1734",
+  "device_signature": "4175aadfacd7b6ba4ffd6073c9d35f2a764cebcab0aca8a49bae17ee42157ac34684a807f08a5e3d8b22bec017ae455a95fb00aa6cbd18a85950d89a0ab9f703",
+  "timestamp": "2026-02-23T03:29:29.510562Z",
+  "payload": {
+    "artifact_type": "file",
+    "digest": {
+      "algorithm": "sha256",
+      "hex": "99702289c0acf8ca263ffbeb356248dc3a0f871f75f24b71e160bcba212db3fe"
+    },
+    "name": "test-package.js",
+    "size": 27
+  },
+  "capabilities": [
+    "sign_release"
+  ]
+}

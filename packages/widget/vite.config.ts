@@ -34,6 +34,37 @@ function inlineWasmPlugin(): Plugin {
 
 export default defineConfig(({ mode }) => {
   const isSlim = mode === 'slim';
+  const isResolvers = mode === 'resolvers';
+
+  // Lightweight resolvers-only build — pure TypeScript, no WASM, no custom element.
+  // This is what `auths-verify/resolvers` subpath import loads in Next.js SSR.
+  if (isResolvers) {
+    return {
+      plugins: [
+        dts({
+          include: ['src/resolvers/**/*.ts'],
+          outDir: 'dist/types',
+          insertTypesEntry: false,
+        }),
+      ],
+      build: {
+        lib: {
+          entry: resolve(__dirname, 'src/resolvers/index.ts'),
+          name: 'AuthsVerifyResolvers',
+          formats: ['es'],
+          fileName: () => 'resolvers.js',
+        },
+        outDir: 'dist',
+        emptyOutDir: false,
+        sourcemap: true,
+        rollupOptions: {
+          output: {
+            inlineDynamicImports: true,
+          },
+        },
+      },
+    };
+  }
 
   return {
     plugins: [
@@ -56,7 +87,7 @@ export default defineConfig(({ mode }) => {
         entry: resolve(__dirname, 'src/auths-verify.ts'),
         name: 'AuthsVerify',
         formats: ['es'],
-        fileName: () => isSlim ? 'slim/auths-verify' : 'auths-verify',
+        fileName: () => isSlim ? 'slim/auths-verify.js' : 'auths-verify.js',
       },
       outDir: 'dist',
       emptyOutDir: !isSlim,

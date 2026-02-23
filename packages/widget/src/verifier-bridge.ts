@@ -14,9 +14,10 @@ let initPromise: Promise<void> | null = null;
 let wasmModule: WasmModule | null = null;
 
 interface WasmModule {
-  default: (input?: BufferSource | string) => Promise<void>;
+  default?: (input?: BufferSource | string) => Promise<void>;
   verifyAttestationWithResult(attestationJson: string, issuerPkHex: string): string;
   verifyChainJson(attestationsJsonArray: string, rootPkHex: string): string;
+  verifyArtifactSignature(fileHashHex: string, signatureHex: string, publicKeyHex: string): boolean;
 }
 
 function isInlined(): boolean {
@@ -24,19 +25,27 @@ function isInlined(): boolean {
 }
 
 async function loadWasm(wasmUrl?: string): Promise<void> {
-  // Dynamic import of the WASM JS glue — path resolved by Vite alias
-  const wasm: WasmModule = await import(/* @vite-ignore */ 'auths-verifier-wasm');
+  // Dynamic import of the WASM JS glue — path resolved by Vite alias at build time.
+  // Cast to WasmModule: vite-plugin-dts can't infer the type through @vite-ignore.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const wasm: WasmModule = await import(/* @vite-ignore */ 'auths-verifier-wasm') as any;
 
-  if (isInlined()) {
-    // Decode base64-inlined WASM and initialize from buffer
-    const binary = Uint8Array.from(atob(INLINE_WASM_BASE64!), c => c.charCodeAt(0));
-    await wasm.default(binary);
-  } else if (wasmUrl) {
-    // Fetch WASM from explicit URL
-    await wasm.default(wasmUrl);
-  } else {
-    // Default: let wasm-bindgen resolve the .wasm file relative to the JS glue
-    await wasm.default();
+  // When bundled with vite-plugin-wasm + vite-plugin-top-level-await, the WASM
+  // module is already initialized at the top-level. In that case `wasm.default`
+  // won't exist (the resolved module is the frozen exports object). Only call
+  // the init function when it's present (i.e. the module hasn't been pre-inited).
+  if (typeof wasm.default === 'function') {
+    if (isInlined()) {
+      // Decode base64-inlined WASM and initialize from buffer
+      const binary = Uint8Array.from(atob(INLINE_WASM_BASE64!), c => c.charCodeAt(0));
+      await wasm.default(binary);
+    } else if (wasmUrl) {
+      // Fetch WASM from explicit URL
+      await wasm.default(wasmUrl);
+    } else {
+      // Default: let wasm-bindgen resolve the .wasm file relative to the JS glue
+      await wasm.default();
+    }
   }
 
   wasmModule = wasm;
@@ -74,6 +83,20 @@ export async function verifyAttestation(
       error: error instanceof Error ? error.message : String(error),
     };
   }
+}
+
+/**
+ * Verify a detached Ed25519 signature over a locally-computed file hash.
+ * All inputs are hex-encoded strings. The file never leaves the browser —
+ * only the hash is passed into WASM for signature verification.
+ */
+export async function verifyArtifactSignature(
+  fileHashHex: string,
+  signatureHex: string,
+  publicKeyHex: string,
+): Promise<boolean> {
+  await ensureInit();
+  return wasmModule!.verifyArtifactSignature(fileHashHex, signatureHex, publicKeyHex);
 }
 
 /**
