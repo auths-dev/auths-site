@@ -3,19 +3,19 @@
   "version": "0.1.1",
   "description": "Drop-in <auths-verify> web component for decentralized commit verification",
   "type": "module",
-  "main": "dist/auths-verify.mjs",
+  "main": "dist/auths-verify.js",
   "types": "dist/types/auths-verify.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/auths-verify.mjs",
+      "import": "./dist/auths-verify.js",
       "types": "./dist/types/auths-verify.d.ts"
     },
     "./slim": {
-      "import": "./dist/slim/auths-verify.mjs",
+      "import": "./dist/slim/auths-verify.js",
       "types": "./dist/types/auths-verify.d.ts"
     },
     "./resolvers": {
-      "import": "./dist/auths-verify.mjs",
+      "import": "./dist/resolvers.js",
       "types": "./dist/types/resolvers/index.d.ts"
     }
   },
@@ -24,9 +24,10 @@
   ],
   "scripts": {
     "dev": "vite --open /examples/index.html",
-    "build": "npm run build:full && npm run build:slim",
+    "build": "npm run build:full && npm run build:slim && npm run build:resolvers",
     "build:full": "INLINE_WASM=true vite build",
     "build:slim": "vite build --mode slim",
+    "build:resolvers": "vite build --mode resolvers",
     "build:wasm": "cd ../../auths/crates/auths-verifier && wasm-pack build --target bundler --features wasm && rm -rf ../../../auths-site/packages/widget/wasm && mv pkg ../../../auths-site/packages/widget/wasm",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
