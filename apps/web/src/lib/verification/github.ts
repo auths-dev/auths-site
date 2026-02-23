@@ -1,9 +1,30 @@
 import type { SourceConfig, VerifyFn, Step } from './types';
-import { resolveFromRepo, didKeyToPublicKeyHex } from '@/lib/resolver';
+import type { ReleaseAttestation } from '@/lib/resolver';
+import { detectForge, fetchCommitSignature } from '@/lib/resolver';
 import { verifyAttestation } from '@/lib/wasm-bridge';
 
 function clip(hex: string, n = 14): string {
   return hex.length > n * 2 ? `${hex.slice(0, n)}…${hex.slice(-(n / 2))}` : hex;
+}
+
+/**
+ * Fetch release attestations via the server-side API proxy.
+ * GitHub release asset downloads redirect through domains without CORS headers,
+ * so browser fetch() fails. The proxy fetches server-side.
+ */
+async function fetchReleasesViaProxy(
+  owner: string,
+  repo: string,
+): Promise<{ tag: string; attestations: ReleaseAttestation[] } | null> {
+  try {
+    const res = await fetch(
+      `/api/github/release-assets?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`,
+    );
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
 }
 
 export const githubSource: SourceConfig = {
@@ -24,55 +45,85 @@ export const verifyFromGitHub: VerifyFn = async (input, onStep) => {
     let url = input.trim();
     if (!url.startsWith('http')) url = `https://${url}`;
 
-    emit({ type: 'info', text: `Resolving identity from ${url}…` });
-
-    const result = await resolveFromRepo(url);
-
-    if (result.error || !result.bundle) {
-      const msg = result.error ?? 'No identity bundle found for this repository.';
-      emit({ type: 'err', text: `✗ ${msg}` });
-      return { success: false, steps, error: msg };
+    const config = detectForge(url);
+    if (!config) {
+      emit({ type: 'err', text: '✗ Could not parse repository URL' });
+      return { success: false, steps, error: 'Invalid repository URL' };
     }
 
-    const { identity_did, public_key_hex, attestation_chain } = result.bundle;
+    emit({ type: 'info', text: `Checking ${config.owner}/${config.repo}…` });
 
-    emit({ type: 'info', text: `Identity: ${clip(identity_did, 20)}` });
-    emit({ type: 'info', text: `Public key: ${clip(public_key_hex)}` });
-    emit({ type: 'dim', text: `${attestation_chain.length} attestation(s) in chain` });
+    // Phase 1: Release attestations (via server proxy to avoid CORS)
+    emit({ type: 'dim', text: 'Looking for release attestations…' });
+    const releases = await fetchReleasesViaProxy(config.owner, config.repo);
 
-    if (attestation_chain.length === 0) {
-      emit({ type: 'ok', text: '✓ Identity resolved (no attestations to verify)' });
+    if (releases) {
+      emit({ type: 'info', text: `Source: Release ${releases.tag}` });
+      emit({ type: 'dim', text: `${releases.attestations.length} attestation(s) found` });
+
+      let allValid = true;
+      for (const att of releases.attestations) {
+        const devicePk = (att.attestation as { device_public_key?: string }).device_public_key;
+        if (!devicePk) {
+          emit({ type: 'err', text: `✗ ${att.artifactName}: missing device_public_key` });
+          allValid = false;
+          continue;
+        }
+
+        const result = await verifyAttestation(att.raw, devicePk);
+        if (result.valid) {
+          emit({ type: 'ok', text: `✓ ${att.artifactName} verified` });
+        } else {
+          emit({ type: 'err', text: `✗ ${att.artifactName}: ${result.error ?? 'invalid'}` });
+          allValid = false;
+        }
+      }
+
+      if (allValid) {
+        emit({ type: 'ok', text: '✓ ALL RELEASE ATTESTATIONS VERIFIED' });
+        emit({ type: 'dim', text: 'Cryptographic proof established. No server involved.' });
+      } else {
+        emit({ type: 'err', text: '✗ SOME ATTESTATIONS FAILED' });
+      }
+
+      return { success: allValid, steps };
+    }
+
+    // Phase 2: Commit signature fallback
+    emit({ type: 'dim', text: 'No release attestations. Checking commit signatures…' });
+    const commit = await fetchCommitSignature(config.owner, config.repo);
+
+    if (commit?.signerKeyHex) {
+      emit({ type: 'info', text: `Source: Commit ${commit.sha.slice(0, 8)}` });
+      emit({ type: 'info', text: `Signer key: ${clip(commit.signerKeyHex)}` });
+      emit({ type: 'dim', text: `Signature type: ${commit.signatureType}` });
+
+      if (commit.githubVerified) {
+        emit({ type: 'ok', text: '✓ Signature verified by GitHub' });
+      } else {
+        emit({ type: 'dim', text: 'Signature not verified by GitHub' });
+      }
+
+      emit({ type: 'ok', text: '✓ Ed25519 signer key extracted from commit' });
+      emit({ type: 'dim', text: 'Compare this key with your known device keys.' });
+
       return { success: true, steps };
     }
 
-    emit({ type: 'info', text: 'Verifying attestation chain via WASM…' });
+    if (commit && commit.signatureType !== 'none') {
+      emit({ type: 'info', text: `Source: Commit ${commit.sha.slice(0, 8)}` });
+      emit({ type: 'dim', text: `Signature type: ${commit.signatureType} (non-Ed25519, cannot extract key)` });
 
-    // Determine the issuer public key for verification
-    // Use the identity public key from the bundle, converting from DID if needed
-    const issuerPkHex = public_key_hex || didKeyToPublicKeyHex(identity_did);
-
-    let allValid = true;
-    for (let i = 0; i < attestation_chain.length; i++) {
-      const att = attestation_chain[i];
-      const attJson = JSON.stringify(att);
-      const verification = await verifyAttestation(attJson, issuerPkHex);
-
-      if (verification.valid) {
-        emit({ type: 'ok', text: `✓ Attestation ${i + 1}/${attestation_chain.length} verified` });
-      } else {
-        emit({ type: 'err', text: `✗ Attestation ${i + 1}/${attestation_chain.length}: ${verification.error ?? 'invalid'}` });
-        allValid = false;
+      if (commit.githubVerified) {
+        emit({ type: 'ok', text: '✓ Signature verified by GitHub' });
       }
+
+      return { success: commit.githubVerified, steps };
     }
 
-    if (allValid) {
-      emit({ type: 'ok', text: '✓ CHAIN VERIFIED' });
-      emit({ type: 'dim', text: 'Cryptographic proof established. No server involved.' });
-    } else {
-      emit({ type: 'err', text: '✗ CHAIN VERIFICATION FAILED' });
-    }
-
-    return { success: allValid, steps };
+    // Phase 3: Nothing found
+    emit({ type: 'err', text: '✗ No auths attestations or signed commits found' });
+    return { success: false, steps, error: 'No attestations or signed commits found' };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     emit({ type: 'err', text: `✗ ${msg}` });
