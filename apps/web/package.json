@@ -16,7 +16,7 @@
     "auths-verify": "workspace:*",
     "@tanstack/react-query": "^5",
     "motion": "^12",
-    "next-mdx-remote": "^5",
+    "next-mdx-remote": "^6",
     "gray-matter": "^4"
   },
   "devDependencies": {
