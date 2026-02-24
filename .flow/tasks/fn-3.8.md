@@ -107,9 +107,17 @@ Create the UI component for rendering the results of an artifact query — a lis
 - [ ] Responsive: columns stack on narrow screens
 - [ ] `pnpm build` succeeds
 ## Done summary
-TBD
-
+- Created apps/web/src/components/artifact-results.tsx
+- ArtifactResults renders a list of ArtifactEntry records with 4 columns: package_name, digest, signer_did, published_at
+- DigestDisplay sub-component: full hash in DOM via hidden middle span, visually shows first8...last8, Copy button with clipboard fallback
+- Full hash available via title attribute on hover
+- Signer DID rendered as button with accent-verified color, calls onSignerClick to pivot search
+- Relative time formatting (just now, Xm ago, Xh ago, Xd ago, or date)
+- Staggered motion.div entry animations
+- Responsive: columns stack on narrow screens via grid breakpoints
+- Semantic markup: role=list/listitem, aria-labels, time element with dateTime
+- Verification: `pnpm build` succeeds
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ea25a91
+- Tests: pnpm build
 - PRs:
