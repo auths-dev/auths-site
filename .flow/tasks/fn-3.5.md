@@ -214,9 +214,16 @@ Build the `ClaimIdentityCTA` component per the spec and a terminal-style code bl
 - [ ] aria-label on copy button, aria-live region announces result
 - [ ] `pnpm build` succeeds
 ## Done summary
-TBD
-
+- Created apps/web/src/components/claim-identity-cta.tsx with two CTA variants
+- Variant 1 (platform+namespace): renders "@{namespace} has not been claimed on {platform}" with full CLI including attest step
+- Variant 2 (raw DID): renders "This identity prefix has not been registered" with CLI omitting attest step
+- TerminalBlock sub-component: macOS window chrome (red/yellow/green dots), dark terminal aesthetic
+- Clipboard: navigator.clipboard.writeText with DOMException catch, falls back to text selection + "Press Ctrl+C" tooltip
+- aria-live="polite" announces copy result, aria-label on copy button
+- select-none on $ prompt, data-clipboard-text on pre, semantic pre+code markup
+- motion.div entry animation consistent with site patterns
+- Verification: `pnpm build` succeeds
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0e8a0b0
+- Tests: pnpm build
 - PRs:

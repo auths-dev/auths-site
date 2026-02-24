@@ -7,10 +7,19 @@
     "fn-3.2"
   ],
   "epic": "fn-3",
+  "evidence": {
+    "commits": [
+      "0e8a0b0"
+    ],
+    "prs": [],
+    "tests": [
+      "pnpm build"
+    ]
+  },
   "id": "fn-3.5",
   "priority": null,
   "spec_path": ".flow/tasks/fn-3.5.md",
-  "status": "in_progress",
+  "status": "done",
   "title": "Implement ClaimIdentityCTA and unclaimed identity funnel",
-  "updated_at": "2026-02-24T00:07:57.589002Z"
+  "updated_at": "2026-02-24T00:08:59.611197Z"
 }
