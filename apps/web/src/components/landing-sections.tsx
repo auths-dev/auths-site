@@ -59,11 +59,11 @@ export function LandingHero() {
           </div>
           <div className="space-y-2 px-5 py-4 font-mono text-sm text-zinc-300">
             <p>
-              <span className="text-emerald-400">~ $</span> brew install
+              <span className="select-none text-emerald-400">~ $ </span>brew install
               auths-base/tap/auths
             </p>
             <p>
-              <span className="text-emerald-400">~ $</span> auths init
+              <span className="select-none text-emerald-400">~ $ </span>auths init
             </p>
           </div>
         </div>
