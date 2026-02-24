@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { label: 'Blog', href: '/blog' },
   { label: 'Docs', href: '/docs/intro' },
   { label: 'Status', href: '/status' },
+  { label: 'Public Registry', href: '/registry' },
 ];
 
 export function SiteNav() {
