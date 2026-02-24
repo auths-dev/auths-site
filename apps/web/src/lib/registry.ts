@@ -1,3 +1,5 @@
+import { REGISTRY_BASE_URL } from '@/lib/config';
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -312,7 +314,7 @@ export function parseSearchQuery(input: string): ParsedSearchQuery {
 // CLI instruction generation
 // ---------------------------------------------------------------------------
 
-const REGISTRY_URL = 'https://public.auths.dev';
+const REGISTRY_URL = REGISTRY_BASE_URL;
 
 /**
  * Generates tailored CLI commands for claiming an identity.

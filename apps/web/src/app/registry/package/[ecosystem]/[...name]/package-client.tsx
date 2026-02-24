@@ -75,7 +75,7 @@ function PackageNotFound({
   ecosystem: string;
   name: string;
 }) {
-  const commands = `auths artifact sign --package ${ecosystem}:${name}\nauths artifact publish --registry https://public.auths.dev`;
+  const commands = `auths artifact sign --package ${ecosystem}:${name}\nauths artifact publish`;
 
   return (
     <motion.div

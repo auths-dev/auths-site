@@ -1,4 +1,5 @@
 import type { Platform } from '@/lib/registry';
+import { REGISTRY_BASE_URL, USE_FIXTURES } from '@/lib/config';
 import {
   resolveIdentityFixture,
   resolvePubkeysFixture,
@@ -6,16 +7,6 @@ import {
   resolveArtifactFixture,
   resolveRecentActivityFixture,
 } from './fixtures';
-
-const NEXT_PUBLIC_USE_FIXTURES =
-  process.env.NEXT_PUBLIC_USE_FIXTURES === 'true';
-
-// ---------------------------------------------------------------------------
-// Configuration
-// ---------------------------------------------------------------------------
-
-const REGISTRY_BASE_URL =
-  process.env.NEXT_PUBLIC_REGISTRY_URL ?? 'https://public.auths.dev';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -241,7 +232,7 @@ export async function fetchArtifacts(
   cursor?: string,
   signal?: AbortSignal,
 ): Promise<ArtifactQueryResponse> {
-  if (NEXT_PUBLIC_USE_FIXTURES && !cursor) {
+  if (USE_FIXTURES && !cursor) {
     const fixture = await resolveArtifactFixture(query);
     if (fixture) return fixture;
   }
@@ -267,7 +258,7 @@ export async function fetchPubkeys(
   namespace: string,
   signal?: AbortSignal,
 ): Promise<PubkeysResponse> {
-  if (NEXT_PUBLIC_USE_FIXTURES) {
+  if (USE_FIXTURES) {
     const fixture = await resolvePubkeysFixture(platform, namespace);
     if (fixture) return fixture;
   }
@@ -304,7 +295,7 @@ export async function fetchIdentity(
   did: string,
   signal?: AbortSignal,
 ): Promise<IdentityResponse> {
-  if (NEXT_PUBLIC_USE_FIXTURES) {
+  if (USE_FIXTURES) {
     const fixture = await resolveIdentityFixture(did);
     if (fixture) return fixture;
   }
@@ -342,7 +333,7 @@ export async function fetchIdentity(
 export async function fetchRecentActivity(
   signal?: AbortSignal,
 ): Promise<RecentActivity> {
-  if (NEXT_PUBLIC_USE_FIXTURES) {
+  if (USE_FIXTURES) {
     return resolveRecentActivityFixture();
   }
   return registryFetch<RecentActivity>('/v1/activity/recent', undefined, signal);
@@ -498,7 +489,7 @@ export async function fetchPackageDetail(
   name: string,
   signal?: AbortSignal,
 ): Promise<PackageDetail> {
-  if (NEXT_PUBLIC_USE_FIXTURES) {
+  if (USE_FIXTURES) {
     const fixture = await resolvePackageFixture(ecosystem, name);
     if (fixture) return fixture;
   }

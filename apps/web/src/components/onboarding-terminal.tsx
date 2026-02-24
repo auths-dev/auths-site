@@ -35,7 +35,7 @@ const TABS: TabConfig[] = [
     commands: [
       'auths id create',
       'auths id attest github --username <your-handle>',
-      'auths id register --registry https://public.auths.dev',
+      'auths id register',
     ].join('\n'),
   },
   {
@@ -43,7 +43,7 @@ const TABS: TabConfig[] = [
     label: 'Publish',
     commands: [
       'auths artifact sign ./my-package-1.0.0.tar.gz',
-      'auths artifact publish --registry https://public.auths.dev',
+      'auths artifact publish',
     ].join('\n'),
   },
 ];

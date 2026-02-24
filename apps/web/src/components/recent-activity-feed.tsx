@@ -129,8 +129,10 @@ interface RecentActivityFeedProps {
 }
 
 export function RecentActivityFeed({ activity, onSearch }: RecentActivityFeedProps) {
-  const hasPackages = activity.recent_packages.length > 0;
-  const hasIdentities = activity.recent_identities.length > 0;
+  const packages = activity.recent_packages ?? [];
+  const identities = activity.recent_identities ?? [];
+  const hasPackages = packages.length > 0;
+  const hasIdentities = identities.length > 0;
 
   if (!hasPackages && !hasIdentities) return null;
 
@@ -142,7 +144,7 @@ export function RecentActivityFeed({ activity, onSearch }: RecentActivityFeedPro
             Recent Packages
           </h2>
           <div className="space-y-2">
-            {activity.recent_packages.map((pkg, i) => (
+            {packages.map((pkg, i) => (
               <PackageRow
                 key={`${pkg.package_name}-${pkg.published_at}`}
                 pkg={pkg}
@@ -160,7 +162,7 @@ export function RecentActivityFeed({ activity, onSearch }: RecentActivityFeedPro
             Recent Identities
           </h2>
           <div className="space-y-2">
-            {activity.recent_identities.map((identity, i) => (
+            {identities.map((identity, i) => (
               <IdentityRow
                 key={`${identity.did}-${identity.registered_at}`}
                 identity={identity}

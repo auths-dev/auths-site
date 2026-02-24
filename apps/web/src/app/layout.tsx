@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <Script src="/auths-verify.js" strategy="beforeInteractive" type="module" />
+        <Script src="/auths-verify.js" strategy="beforeInteractive" type="module" crossOrigin="anonymous" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[var(--background)] text-[var(--foreground)]`}
