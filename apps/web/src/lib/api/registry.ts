@@ -191,10 +191,15 @@ async function registryFetch<T>(
     }
   }
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5_000);
+  if (signal) signal.addEventListener('abort', () => controller.abort());
+
   const res = await fetch(url.toString(), {
     headers: { Accept: 'application/json' },
-    signal,
+    signal: controller.signal,
   });
+  clearTimeout(timeout);
 
   if (!res.ok) {
     let message = res.statusText;
