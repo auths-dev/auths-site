@@ -1,0 +1,23 @@
+{
+  "assignee": "test@example.com",
+  "claim_note": "",
+  "claimed_at": "2026-02-24T01:57:22.842820Z",
+  "created_at": "2026-02-24T01:29:09.979920Z",
+  "depends_on": [
+    "fn-4.3"
+  ],
+  "epic": "fn-4",
+  "evidence": {
+    "commits": [],
+    "prs": [],
+    "tests": [
+      "next build"
+    ]
+  },
+  "id": "fn-4.4",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-4.4.md",
+  "status": "done",
+  "title": "Identity page: Platform Passport + Key Display (Zone B + C)",
+  "updated_at": "2026-02-24T02:00:41.274698Z"
+}

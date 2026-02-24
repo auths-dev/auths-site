@@ -8,10 +8,19 @@
     "fn-3.7"
   ],
   "epic": "fn-3",
+  "evidence": {
+    "commits": [
+      "a36bd8a"
+    ],
+    "prs": [],
+    "tests": [
+      "pnpm build"
+    ]
+  },
   "id": "fn-3.3",
   "priority": null,
   "spec_path": ".flow/tasks/fn-3.3.md",
-  "status": "in_progress",
+  "status": "done",
   "title": "Create isolated TanStack Query functions for registry search",
-  "updated_at": "2026-02-24T00:09:58.632717Z"
+  "updated_at": "2026-02-24T00:11:31.613871Z"
 }

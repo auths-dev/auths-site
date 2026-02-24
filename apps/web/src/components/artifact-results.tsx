@@ -1,28 +1,19 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import Link from 'next/link';
 import { motion } from 'motion/react';
 import type { ArtifactEntry } from '@/lib/api/registry';
+import { formatRelativeTime } from '@/lib/format';
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function formatRelativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const seconds = Math.floor(diff / 1000);
-  if (seconds < 60) return 'just now';
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+function parsePackageHref(packageName: string): string {
+  const idx = packageName.indexOf(':');
+  if (idx > 0) {
+    const ecosystem = packageName.slice(0, idx);
+    const name = packageName.slice(idx + 1);
+    return `/registry/package/${encodeURIComponent(ecosystem)}/${name.split('/').map(encodeURIComponent).join('/')}`;
+  }
+  return `/registry/package/unknown/${encodeURIComponent(packageName)}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -97,9 +88,10 @@ function DigestDisplay({
 interface ArtifactResultsProps {
   entries: ArtifactEntry[];
   onSignerClick?: (did: string) => void;
+  fromQuery?: string;
 }
 
-export function ArtifactResults({ entries, onSignerClick }: ArtifactResultsProps) {
+export function ArtifactResults({ entries, onSignerClick, fromQuery }: ArtifactResultsProps) {
   if (entries.length === 0) return null;
 
   return (
@@ -114,9 +106,12 @@ export function ArtifactResults({ entries, onSignerClick }: ArtifactResultsProps
           className="grid grid-cols-1 gap-2 px-2 py-3 transition-colors hover:bg-muted-bg md:grid-cols-[1fr_auto_auto_auto] md:items-center md:gap-4"
         >
           {/* Package name */}
-          <span className="truncate text-sm font-medium text-white">
+          <Link
+            href={`${parsePackageHref(entry.package_name)}${fromQuery ? `?from_query=${encodeURIComponent(fromQuery)}` : ''}`}
+            className="truncate text-sm font-medium text-white hover:text-emerald-400 transition-colors"
+          >
             {entry.package_name}
-          </span>
+          </Link>
 
           {/* Digest */}
           <DigestDisplay algorithm={entry.digest_algorithm} hex={entry.digest_hex} />

@@ -169,9 +169,12 @@ Create `docs/registry_ui.md` documenting all new registry components, their prop
 - [ ] Known limitations listed
 - [ ] Serves as the definitive source of truth — enables minimal inline comments in code
 ## Done summary
-TBD
-
+- Created docs/registry_ui.md as the definitive source of truth for the registry feature
+- Documents: architecture data flow, API client (3 fetch functions + registryFetch wrapper), data schemas, all 6 components, utilities (parser + CLI instructions), query layer (hooks, key factory, pagination state machine, AbortSignal chain), known limitations
+- No stub documentation — all search types documented as live API integrations
+- Serves as centralized reference enabling minimal inline code comments
+- Verification: `pnpm build` succeeds
 ## Evidence
 - Commits:
-- Tests:
+- Tests: pnpm build
 - PRs:

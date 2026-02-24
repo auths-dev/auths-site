@@ -224,9 +224,18 @@ Implement the full omni-search interface in `registry-client.tsx` with a search 
 - [ ] All styling uses CSS custom properties
 - [ ] `pnpm build` succeeds
 ## Done summary
-TBD
-
+- Updated apps/web/src/app/registry/registry-client.tsx with full omni-search UI
+- Created apps/web/src/components/trust-graph.tsx (extracted, not inline)
+- Search input syncs to URL ?q= via router.replace, decodes special characters on mount
+- Uses useRegistrySearch hook for all search routing
+- Result rendering: artifacts via ArtifactResults with pagination Load More button, pubkeys display, active identity display, unclaimed CTA variants, repo fallback via TrustGraph
+- TrustGraph: vertical timeline with staggered motion animations, shows Repository → Signer DID → Public Key → Platform Attestation → Device Key
+- PubkeysDisplay: shows DID, platform claims with verification badges, public keys
+- ActiveIdentityDisplay: shows DID, platform claims, public keys, signed artifacts
+- ExampleSearches: clickable example search links in empty state
+- Opacity reduction during isFetching, skeleton during isLoading, error state display
+- Verification: `pnpm build` succeeds
 ## Evidence
 - Commits:
-- Tests:
+- Tests: pnpm build
 - PRs:

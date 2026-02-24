@@ -36,7 +36,7 @@ export function SiteNav() {
               key={link.href}
               href={link.href}
               className={`text-sm transition-colors ${
-                pathname === link.href
+                pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href + '/'))
                   ? 'text-white font-medium'
                   : 'text-[var(--muted)] hover:text-white'
               }`}

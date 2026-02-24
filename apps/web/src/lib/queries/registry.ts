@@ -12,11 +12,15 @@ import {
   fetchArtifacts,
   fetchPubkeys,
   fetchIdentity,
+  fetchPackageDetail,
+  computeTrustTier,
 } from '@/lib/api/registry';
 import type {
   ArtifactQueryResponse,
   PubkeysResponse,
   IdentityResponse,
+  IdentityProfile,
+  PackageDetail,
 } from '@/lib/api/registry';
 import { resolveFromRepo } from '@/lib/resolver';
 import type { ResolveResult } from '@/lib/resolver';
@@ -36,6 +40,12 @@ export const registryKeys = {
     [...registryKeys.pubkeys(), platform, namespace] as const,
   identities: () => [...registryKeys.all, 'identities'] as const,
   identity: (did: string) => [...registryKeys.identities(), did] as const,
+  identityProfiles: () => [...registryKeys.all, 'identity-profile'] as const,
+  identityProfile: (did: string) =>
+    [...registryKeys.identityProfiles(), did] as const,
+  packages: () => [...registryKeys.all, 'package'] as const,
+  packageDetail: (ecosystem: string, name: string) =>
+    [...registryKeys.packages(), ecosystem, name] as const,
 };
 
 // ---------------------------------------------------------------------------
@@ -73,6 +83,65 @@ export function useArtifactSearch(query: string, enabled: boolean) {
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
     initialPageParam: undefined as string | undefined,
     enabled,
+    staleTime: 120_000,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// useIdentityProfile — enriched identity for the profile page
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetches an identity by DID and enriches it with a computed trust tier,
+ * trust score, total signature count, and extracted GitHub username.
+ *
+ * Returns `undefined` while loading, or the enriched `IdentityProfile` /
+ * unclaimed `IdentityResponse` once resolved.
+ */
+export function useIdentityProfile(did: string) {
+  return useQuery({
+    queryKey: registryKeys.identityProfile(did),
+    queryFn: async ({ signal }): Promise<IdentityProfile | { status: 'unclaimed'; did: string }> => {
+      const identity = await fetchIdentity(did, signal);
+
+      if (identity.status === 'unclaimed') {
+        return identity;
+      }
+
+      const { tier, score } = computeTrustTier(identity);
+      const ghClaim = identity.platform_claims.find(
+        (c) => c.platform === 'github' && c.verified,
+      );
+
+      return {
+        ...identity,
+        trust_tier: tier,
+        trust_score: score,
+        total_signatures: identity.artifacts.length,
+        github_username: ghClaim?.namespace,
+      };
+    },
+    enabled: did.length > 0,
+    staleTime: 120_000,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// usePackageDetail — composed package detail for the package page
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetches and composes a full package detail by ecosystem and name.
+ *
+ * Internally calls `fetchPackageDetail` which handles N+1 mitigation:
+ * caps signer enrichment to top 10 most recent unique signers, batches
+ * identity lookups in groups of 5 via `Promise.allSettled`.
+ */
+export function usePackageDetail(ecosystem: string, name: string) {
+  return useQuery<PackageDetail>({
+    queryKey: registryKeys.packageDetail(ecosystem, name),
+    queryFn: ({ signal }) => fetchPackageDetail(ecosystem, name, signal),
+    enabled: ecosystem.length > 0 && name.length > 0,
     staleTime: 120_000,
   });
 }

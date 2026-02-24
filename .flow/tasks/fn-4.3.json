@@ -1,0 +1,24 @@
+{
+  "assignee": "test@example.com",
+  "claim_note": "",
+  "claimed_at": "2026-02-24T01:55:14.587931Z",
+  "created_at": "2026-02-24T01:29:09.847843Z",
+  "depends_on": [
+    "fn-4.1",
+    "fn-4.2"
+  ],
+  "epic": "fn-4",
+  "evidence": {
+    "commits": [],
+    "prs": [],
+    "tests": [
+      "next build"
+    ]
+  },
+  "id": "fn-4.3",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-4.3.md",
+  "status": "done",
+  "title": "Identity page: route scaffold + Identity Header (Zone A)",
+  "updated_at": "2026-02-24T01:57:05.918864Z"
+}

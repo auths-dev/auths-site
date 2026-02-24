@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { RegistryClient } from './registry-client';
 import { RegistrySkeleton } from '@/components/registry-skeleton';
+import { fetchRecentActivity } from '@/lib/api/registry';
+import type { RecentActivity } from '@/lib/api/registry';
 
 export const metadata: Metadata = {
   title: 'Public Registry',
@@ -13,12 +15,22 @@ type Props = {
   searchParams: Promise<{ q?: string }>;
 };
 
+async function getRecentActivity(): Promise<RecentActivity | null> {
+  try {
+    return await fetchRecentActivity();
+  } catch {
+    return null;
+  }
+}
+
 export default async function RegistryPage({ searchParams }: Props) {
   const { q } = await searchParams;
 
+  const activity = q ? null : await getRecentActivity();
+
   return (
     <Suspense fallback={<RegistrySkeleton />}>
-      <RegistryClient initialQuery={q} />
+      <RegistryClient initialQuery={q} initialActivity={activity} />
     </Suspense>
   );
 }

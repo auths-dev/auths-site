@@ -235,9 +235,19 @@ Create `apps/web/src/lib/queries/registry.ts` with a query key factory and searc
 - [ ] All hooks and functions importable from `@/lib/queries/registry`
 - [ ] `pnpm build` succeeds
 ## Done summary
-TBD
-
+- Created apps/web/src/lib/queries/registry.ts with query key factory and hooks
+- registryKeys factory: all, searches, search, artifacts, artifact, pubkeys, pubkey, identities, identity
+- useArtifactSearch: useInfiniteQuery with cursor-based pagination, AbortSignal forwarded
+- useRegistrySearch: main orchestrator that debounces (300ms), parses via parseSearchQuery, routes to correct hook
+- Package type → useInfiniteQuery (fetchArtifacts), flattens pages for unified result
+- Identity type → useQuery (fetchPubkeys) with keepPreviousData
+- DID type → useQuery (fetchIdentity) with keepPreviousData
+- Repo type → tries registry API first, falls back to resolveFromRepo
+- AbortSignal propagates from TanStack queryFn → API client → fetch()
+- RegistrySearchResult discriminated union: artifacts | pubkeys | identity | repo | empty
+- Exposes fetchNextPage/hasNextPage/isFetchingNextPage for package pagination
+- Verification: `pnpm build` succeeds
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a36bd8a
+- Tests: pnpm build
 - PRs:
