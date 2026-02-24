@@ -116,21 +116,21 @@ export interface TrustChainNode {
   link_did?: string;
 }
 
-export interface RecentPackage {
+export interface RecentArtifact {
   package_name: string;
   signer_did: string;
   published_at: string;
 }
 
 export interface RecentIdentity {
-  did: string;
-  platform: string;
-  namespace: string;
-  registered_at: string;
+  did_prefix: string;
+  platform: string | null;
+  namespace: string | null;
+  created_at: string;
 }
 
 export interface RecentActivity {
-  recent_packages: RecentPackage[];
+  recent_artifacts: RecentArtifact[];
   recent_identities: RecentIdentity[];
 }
 
@@ -328,7 +328,7 @@ export async function fetchIdentity(
  *
  * @example
  * const activity = await fetchRecentActivity();
- * console.log(activity.recent_packages.length);
+ * console.log(activity.recent_artifacts.length);
  */
 export async function fetchRecentActivity(
   signal?: AbortSignal,

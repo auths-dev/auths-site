@@ -1,5 +1,5 @@
 /**
- * Renders recent packages and identities from the registry as two
+ * Renders recent artifacts and identities from the registry as two
  * side-by-side (desktop) or stacked (mobile) lists.
  *
  * Accepts server-fetched data so the initial render is fully hydrated
@@ -15,7 +15,7 @@
 'use client';
 
 import { motion } from 'motion/react';
-import type { RecentActivity, RecentPackage, RecentIdentity } from '@/lib/api/registry';
+import type { RecentActivity, RecentArtifact, RecentIdentity } from '@/lib/api/registry';
 import { formatRelativeTime, truncateMiddle } from '@/lib/format';
 
 // ---------------------------------------------------------------------------
@@ -23,28 +23,28 @@ import { formatRelativeTime, truncateMiddle } from '@/lib/format';
 // ---------------------------------------------------------------------------
 
 /**
- * A single row in the recent packages list.
+ * A single row in the recent artifacts list.
  *
- * @param pkg     - The recent package entry from the API.
- * @param index   - Position in the list, used for staggered animation delay.
- * @param onSearch - Callback invoked when the user clicks the package name.
+ * @param artifact - The recent artifact entry from the API.
+ * @param index    - Position in the list, used for staggered animation delay.
+ * @param onSearch - Callback invoked when the user clicks the artifact name.
  *
  * @example
- * <PackageRow pkg={entry} index={0} onSearch={(q) => search(q)} />
+ * <ArtifactRow artifact={entry} index={0} onSearch={(q) => search(q)} />
  */
-function PackageRow({
-  pkg,
+function ArtifactRow({
+  artifact,
   index,
   onSearch,
 }: {
-  pkg: RecentPackage;
+  artifact: RecentArtifact;
   index: number;
   onSearch: (query: string) => void;
 }) {
   return (
     <motion.button
       type="button"
-      onClick={() => onSearch(`npm:${pkg.package_name}`)}
+      onClick={() => onSearch(`npm:${artifact.package_name}`)}
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.2 }}
@@ -52,21 +52,21 @@ function PackageRow({
     >
       <div className="min-w-0 flex-1">
         <span className="block truncate font-mono text-sm text-white">
-          {pkg.package_name}
+          {artifact.package_name}
         </span>
         <span
           className="block truncate font-mono text-xs text-zinc-500"
-          title={pkg.signer_did}
+          title={artifact.signer_did}
         >
-          {truncateMiddle(pkg.signer_did, 32)}
+          {truncateMiddle(artifact.signer_did, 32)}
         </span>
       </div>
       <time
-        dateTime={pkg.published_at}
+        dateTime={artifact.published_at}
         className="shrink-0 text-xs text-muted"
-        title={new Date(pkg.published_at).toISOString()}
+        title={new Date(artifact.published_at).toISOString()}
       >
-        {formatRelativeTime(pkg.published_at)}
+        {formatRelativeTime(artifact.published_at)}
       </time>
     </motion.button>
   );
@@ -91,10 +91,16 @@ function IdentityRow({
   index: number;
   onSearch: (query: string) => void;
 }) {
+  const displayName = identity.namespace
+    ? `@${identity.namespace}`
+    : truncateMiddle(identity.did_prefix, 32);
+
+  const platformLabel = identity.platform ?? 'Anonymous';
+
   return (
     <motion.button
       type="button"
-      onClick={() => onSearch(`@${identity.namespace}`)}
+      onClick={() => onSearch(identity.namespace ? `@${identity.namespace}` : identity.did_prefix)}
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.2 }}
@@ -102,18 +108,18 @@ function IdentityRow({
     >
       <div className="min-w-0 flex-1">
         <span className="block truncate text-sm text-white">
-          @{identity.namespace}
+          {displayName}
         </span>
         <span className="block text-xs text-zinc-500">
-          {identity.platform}
+          {platformLabel}
         </span>
       </div>
       <time
-        dateTime={identity.registered_at}
+        dateTime={identity.created_at}
         className="shrink-0 text-xs text-muted"
-        title={new Date(identity.registered_at).toISOString()}
+        title={new Date(identity.created_at).toISOString()}
       >
-        {formatRelativeTime(identity.registered_at)}
+        {formatRelativeTime(identity.created_at)}
       </time>
     </motion.button>
   );
@@ -129,25 +135,25 @@ interface RecentActivityFeedProps {
 }
 
 export function RecentActivityFeed({ activity, onSearch }: RecentActivityFeedProps) {
-  const packages = activity.recent_packages ?? [];
+  const artifacts = activity.recent_artifacts ?? [];
   const identities = activity.recent_identities ?? [];
-  const hasPackages = packages.length > 0;
+  const hasArtifacts = artifacts.length > 0;
   const hasIdentities = identities.length > 0;
 
-  if (!hasPackages && !hasIdentities) return null;
+  if (!hasArtifacts && !hasIdentities) return null;
 
   return (
     <div className="grid gap-8 md:grid-cols-2">
-      {hasPackages && (
+      {hasArtifacts && (
         <section>
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-zinc-500">
-            Recent Packages
+            Recent Artifacts
           </h2>
           <div className="space-y-2">
-            {packages.map((pkg, i) => (
-              <PackageRow
-                key={`${pkg.package_name}-${pkg.published_at}`}
-                pkg={pkg}
+            {artifacts.map((artifact, i) => (
+              <ArtifactRow
+                key={`${artifact.package_name}-${artifact.published_at}`}
+                artifact={artifact}
                 index={i}
                 onSearch={onSearch}
               />
@@ -164,7 +170,7 @@ export function RecentActivityFeed({ activity, onSearch }: RecentActivityFeedPro
           <div className="space-y-2">
             {identities.map((identity, i) => (
               <IdentityRow
-                key={`${identity.did}-${identity.registered_at}`}
+                key={`${identity.did_prefix}-${identity.created_at}`}
                 identity={identity}
                 index={i}
                 onSearch={onSearch}

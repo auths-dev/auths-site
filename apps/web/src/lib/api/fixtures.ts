@@ -829,7 +829,7 @@ const PUBKEYS_FIXTURES: Record<string, PubkeysResponse> = {
 // ---------------------------------------------------------------------------
 
 const RECENT_ACTIVITY: RecentActivity = {
-  recent_packages: [
+  recent_artifacts: [
     { package_name: 'npm:auths-cli', signer_did: SOVEREIGN_DID, published_at: '2024-12-01T12:00:00Z' },
     { package_name: 'cargo:xz-utils', signer_did: JIATAN_DID, published_at: '2024-03-09T08:15:00Z' },
     { package_name: 'npm:react-agent-tools', signer_did: AGENT_DID, published_at: '2025-01-10T14:00:00Z' },
@@ -837,10 +837,10 @@ const RECENT_ACTIVITY: RecentActivity = {
     { package_name: 'cargo:git-core', signer_did: SOVEREIGN_DID, published_at: '2024-11-20T10:30:00Z' },
   ],
   recent_identities: [
-    { did: SOVEREIGN_DID, platform: 'github', namespace: 'torvalds', registered_at: '2021-01-15T14:30:00Z' },
-    { did: AGENT_DID, platform: 'github', namespace: '', registered_at: '2024-02-01T00:00:00Z' },
-    { did: LASSE_DID, platform: 'github', namespace: 'Larhzu', registered_at: '2019-05-10T00:00:00Z' },
-    { did: JIATAN_DID, platform: 'github', namespace: 'JiaT75', registered_at: '2022-01-15T00:00:00Z' },
+    { did_prefix: SOVEREIGN_DID, platform: 'github', namespace: 'torvalds', created_at: '2021-01-15T14:30:00Z' },
+    { did_prefix: AGENT_DID, platform: null, namespace: null, created_at: '2024-02-01T00:00:00Z' },
+    { did_prefix: LASSE_DID, platform: 'github', namespace: 'Larhzu', created_at: '2019-05-10T00:00:00Z' },
+    { did_prefix: JIATAN_DID, platform: 'github', namespace: 'JiaT75', created_at: '2022-01-15T00:00:00Z' },
   ],
 };
 
