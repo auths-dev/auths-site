@@ -110,9 +110,17 @@ Implement the HTTP fetch wrappers that communicate with `public.auths.dev`. Smal
 - [ ] All types exported from `@/lib/api/registry`
 - [ ] `pnpm build` succeeds
 ## Done summary
-TBD
-
+- Created apps/web/src/lib/api/registry.ts with registryFetch base wrapper and 3 focused fetch functions
+- fetchArtifacts: GET /v1/artifacts with cursor-based pagination support
+- fetchPubkeys: GET /v1/pubkeys with platform + namespace params
+- fetchIdentity: GET /v1/identities/{did} with discriminated union validation — unknown status values throw RegistryApiError instead of unsafe cast
+- RegistryApiError typed error class for HTTP 4xx/5xx responses
+- All functions have JSDoc with description, args, and usage examples
+- AbortSignal propagates all the way to fetch()
+- Base URL configurable via NEXT_PUBLIC_REGISTRY_URL env var
+- All types exported: ArtifactEntry, ArtifactQueryResponse, PubkeysResponse, PlatformClaim, ActiveIdentity, UnclaimedIdentity, IdentityResponse, RegistryApiError
+- Verification: `pnpm build` succeeds
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2650224
+- Tests: pnpm build
 - PRs:
