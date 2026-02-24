@@ -1,14 +1,23 @@
 {
-  "assignee": null,
+  "assignee": "test@example.com",
   "claim_note": "",
-  "claimed_at": null,
+  "claimed_at": "2026-02-24T00:02:45.339124Z",
   "created_at": "2026-02-23T23:24:16.691666Z",
   "depends_on": [],
   "epic": "fn-3",
+  "evidence": {
+    "commits": [
+      "d6e800bd2184352606416d7bc87f68070cf815c9"
+    ],
+    "prs": [],
+    "tests": [
+      "pnpm build"
+    ]
+  },
   "id": "fn-3.2",
   "priority": null,
   "spec_path": ".flow/tasks/fn-3.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Create search types, parser, and CLI instruction utilities",
-  "updated_at": "2026-02-23T23:55:37.013213Z"
+  "updated_at": "2026-02-24T00:04:08.101292Z"
 }

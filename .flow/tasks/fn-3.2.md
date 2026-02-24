@@ -237,9 +237,14 @@ Create `apps/web/src/lib/registry.ts` containing TypeScript types for search que
 - [ ] All types exported and importable from `@/lib/registry`
 - [ ] `pnpm build` succeeds
 ## Done summary
-TBD
-
+- Created apps/web/src/lib/registry.ts with strict discriminated union types, DRY parser helpers, and CLI instruction generation
+- ParsedSearchQuery is a strict union: checking `type === 'identity'` guarantees `platform` and `namespace` are present
+- Parser composed of 5 focused utility functions (extractPlatformPrefix, detectUrl, detectDid, detectIdentityShorthand, detectRepoPattern) — each with JSDoc
+- generateCliInstructions handles 3 variants: platform+namespace, raw DID (omits attest), radicle DID (--did flag)
+- Supports raw URLs and DIDs without prefixes
+- Why: foundational types and parsing logic for all downstream tasks
+- Verification: `pnpm build` succeeds
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d6e800bd2184352606416d7bc87f68070cf815c9
+- Tests: pnpm build
 - PRs:
