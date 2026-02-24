@@ -29,8 +29,10 @@ export default async function RegistryPage({ searchParams }: Props) {
   const activity = q ? null : await getRecentActivity();
 
   return (
-    <Suspense fallback={<RegistrySkeleton />}>
-      <RegistryClient initialQuery={q} initialActivity={activity} />
-    </Suspense>
+    <div className="mx-auto max-w-5xl px-6 pt-28 pb-20">
+      <Suspense fallback={<RegistrySkeleton />}>
+        <RegistryClient initialQuery={q} initialActivity={activity} />
+      </Suspense>
+    </div>
   );
 }
