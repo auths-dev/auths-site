@@ -1,46 +1,80 @@
 ---
 title: Getting Started
-description: Set up your first Auths identity in under five minutes.
+description: Claim your decentralized namespace, secure your keys, and join the Public Registry in under 5 minutes.
 ---
 
 # Getting Started
 
-## Install the CLI
+Auths isn't just a local signing tool; it is a global Web of Trust. 
+
+In this guide, you will generate your permanent cryptographic identity, link it to your GitHub account, and publish your first signed artifact to the [Public Registry](/registry).
+
+
+
+## 1. Install the CLI
+
+The `auths` CLI is your local control plane. It manages your keys, handles signing, and talks to the registry.
 
 ```bash
 brew install auths-base/tap/auths
-# or
-curl -sSfL https://get.auths.dev | sh
+# or via shell script
+curl -sSfL [https://get.auths.dev](https://get.auths.dev) | sh
 ```
 
-## Initialize Your Identity
+## 2. Create Your Identity
+
+Next, generate your permanent root identity. This creates an Ed25519 keypair and establishes your KERI Key Event Log locally on your machine.
 
 ```bash
-auths id init
+auths id create
 ```
 
-This creates a root Ed25519 keypair and stores the inception event at `refs/auths/identity` in your current Git repository.
+*Note: Your identity is generated completely offline. No private keys ever leave your device.*
 
-## Pair a Device
+## 3. Claim Your Platform Namespace
+
+To prove you are who you say you are, you need to cryptographically link your new identity to an existing platform (like GitHub or GitLab). This is what allows your avatar and username to appear on the registry.
 
 ```bash
-auths id pair --device laptop
+auths id attest github --username <your-github-username>
 ```
 
-Generates a device keypair and creates a signed attestation linking it to your root identity.
+## 4. Join the Public Registry
 
-## Sign an Artifact
+Now that your identity is set up locally, broadcast your public keys and platform claims to the discovery registry.
 
 ```bash
-auths sign artifact.tar.gz
+auths id register --registry [https://public.auths.dev](https://public.auths.dev)
 ```
 
-Produces `artifact.tar.gz.auths.json` — a signed attestation you can distribute alongside the artifact.
+🎉 **You are now on the Web of Trust!** You can search for your GitHub username on the [Registry Dashboard](https://www.google.com/search?q=/registry) to see your live Developer Passport.
 
-## Verify
+## 5. The Genesis Proof (Sign & Publish)
+
+Your profile is currently "Active," but to unlock your Artifact Portfolio and level up your trust tier, you need to publish a signed artifact. Let's sign a dummy file just to see how it works.
 
 ```bash
-auths verify artifact.tar.gz
+# 1. Create a dummy file
+echo "Hello, Web of Trust" > hello.txt
+
+# 2. Sign it with your local device key
+auths artifact sign --file hello.txt --sig-output hello.auths.json
+
+# 3. Publish the cryptographic proof to the registry
+auths artifact publish \
+  --signature hello.auths.json \
+  --package demo:first-artifact \
+  --registry [https://public.auths.dev](https://public.auths.dev)
 ```
 
-Or drop the artifact into the [verification widget](/explorer) on this site — it runs entirely in your browser via WebAssembly.
+Refresh your profile page on the registry. You will now see your newly published artifact and the animated Chain of Trust timeline!
+
+---
+
+## Next Steps
+
+Now that your identity is secured, you can integrate Auths directly into your daily workflow:
+
+* **[Sign your Git Commits](https://docs.auths.dev/cli/workflows/releases/signing-commits/)**: Configure Git to use your Auths identity automatically.
+* **[Automate with GitHub Actions](https://docs.auths.dev/cloud-ci/github-actions-oidc/)**: Use ephemeral CI keys to sign your production releases.
+* **[Delegate to AI Agents](https://docs.auths.dev/concepts/identity/agent/)**: Create scoped, accountable sub-identities for your autonomous bots.

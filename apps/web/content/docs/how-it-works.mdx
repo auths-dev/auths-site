@@ -11,21 +11,7 @@ Auths combines a permanent cryptographic identity, local device signing, and por
 
 ### How does it work?
 
-```mermaid
-graph LR
-  classDef core fill:#18181b,stroke:#3f3f46,stroke-width:2px,color:#fff,rx:8px,ry:8px;
-  classDef action fill:#0284c7,stroke:#0369a1,stroke-width:2px,color:#fff,rx:8px,ry:8px;
-
-  ID["👤 Root Identity<br/>(Permanent DID)"]:::core
-  Device["💻 Device Key<br/>(Laptop / CI)"]:::core
-  Artifact["📦 Artifact<br/>(Code / Package)"]:::core
-  Verify["✅ Verification<br/>(Zero-Trust WASM)"]:::action
-
-  ID -- "Authorizes" --> Device
-  Device -- "Signs" --> Artifact
-  Artifact -. "Math proves provenance" .-> Verify
-
-```
+<EcosystemAnimation />
 
 ---
 
