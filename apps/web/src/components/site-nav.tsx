@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useScrollSpy } from '@/hooks/use-scroll-spy';
 
 const ABOUT_LINKS = [
   { label: 'Introduction', href: '/docs/intro' },
@@ -14,14 +15,12 @@ const ABOUT_LINKS = [
 
 const ABOUT_HREFS = new Set(ABOUT_LINKS.map((l) => l.href));
 
-const NAV_LINKS_BEFORE = [
-  { label: 'Overview', href: '/' },
-  { label: 'Public Registry', href: '/registry' },
-];
+const SECTION_IDS = ['registry', 'verify'] as const;
 
-const NAV_LINKS_AFTER = [
-  { label: 'Community', href: '/community' },
-];
+const SCROLL_LINKS = [
+  { label: 'Public Registry', sectionId: 'registry' },
+  { label: 'Verify', sectionId: 'verify' },
+] as const;
 
 function AboutDropdown() {
   const pathname = usePathname();
@@ -92,6 +91,8 @@ function AboutDropdown() {
 
 export function SiteNav() {
   const pathname = usePathname();
+  const isHome = pathname === '/';
+  const activeSection = useScrollSpy(isHome ? [...SECTION_IDS] : []);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-sm">
@@ -107,35 +108,37 @@ export function SiteNav() {
 
         {/* Nav links */}
         <div className="hidden md:flex items-center gap-6">
-          {NAV_LINKS_BEFORE.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`text-sm transition-colors ${
-                pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href + '/'))
-                  ? 'text-white font-medium'
-                  : 'text-[var(--muted)] hover:text-white'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {SCROLL_LINKS.map((link) => {
+            const href = isHome ? `#${link.sectionId}` : `/#${link.sectionId}`;
+            const isActive = isHome && activeSection === link.sectionId;
+
+            return (
+              <a
+                key={link.sectionId}
+                href={href}
+                className={`text-sm transition-colors ${
+                  isActive
+                    ? 'text-white font-medium'
+                    : 'text-[var(--muted)] hover:text-white'
+                }`}
+              >
+                {link.label}
+              </a>
+            );
+          })}
 
           <AboutDropdown />
 
-          {NAV_LINKS_AFTER.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`text-sm transition-colors ${
-                pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href + '/'))
-                  ? 'text-white font-medium'
-                  : 'text-[var(--muted)] hover:text-white'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+          <Link
+            href="/community"
+            className={`text-sm transition-colors ${
+              pathname === '/community' || pathname.startsWith('/community/')
+                ? 'text-white font-medium'
+                : 'text-[var(--muted)] hover:text-white'
+            }`}
+          >
+            Community
+          </Link>
 
           {/* GitHub icon */}
           <a

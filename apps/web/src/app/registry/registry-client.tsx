@@ -163,7 +163,7 @@ export function RegistryClient({
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 pt-28 pb-20">
+    <div className="p-6">
       <RegistryHero value={input} onChange={setInput} onSubmit={handleSubmit} />
 
       <div className="mt-8">
