@@ -1,0 +1,23 @@
+{
+  "assignee": "test@example.com",
+  "claim_note": "",
+  "claimed_at": "2026-02-24T01:57:23.003866Z",
+  "created_at": "2026-02-24T01:29:10.114169Z",
+  "depends_on": [
+    "fn-4.3"
+  ],
+  "epic": "fn-4",
+  "evidence": {
+    "commits": [],
+    "prs": [],
+    "tests": [
+      "next build"
+    ]
+  },
+  "id": "fn-4.5",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-4.5.md",
+  "status": "done",
+  "title": "Identity page: Artifact Portfolio (Zone D)",
+  "updated_at": "2026-02-24T02:00:41.436847Z"
+}

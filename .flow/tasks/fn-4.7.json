@@ -1,0 +1,23 @@
+{
+  "assignee": "test@example.com",
+  "claim_note": "",
+  "claimed_at": "2026-02-24T01:57:23.168205Z",
+  "created_at": "2026-02-24T01:29:10.389774Z",
+  "depends_on": [
+    "fn-4.6"
+  ],
+  "epic": "fn-4",
+  "evidence": {
+    "commits": [],
+    "prs": [],
+    "tests": [
+      "next build"
+    ]
+  },
+  "id": "fn-4.7",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-4.7.md",
+  "status": "done",
+  "title": "Package page: Chain of Trust Timeline (Zone B)",
+  "updated_at": "2026-02-24T02:00:41.597525Z"
+}

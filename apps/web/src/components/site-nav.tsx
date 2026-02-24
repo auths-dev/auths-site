@@ -1,20 +1,98 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useScrollSpy } from '@/hooks/use-scroll-spy';
 
-const NAV_LINKS = [
-  { label: 'Overview', href: '/' },
-  { label: 'How Auths Works', href: '/docs/how-it-works' },
-  { label: 'Trust', href: '/trust' },
-  { label: 'Community', href: '/community' },
+const ABOUT_LINKS = [
+  { label: 'Introduction', href: '/docs/intro' },
+  { label: 'How It Works', href: '/docs/how-it-works' },
+  { label: 'Getting Started', href: '/docs/getting-started' },
+  { label: 'Security Model', href: '/trust' },
   { label: 'Blog', href: '/blog' },
-  { label: 'Docs', href: '/docs/intro' },
-  { label: 'Status', href: '/status' },
 ];
+
+const ABOUT_HREFS = new Set(ABOUT_LINKS.map((l) => l.href));
+
+const SECTION_IDS = ['registry', 'verify'] as const;
+
+const SCROLL_LINKS = [
+  { label: 'Public Registry', sectionId: 'registry' },
+  { label: 'Verify', sectionId: 'verify' },
+] as const;
+
+function AboutDropdown() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const isActive =
+    ABOUT_HREFS.has(pathname) ||
+    [...ABOUT_HREFS].some((href) => pathname.startsWith(href + '/'));
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`flex items-center gap-1 text-sm transition-colors ${
+          isActive ? 'text-white font-medium' : 'text-[var(--muted)] hover:text-white'
+        }`}
+      >
+        About
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`transition-transform ${open ? 'rotate-180' : ''}`}
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-2 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--background)] py-1 shadow-xl">
+          {ABOUT_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setOpen(false)}
+              className={`block px-4 py-2 text-sm transition-colors ${
+                pathname === link.href
+                  ? 'text-white bg-zinc-900'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function SiteNav() {
   const pathname = usePathname();
+  const isHome = pathname === '/';
+  const activeSection = useScrollSpy(isHome ? [...SECTION_IDS] : []);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-sm">
@@ -30,19 +108,37 @@ export function SiteNav() {
 
         {/* Nav links */}
         <div className="hidden md:flex items-center gap-6">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`text-sm transition-colors ${
-                pathname === link.href
-                  ? 'text-white font-medium'
-                  : 'text-[var(--muted)] hover:text-white'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {SCROLL_LINKS.map((link) => {
+            const href = isHome ? `#${link.sectionId}` : `/#${link.sectionId}`;
+            const isActive = isHome && activeSection === link.sectionId;
+
+            return (
+              <a
+                key={link.sectionId}
+                href={href}
+                className={`text-sm transition-colors ${
+                  isActive
+                    ? 'text-white font-medium'
+                    : 'text-[var(--muted)] hover:text-white'
+                }`}
+              >
+                {link.label}
+              </a>
+            );
+          })}
+
+          <AboutDropdown />
+
+          <Link
+            href="/community"
+            className={`text-sm transition-colors ${
+              pathname === '/community' || pathname.startsWith('/community/')
+                ? 'text-white font-medium'
+                : 'text-[var(--muted)] hover:text-white'
+            }`}
+          >
+            Community
+          </Link>
 
           {/* GitHub icon */}
           <a

@@ -1,0 +1,21 @@
+{
+  "assignee": "test@example.com",
+  "claim_note": "",
+  "claimed_at": "2026-02-24T01:38:22.637869Z",
+  "created_at": "2026-02-24T01:29:09.568700Z",
+  "depends_on": [],
+  "epic": "fn-4",
+  "evidence": {
+    "commits": [],
+    "prs": [],
+    "tests": [
+      "next build"
+    ]
+  },
+  "id": "fn-4.1",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-4.1.md",
+  "status": "done",
+  "title": "Shared infrastructure: extract utilities, centralize icons, install deps, fix nav",
+  "updated_at": "2026-02-24T01:50:29.393071Z"
+}

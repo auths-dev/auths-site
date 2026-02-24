@@ -1,0 +1,25 @@
+{
+  "assignee": "test@example.com",
+  "claim_note": "",
+  "claimed_at": "2026-02-24T00:09:04.636938Z",
+  "created_at": "2026-02-23T23:48:41.447791Z",
+  "depends_on": [
+    "fn-3.7"
+  ],
+  "epic": "fn-3",
+  "evidence": {
+    "commits": [
+      "ea25a91"
+    ],
+    "prs": [],
+    "tests": [
+      "pnpm build"
+    ]
+  },
+  "id": "fn-3.8",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-3.8.md",
+  "status": "done",
+  "title": "Build Artifact Results Component",
+  "updated_at": "2026-02-24T00:09:53.900689Z"
+}
