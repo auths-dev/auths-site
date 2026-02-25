@@ -10,7 +10,6 @@ Auths isn't just a local signing tool; it is a global Web of Trust.
 In this guide, you will generate your permanent cryptographic identity, link it to your GitHub account, and publish your first signed artifact to the [Public Registry](/registry).
 
 
-
 ## 1. Install the CLI
 
 The `auths` CLI is your local control plane. It manages your keys, handles signing, and talks to the registry.
@@ -23,33 +22,33 @@ curl -sSfL [https://get.auths.dev](https://get.auths.dev) | sh
 
 ## 2. Create Your Identity
 
-Next, generate your permanent root identity. This creates an Ed25519 keypair and establishes your KERI Key Event Log locally on your machine.
+Next, generate your permanent root identity.
 
 ```bash
-auths id create
+auths init
 ```
 
-*Note: Your identity is generated completely offline. No private keys ever leave your device.*
+This does a few things: 
+
+* Creates an Ed25519 keypair
+* Establishes your KERI ID locally on your machine
+* Registers your ID on the public registry
+
+🎉 **You are now on the Web of Trust!** You can search for your ID on the [Registry Dashboard](https://auths.dev/registry) to see your live Developer Passport.
+
+> Note: Your identity is generated completely offline. No private keys ever leave your device.
 
 ## 3. Claim Your Platform Namespace
 
-To prove you are who you say you are, you need to cryptographically link your new identity to an existing platform (like GitHub or GitLab). This is what allows your avatar and username to appear on the registry.
+To prove you are who you say you are, you need to link your new identity to an existing platform (like GitHub or GitLab). This is what allows your avatar and username to appear on the registry.
 
 ```bash
-auths id attest github --username <your-github-username>
+auths id claim github
 ```
 
-## 4. Join the Public Registry
+*Note: Assuming you've already setup your GitHub SSH keys, this should "just work".*
 
-Now that your identity is set up locally, broadcast your public keys and platform claims to the discovery registry.
-
-```bash
-auths id register --registry [https://public.auths.dev](https://public.auths.dev)
-```
-
-🎉 **You are now on the Web of Trust!** You can search for your GitHub username on the [Registry Dashboard](https://www.google.com/search?q=/registry) to see your live Developer Passport.
-
-## 5. The Genesis Proof (Sign & Publish)
+## 4. The Genesis Proof (Sign & Publish)
 
 Your profile is currently "Active," but to unlock your Artifact Portfolio and level up your trust tier, you need to publish a signed artifact. Let's sign a dummy file just to see how it works.
 

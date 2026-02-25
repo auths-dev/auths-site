@@ -21,7 +21,7 @@ export interface ArtifactEntry {
 }
 
 export interface ArtifactQueryResponse {
-  entries: ArtifactEntry[];
+  artifacts: ArtifactEntry[];
   next_cursor?: string;
 }
 
@@ -524,7 +524,7 @@ export async function fetchPackageDetail(
   }
   const query = `${ecosystem}:${name}`;
   const artifactResponse = await fetchArtifacts(query, undefined, signal);
-  const entries = artifactResponse.entries;
+  const entries = artifactResponse.artifacts;
 
   // Build releases
   const releases: PackageRelease[] = entries.map((e) => ({

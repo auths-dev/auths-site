@@ -204,7 +204,7 @@ export function useRegistrySearch(query: string) {
       // Try registry API first
       try {
         const artifacts = await fetchArtifacts(parsedQuery.normalized, undefined, signal);
-        if (artifacts.entries.length > 0) {
+        if (artifacts.artifacts.length > 0) {
           return { type: 'artifacts', data: artifacts };
         }
       } catch {
@@ -234,7 +234,7 @@ export function useRegistrySearch(query: string) {
             ? {
                 type: 'artifacts',
                 data: {
-                  entries: artifactQuery.data.pages.flatMap((p) => p.entries),
+                  artifacts: artifactQuery.data.pages.flatMap((p) => p.artifacts),
                   next_cursor: artifactQuery.data.pages.at(-1)?.next_cursor,
                 },
               }

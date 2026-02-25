@@ -77,7 +77,7 @@ function GhostCard({
           <p className="text-sm text-zinc-500">{platform}</p>
           {showCommand ? (
             <p className="mt-0.5 truncate font-mono text-xs text-zinc-600">
-              auths id attest {platform}
+              auths id claim {platform}
             </p>
           ) : (
             <p className="text-xs text-zinc-600">Unverified</p>

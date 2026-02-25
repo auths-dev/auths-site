@@ -770,7 +770,7 @@ const DEV_ENVIRONMENT_PACKAGE: PackageDetail = {
 function artifactsFromPackage(pkg: PackageDetail): ArtifactQueryResponse {
   const fullName = `${pkg.ecosystem}:${pkg.package_name}`;
   return {
-    entries: pkg.releases.map((r) => ({
+    artifacts: pkg.releases.map((r) => ({
       package_name: fullName,
       digest_algorithm: r.digest_algorithm,
       digest_hex: r.digest_hex,

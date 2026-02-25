@@ -55,7 +55,7 @@ function SearchResults({
       {result.type === 'artifacts' && (
         <div>
           <ArtifactResults
-            entries={result.data.entries}
+            entries={result.data.artifacts}
             onSignerClick={onSignerClick}
             fromQuery={parsedQuery.raw}
           />
