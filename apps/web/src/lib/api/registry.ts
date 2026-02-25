@@ -314,7 +314,36 @@ export async function fetchIdentity(
     );
   }
 
-  return data as unknown as IdentityResponse;
+  if (status === 'unclaimed') {
+    return { status: 'unclaimed', did: String(data.did ?? did) } satisfies UnclaimedIdentity;
+  }
+
+  // Transform raw API shape into the frontend ActiveIdentity contract.
+  // The API returns { key_state: { current_keys } } but the frontend
+  // expects { public_keys, platform_claims, artifacts }.
+  const keyState = (data.key_state ?? {}) as Record<string, unknown>;
+  const currentKeys = Array.isArray(keyState.current_keys)
+    ? (keyState.current_keys as string[])
+    : [];
+
+  const public_keys = currentKeys.map((key, i) => ({
+    key_id: `key-${i}`,
+    algorithm: 'Ed25519',
+    public_key_hex: key,
+    created_at: new Date().toISOString(),
+  }));
+
+  return {
+    status: 'active',
+    did: String(data.did ?? did),
+    public_keys,
+    platform_claims: Array.isArray(data.platform_claims)
+      ? (data.platform_claims as PlatformClaim[])
+      : [],
+    artifacts: Array.isArray(data.artifacts)
+      ? (data.artifacts as ArtifactEntry[])
+      : [],
+  } satisfies ActiveIdentity;
 }
 
 /**
