@@ -1,25 +1,39 @@
 import {
   LandingHero,
-  LandingPillars,
-  LandingTechStack,
+  LandingOnTheEdge,
+  LandingInTheCloud,
+  LandingStartBuilding,
+  LandingIdentityTypes,
+  LandingArchitecture,
+  LandingBottomCTA,
+  LandingFooter,
 } from '@/components/landing-sections';
+
+function Divider() {
+  return (
+    <div className="mx-auto max-w-3xl px-6">
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+    </div>
+  );
+}
 
 export default function HomePage() {
   return (
     <main className="relative min-h-screen bg-zinc-950 text-zinc-50 selection:bg-emerald-500/30">
       <LandingHero />
-
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
-      </div>
-
-      <LandingPillars />
-
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
-      </div>
-
-      <LandingTechStack />
+      <Divider />
+      <LandingOnTheEdge />
+      <Divider />
+      <LandingInTheCloud />
+      <Divider />
+      <LandingStartBuilding />
+      <Divider />
+      <LandingIdentityTypes />
+      <Divider />
+      <LandingArchitecture />
+      <Divider />
+      <LandingBottomCTA />
+      <LandingFooter />
     </main>
   );
 }

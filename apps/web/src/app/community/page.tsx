@@ -10,10 +10,6 @@ export const metadata: Metadata = {
 // Data
 // ---------------------------------------------------------------------------
 
-const SPONSORS = [
-  { name: 'KERI Foundation', url: 'https://keri.one' },
-  { name: 'WebOfTrust', url: 'https://github.com/WebOfTrust' },
-];
 
 const UPDATES = [
   'The Auths CLI now supports signing Docker container images with full KERI identity binding.',
@@ -89,26 +85,8 @@ export default function CommunityPage() {
         </p>
       </section>
 
-      {/* ---- Sponsors ---- */}
-      <section className="mt-16 flex flex-wrap items-center justify-center gap-8">
-        {SPONSORS.map((s) => (
-          <a
-            key={s.name}
-            href={s.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-lg border border-[var(--border)] bg-zinc-900/50 px-6 py-3 text-sm font-medium text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white"
-          >
-            {s.name}
-          </a>
-        ))}
-      </section>
-
-      {/* ---- Divider ---- */}
-      <hr className="my-16 border-[var(--border)]" />
-
       {/* ---- The Auths Story ---- */}
-      <section className="grid gap-12 md:grid-cols-2">
+      <section className="mt-16 grid gap-12 md:grid-cols-2">
         <div>
           <h2 className="font-mono text-xl font-semibold text-white">
             The Auths story
