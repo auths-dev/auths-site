@@ -80,6 +80,27 @@ function CloudIcon({ size = 20, className, ...props }: IconProps) {
   );
 }
 
+function GlobeIcon({ size = 20, className, ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="2" x2="22" y1="12" y2="12" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+  );
+}
+
+function ServerIcon({ size = 20, className, ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <rect width="20" height="8" x="2" y="2" rx="2" ry="2" />
+      <rect width="20" height="8" x="2" y="14" rx="2" ry="2" />
+      <line x1="6" x2="6.01" y1="6" y2="6" />
+      <line x1="6" x2="6.01" y1="18" y2="18" />
+    </svg>
+  );
+}
+
 function ZapIcon({ size = 20, className, ...props }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
@@ -205,7 +226,7 @@ export function LandingOnTheEdge() {
         </motion.p>
         <motion.div {...fadeUp(0.2)} className="mt-8">
           <a
-            href="https://docs.auths.dev/verifier"
+            href="https://docs.auths.dev/sdks/overview"
             className="font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
           >
             Documentation &rarr;
@@ -277,14 +298,109 @@ export function LandingInTheCloud() {
         </motion.p>
         <motion.div {...fadeUp(0.2)} className="mt-8">
           <a
-            href="https://auths.dev"
+            href="https://auths.dev/registry"
             className="font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
           >
             Dashboard &rarr;
           </a>
         </motion.div>
+
+        <CloudTopologyDiagram />
       </div>
     </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Cloud topology diagram
+// ---------------------------------------------------------------------------
+
+function CloudTopologyDiagram() {
+  return (
+    <div className="mt-12 flex flex-col items-center justify-center gap-4 md:flex-row md:gap-0">
+
+      {/* Legacy Apps */}
+      <motion.div
+        {...fadeUp(0.2)}
+        className="flex w-full max-w-[220px] flex-col items-center rounded-xl border border-zinc-800 bg-zinc-900/50 p-5"
+      >
+        <GlobeIcon size={24} className="mb-3 text-sky-400" />
+        <span className="font-mono text-sm font-semibold text-zinc-200">Legacy Apps</span>
+        <span className="mt-1 text-center text-xs text-zinc-500">Standard web apps &amp; SaaS</span>
+      </motion.div>
+
+      {/* OIDC Bridge connector */}
+      <motion.div
+        {...fadeUp(0.3)}
+        className="relative flex h-16 w-[2px] shrink-0 items-center justify-center bg-zinc-800 md:h-[2px] md:w-24"
+      >
+        {/* Mobile: animate Y */}
+        <motion.div
+          className="absolute h-1.5 w-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] md:hidden"
+          animate={{ y: ['-30px', '30px'] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', repeatType: 'reverse' }}
+        />
+        {/* Desktop: animate X */}
+        <motion.div
+          className="absolute hidden h-1.5 w-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] md:block"
+          animate={{ x: ['-44px', '44px'] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', repeatType: 'reverse' }}
+        />
+        <div className="absolute left-6 top-1/2 -translate-y-1/2 whitespace-nowrap rounded bg-zinc-900 px-2 py-0.5 font-mono text-[10px] text-zinc-400 md:-top-8 md:left-1/2 md:-translate-x-1/2 md:translate-y-0">
+          OIDC Bridge
+        </div>
+      </motion.div>
+
+      {/* Auths Cloud */}
+      <motion.div
+        {...fadeUp(0.4)}
+        className="relative z-10 flex w-full max-w-[260px] flex-col items-center rounded-xl border border-emerald-500/30 bg-zinc-900 p-6 shadow-[0_0_40px_rgba(16,185,129,0.15)]"
+      >
+        <CloudIcon size={28} className="mb-3 text-emerald-400" />
+        <span className="font-mono text-base font-bold text-emerald-400">Auths Cloud</span>
+        <div className="mt-4 flex w-full flex-col gap-2">
+          {['Public Anchor', 'Hosted API', 'Org Management'].map((label) => (
+            <div key={label} className="flex items-center justify-between rounded bg-zinc-950 px-3 py-1.5">
+              <span className="font-mono text-[10px] text-zinc-400">{label}</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* KEL Sync connector */}
+      <motion.div
+        {...fadeUp(0.5)}
+        className="relative flex h-16 w-[2px] shrink-0 items-center justify-center bg-zinc-800 md:h-[2px] md:w-24"
+      >
+        {/* Mobile: animate Y (upward toward cloud) */}
+        <motion.div
+          className="absolute h-1.5 w-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)] md:hidden"
+          animate={{ y: ['30px', '-30px'] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', repeatType: 'reverse' }}
+        />
+        {/* Desktop: animate X (leftward toward cloud) */}
+        <motion.div
+          className="absolute hidden h-1.5 w-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)] md:block"
+          animate={{ x: ['44px', '-44px'] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', repeatType: 'reverse' }}
+        />
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 whitespace-nowrap rounded bg-zinc-900 px-2 py-0.5 font-mono text-[10px] text-zinc-400 md:-top-8 md:left-1/2 md:right-auto md:-translate-x-1/2 md:translate-y-0">
+          Sync KELs
+        </div>
+      </motion.div>
+
+      {/* Self-Hosted */}
+      <motion.div
+        {...fadeUp(0.6)}
+        className="flex w-full max-w-[220px] flex-col items-center rounded-xl border border-zinc-800 bg-zinc-900/50 p-5"
+      >
+        <ServerIcon size={24} className="mb-3 text-purple-400" />
+        <span className="font-mono text-sm font-semibold text-zinc-200">Self-Hosted</span>
+        <span className="mt-1 text-center text-xs text-zinc-500">Run your own node</span>
+      </motion.div>
+
+    </div>
   );
 }
 
@@ -353,6 +469,29 @@ export function LandingStartBuilding() {
             </motion.li>
           ))}
         </motion.ul>
+
+        <motion.div {...fadeUp(0.4)} className="mt-8 w-full">
+          <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50 shadow-2xl">
+            <div className="flex items-center border-b border-zinc-800 px-4 py-3">
+              <div className="flex items-center gap-2" aria-hidden="true">
+                <span className="h-3 w-3 rounded-full bg-zinc-700" />
+                <span className="h-3 w-3 rounded-full bg-zinc-700" />
+                <span className="h-3 w-3 rounded-full bg-zinc-700" />
+              </div>
+              <span className="ml-4 font-mono text-xs text-zinc-600">terminal</span>
+            </div>
+            <div className="space-y-2 px-5 py-4 font-mono text-sm text-zinc-300">
+              <p>
+                <span className="select-none text-emerald-400">~ $ </span>
+                cargo install auths-cli
+              </p>
+              <p>
+                <span className="select-none text-emerald-400">~ $ </span>
+                auths init
+              </p>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
