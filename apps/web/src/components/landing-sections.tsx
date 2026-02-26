@@ -815,7 +815,7 @@ export function LandingFooter() {
             Docs
           </a>
           <a
-            href="https://auths.dev"
+            href="https://auths.dev/registry"
             className="transition-colors hover:text-zinc-300"
           >
             Registry
