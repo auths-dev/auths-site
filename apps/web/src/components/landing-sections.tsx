@@ -16,6 +16,16 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.6, delay, ease: 'easeOut' as const },
 });
 
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1 } },
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } },
+};
+
 // ---------------------------------------------------------------------------
 // Hero
 // ---------------------------------------------------------------------------
@@ -42,19 +52,131 @@ export function LandingHero() {
         className="mt-16 flex flex-col items-center gap-4 sm:flex-row sm:gap-6"
       >
         <a
-          href="https://docs.auths.dev/getting-started"
+          href="https://docs.auths.dev/getting-started/install/"
           className="inline-flex items-center rounded-md bg-emerald-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
         >
           Get started
         </a>
         <a
-          href="https://github.com/AID-Bound/auths-base"
+          href="https://github.com/bordumb/auths"
           className="inline-flex items-center rounded-md border border-zinc-700 px-6 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
         >
           View on GitHub
         </a>
       </motion.div>
     </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Edge verification icons
+// ---------------------------------------------------------------------------
+
+function CloudIcon({ size = 20, className, ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+    </svg>
+  );
+}
+
+function ZapIcon({ size = 20, className, ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  );
+}
+
+function CpuIcon({ size = 20, className, ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <rect width="16" height="16" x="4" y="4" rx="2" />
+      <rect width="6" height="6" x="9" y="9" rx="1" />
+      <path d="M15 2v2" /><path d="M15 20v2" /><path d="M2 15h2" />
+      <path d="M2 9h2" /><path d="M20 15h2" /><path d="M20 9h2" />
+      <path d="M9 2v2" /><path d="M9 20v2" />
+    </svg>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Edge verification diagram
+// ---------------------------------------------------------------------------
+
+function EdgeVerificationDiagram() {
+  return (
+    <div className="mt-12 grid gap-6 md:grid-cols-2">
+      {/* Legacy Auth Panel */}
+      <motion.div
+        {...fadeUp(0.3)}
+        className="flex flex-col rounded-xl border border-zinc-800 bg-zinc-950/50 p-6"
+      >
+        <div className="mb-6 flex items-center justify-between">
+          <span className="font-mono text-sm font-semibold text-zinc-400">Legacy Auth</span>
+          <span className="rounded bg-rose-500/10 px-2 py-1 font-mono text-[10px] text-rose-400">I/O Bound</span>
+        </div>
+
+        <div className="flex flex-1 flex-col items-center justify-center space-y-4">
+          <div className="flex w-full items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+            <span className="font-mono text-xs text-zinc-300">Edge Worker</span>
+            <MonitorIcon size={16} className="text-zinc-500" />
+          </div>
+
+          <div className="flex flex-col items-center py-2 text-rose-400/80">
+            <span className="font-mono text-[10px] mb-1">Blocking HTTP Request</span>
+            <div className="flex h-8 flex-col items-center justify-center gap-1" aria-hidden="true">
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500/50 animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500/50 animate-pulse [animation-delay:75ms]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500/50 animate-pulse [animation-delay:150ms]" />
+            </div>
+            <span className="font-mono text-[10px] mt-1 text-zinc-500">~150ms latency</span>
+          </div>
+
+          <div className="flex w-full items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+            <span className="font-mono text-xs text-zinc-300">Central IdP</span>
+            <CloudIcon size={16} className="text-zinc-500" />
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Auths WASM Panel */}
+      <motion.div
+        {...fadeUp(0.4)}
+        className="relative flex flex-col overflow-hidden rounded-xl border border-emerald-500/30 bg-zinc-900 p-6 shadow-[0_0_30px_rgba(16,185,129,0.1)]"
+      >
+        <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl" aria-hidden="true" />
+
+        <div className="relative z-10 mb-6 flex items-center justify-between">
+          <span className="font-mono text-sm font-semibold text-emerald-400">Auths Verification</span>
+          <span className="rounded bg-emerald-500/10 px-2 py-1 font-mono text-[10px] text-emerald-400">CPU Bound</span>
+        </div>
+
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center space-y-4">
+          <div className="flex w-full flex-col gap-2 rounded-lg border border-emerald-500/30 bg-zinc-950 p-3">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-xs text-zinc-100">Edge Worker</span>
+              <MonitorIcon size={16} className="text-emerald-500" />
+            </div>
+
+            <div className="ml-4 mt-2 flex items-center justify-between rounded border border-zinc-800 bg-zinc-900 px-3 py-2">
+              <span className="font-mono text-[10px] text-zinc-300">Auths WASM Module</span>
+              <CpuIcon size={14} className="text-emerald-400" />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 py-2 text-emerald-400">
+            <ZapIcon size={14} className="fill-emerald-400/20" />
+            <span className="font-mono text-xs font-medium">Local Ed25519 Math</span>
+          </div>
+
+          <div className="flex w-full items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950 p-3 opacity-50">
+            <span className="font-mono text-xs text-zinc-500 line-through">Network Calls</span>
+            <span className="font-mono text-xs font-bold text-emerald-500">0</span>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -95,20 +217,37 @@ export function LandingOnTheEdge() {
           className="mt-10 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/60"
         >
           <div className="flex items-center gap-2 border-b border-zinc-800 px-4 py-2.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
-            <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
-            <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+            <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" aria-hidden="true" />
+            <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" aria-hidden="true" />
+            <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" aria-hidden="true" />
             <span className="ml-2 font-mono text-xs text-zinc-600">
               verify.ts
             </span>
           </div>
-          <pre className="overflow-x-auto px-5 py-4 font-mono text-sm leading-relaxed text-zinc-300">
-            <code>{`import { verify } from "@auths/wasm";
-
-const result = await verify(signature, payload);
-// { valid: true, signer: "did:auths:Ek9..." }`}</code>
+          <pre className="overflow-x-auto px-5 py-4 font-mono text-sm leading-relaxed">
+            <code>
+              <span className="text-pink-400">import</span>
+              <span className="text-zinc-300">{' { '}</span>
+              <span className="text-emerald-300">verify</span>
+              <span className="text-zinc-300">{' } '}</span>
+              <span className="text-pink-400">from</span>
+              <span className="text-amber-300">{' "@auths/wasm"'}</span>
+              <span className="text-zinc-500">;</span>
+              {'\n\n'}
+              <span className="text-purple-400">const</span>
+              <span className="text-zinc-300"> result </span>
+              <span className="text-pink-400">=</span>
+              <span className="text-purple-400"> await</span>
+              <span className="text-blue-400"> verify</span>
+              <span className="text-zinc-300">(signature, payload)</span>
+              <span className="text-zinc-500">;</span>
+              {'\n'}
+              <span className="text-zinc-600">{'// { valid: true, signer: "did:auths:Ek9..." }'}</span>
+            </code>
           </pre>
         </motion.div>
+
+        <EdgeVerificationDiagram />
       </div>
     </section>
   );
@@ -167,7 +306,7 @@ const BUILD_LINKS = [
   {
     label: 'Source',
     detail: 'GitHub repository',
-    href: 'https://github.com/AID-Bound/auths-base',
+    href: 'https://github.com/bordumb/auths',
   },
   {
     label: 'Docs',
@@ -186,28 +325,34 @@ export function LandingStartBuilding() {
         >
           Start building
         </motion.h2>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          {BUILD_LINKS.map((link, i) => (
-            <motion.a
-              key={link.label}
-              href={link.href}
-              {...fadeUp(i * 0.08)}
-              className="group flex items-baseline justify-between rounded-lg border border-zinc-800 px-5 py-4 transition-colors hover:border-zinc-600"
-            >
-              <div>
-                <span className="font-mono text-sm font-semibold text-zinc-200">
-                  {link.label}
+        <motion.ul
+          className="mt-10 grid gap-4 sm:grid-cols-2"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+        >
+          {BUILD_LINKS.map((link) => (
+            <motion.li key={link.label} variants={staggerItem}>
+              <a
+                href={link.href}
+                className="group flex items-baseline justify-between rounded-lg border border-zinc-800 px-5 py-4 transition-colors hover:border-zinc-600"
+              >
+                <div>
+                  <span className="font-mono text-sm font-semibold text-zinc-200">
+                    {link.label}
+                  </span>
+                  <span className="ml-3 text-sm text-zinc-500">
+                    {link.detail}
+                  </span>
+                </div>
+                <span className="font-mono text-xs text-zinc-600 transition-colors group-hover:text-emerald-400" aria-hidden="true">
+                  &rarr;
                 </span>
-                <span className="ml-3 text-sm text-zinc-500">
-                  {link.detail}
-                </span>
-              </div>
-              <span className="font-mono text-xs text-zinc-600 transition-colors group-hover:text-emerald-400">
-                &rarr;
-              </span>
-            </motion.a>
+              </a>
+            </motion.li>
           ))}
-        </div>
+        </motion.ul>
       </div>
     </section>
   );
@@ -250,18 +395,24 @@ export function LandingIdentityTypes() {
         >
           Identity for
         </motion.h2>
-        <div className="mt-12 space-y-12">
-          {IDENTITY_TYPES.map((type, i) => (
-            <motion.div key={type.name} {...fadeUp(i * 0.1)}>
-              <h3 className="font-mono text-lg font-semibold text-emerald-400">
+        <motion.dl
+          className="mt-12 space-y-12"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+        >
+          {IDENTITY_TYPES.map((type) => (
+            <motion.div key={type.name} variants={staggerItem}>
+              <dt className="font-mono text-lg font-semibold text-emerald-400">
                 {type.name}
-              </h3>
-              <p className="mt-2 leading-7 text-zinc-400">
+              </dt>
+              <dd className="mt-2 leading-7 text-zinc-400">
                 {type.description}
-              </p>
+              </dd>
             </motion.div>
           ))}
-        </div>
+        </motion.dl>
       </div>
     </section>
   );
@@ -411,7 +562,7 @@ function DelegationChainDiagram() {
                 <span className="text-xs font-semibold text-zinc-100">
                   {node.title}
                 </span>
-                <span className="text-[10px] text-zinc-400">
+                <span className="text-[11px] text-zinc-300">
                   {node.subtitle}
                 </span>
               </motion.div>
@@ -420,6 +571,7 @@ function DelegationChainDiagram() {
                 <motion.div
                   variants={chainHLineVariants}
                   className="hidden h-[2px] w-10 shrink-0 origin-left bg-gradient-to-r from-zinc-600 to-zinc-500 md:block"
+                  aria-hidden="true"
                 />
               )}
 
@@ -427,6 +579,7 @@ function DelegationChainDiagram() {
                 <motion.div
                   variants={chainVLineVariants}
                   className="my-2 h-6 w-[2px] shrink-0 origin-top bg-gradient-to-b from-zinc-600 to-zinc-500 md:hidden"
+                  aria-hidden="true"
                 />
               )}
             </Fragment>
@@ -477,6 +630,31 @@ export function LandingArchitecture() {
 }
 
 // ---------------------------------------------------------------------------
+// Bottom CTA
+// ---------------------------------------------------------------------------
+
+export function LandingBottomCTA() {
+  return (
+    <section className="relative z-10 px-6 py-24 sm:py-32 text-center">
+      <motion.h2
+        {...fadeUp(0)}
+        className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+      >
+        Ready to build?
+      </motion.h2>
+      <motion.div {...fadeUp(0.1)} className="mt-8 flex justify-center">
+        <a
+          href="https://docs.auths.dev/getting-started"
+          className="inline-flex items-center rounded-md bg-emerald-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
+        >
+          Read the documentation
+        </a>
+      </motion.div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Footer
 // ---------------------------------------------------------------------------
 
@@ -484,15 +662,15 @@ export function LandingFooter() {
   return (
     <footer className="relative z-10 border-t border-zinc-800/60 px-6 py-12">
       <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 sm:flex-row sm:justify-between">
-        <div className="flex gap-6 font-mono text-sm text-zinc-500">
+        <nav className="flex gap-6 font-mono text-sm text-zinc-500" aria-label="Footer">
           <a
-            href="https://github.com/AID-Bound/auths-base"
+            href="https://github.com/bordumb/auths"
             className="transition-colors hover:text-zinc-300"
           >
             GitHub
           </a>
           <a
-            href="https://docs.auths.dev"
+            href="https://docs.auths.dev/getting-started/install/"
             className="transition-colors hover:text-zinc-300"
           >
             Docs
@@ -503,7 +681,7 @@ export function LandingFooter() {
           >
             Registry
           </a>
-        </div>
+        </nav>
         <p className="font-mono text-xs text-zinc-600">Apache 2.0</p>
       </div>
     </footer>
