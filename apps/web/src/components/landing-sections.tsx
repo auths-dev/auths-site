@@ -783,7 +783,7 @@ export function LandingBottomCTA() {
       </motion.h2>
       <motion.div {...fadeUp(0.1)} className="mt-8 flex justify-center">
         <a
-          href="https://docs.auths.dev/getting-started"
+          href="https://docs.auths.dev/getting-started/install/"
           className="inline-flex items-center rounded-md bg-emerald-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
         >
           Read the documentation
