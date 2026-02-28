@@ -5,6 +5,7 @@ import {
   LandingStartBuilding,
   LandingIdentityTypes,
   LandingArchitecture,
+  LandingTechStack,
   LandingBottomCTA,
   LandingFooter,
 } from '@/components/landing-sections';
@@ -31,6 +32,8 @@ export default function HomePage() {
       <LandingIdentityTypes />
       <Divider />
       <LandingArchitecture />
+      <Divider />
+      <LandingTechStack />
       <Divider />
       <LandingBottomCTA />
       <LandingFooter />
