@@ -4,6 +4,7 @@ import Script from 'next/script';
 import './globals.css';
 import { SiteNav } from '@/components/site-nav';
 import { Providers } from './providers';
+import { constructMetadata } from '@/lib/metadata';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -16,12 +17,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  ...constructMetadata(),
   title: {
     template: '%s | Auths',
     default: 'Auths — Cryptographic Trust, Decentralized',
   },
-  description:
-    'Verify software supply chains instantly, without relying on centralized identity providers.',
 };
 
 export default function RootLayout({

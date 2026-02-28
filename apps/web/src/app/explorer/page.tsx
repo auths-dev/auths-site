@@ -1,11 +1,11 @@
-import type { Metadata } from 'next';
 import { ExplorerClient } from './explorer-client';
+import { constructMetadata } from '@/lib/metadata';
 
-export const metadata: Metadata = {
-  title: 'Identity Explorer',
+export const metadata = constructMetadata({
+  title: 'Identity Explorer | Auths',
   description:
     'Explore decentralized cryptographic identity chains for any GitHub or Gitea repository.',
-};
+});
 
 type Props = {
   searchParams: Promise<{ repo?: string }>;

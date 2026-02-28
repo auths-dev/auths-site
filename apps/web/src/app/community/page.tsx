@@ -1,10 +1,10 @@
-import type { Metadata } from 'next';
+import { constructMetadata } from '@/lib/metadata';
 
-export const metadata: Metadata = {
-  title: 'Community',
+export const metadata = constructMetadata({
+  title: 'Community | Auths',
   description:
     'Join the Auths open-source community building decentralized software identity and supply chain security.',
-};
+});
 
 // ---------------------------------------------------------------------------
 // Data
