@@ -5,7 +5,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://auths.dev';
 export function constructMetadata({
   title = 'Auths — Cryptographic Trust, Decentralized',
   description = 'Verify software supply chains instantly, without relying on centralized identity providers.',
-  image = `${BASE_URL}/images/og-default.png`,
+  image = `${BASE_URL}/api/og`,
   noIndex = false,
 }: {
   title?: string;
