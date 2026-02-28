@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { Hero } from '@/components/hero';
 import { resolveFromRepo } from '@/lib/resolver';
 import { VerifyResult } from './verify-result';
+import { constructMetadata } from '@/lib/metadata';
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://auths.dev';
 
 type Props = {
   searchParams: Promise<{ repo?: string; commit?: string }>;
@@ -11,10 +14,10 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const { repo, commit } = await searchParams;
 
   if (!repo) {
-    return {
-      title: 'Verify',
+    return constructMetadata({
+      title: 'Verify | Auths',
       description: 'Verify a commit or repository identity using Auths.',
-    };
+    });
   }
 
   let result;
@@ -33,17 +36,15 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     ? `Signed by ${signer.slice(0, 40)}${shortCommit ? ` \u00b7 commit ${shortCommit}` : ''}`
     : `No cryptographic identity found for ${repo}.`;
 
-  return {
+  const ogImage = `${BASE_URL}/api/og?title=${encodeURIComponent(ogTitle)}&subtitle=${encodeURIComponent(ogDescription)}&status=${valid ? 'verified' : 'unverified'}`;
+
+  return constructMetadata({
     title: valid ? '\u2705 Verified Identity' : '\u274C Identity Not Found',
     description: valid
       ? `Identity ${signer} verified via decentralized KERI protocol.`
       : `No cryptographic identity found for ${repo}.`,
-    openGraph: {
-      title: ogTitle,
-      description: ogDescription,
-      type: 'website',
-    },
-  };
+    image: ogImage,
+  });
 }
 
 export default async function VerifyPage({ searchParams }: Props) {

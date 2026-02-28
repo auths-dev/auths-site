@@ -1,11 +1,11 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import { listContentFiles } from '@/lib/mdx';
+import { constructMetadata } from '@/lib/metadata';
 
-export const metadata: Metadata = {
-  title: 'Blog',
+export const metadata = constructMetadata({
+  title: 'Blog | Auths',
   description: 'Latest news and updates from the Auths project.',
-};
+});
 
 export default function BlogIndexPage() {
   const posts = listContentFiles('blog');

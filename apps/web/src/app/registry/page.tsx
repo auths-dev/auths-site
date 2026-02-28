@@ -1,15 +1,15 @@
-import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { RegistryClient } from './registry-client';
 import { RegistrySkeleton } from '@/components/registry-skeleton';
 import { fetchRecentActivity } from '@/lib/api/registry';
 import type { RecentActivity } from '@/lib/api/registry';
+import { constructMetadata } from '@/lib/metadata';
 
-export const metadata: Metadata = {
-  title: 'Public Registry',
+export const metadata = constructMetadata({
+  title: 'Public Registry | Auths',
   description:
-    'Discover and verify software artifacts, repositories, and cryptographic identities in the Auths Web of Trust.',
-};
+    'Discover and verify software artifacts and cryptographic identities on the Auths Web of Trust.',
+});
 
 type Props = {
   searchParams: Promise<{ q?: string }>;
