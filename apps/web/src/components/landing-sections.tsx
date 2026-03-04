@@ -826,10 +826,10 @@ function FfiIcon({ size = 20, className, ...props }: IconProps) {
 }
 
 const FFI_LANGUAGES = [
-  { name: 'Python',     placeholder: '/images/python_logo.png',     href: 'https://docs.auths.dev/sdks/python/quickstart/' },
-  { name: 'Go',         placeholder: '/images/go_logo.png',         href: 'https://docs.auths.dev/sdks/go/quickstart/' },
-  { name: 'TypeScript', placeholder: '/images/typescript_logo.png', href: 'https://docs.auths.dev/sdks/javascript/quickstart/' },
-  { name: 'Swift',      placeholder: '/images/swift_logo.png',      href: 'https://docs.auths.dev/sdks/swift/mobile-identity/' },
+  { name: 'Python',     placeholder: '/images/python_logo.png',     href: 'https://docs.auths.dev/sdk/verifier/python/' },
+  { name: 'Go',         placeholder: '/images/go_logo.png',         href: 'https://docs.auths.dev/sdk/verifier/ffi/' },
+  { name: 'TypeScript', placeholder: '/images/typescript_logo.png', href: 'https://docs.auths.dev/sdk/verifier/wasm/' },
+  { name: 'Swift',      placeholder: '/images/swift_logo.png',      href: 'https://github.com/auths-dev/auths/tree/main/packages/auths-verifier-swift' },
 ];
 
 type TechItem =
