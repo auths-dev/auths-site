@@ -6,7 +6,7 @@
   "license": "MIT OR Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bordumb/auths"
+    "url": "https://github.com/auths-dev/auths"
   },
   "files": [
     "auths_verifier_bg.wasm",

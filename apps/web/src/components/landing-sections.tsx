@@ -59,7 +59,7 @@ export function LandingHero() {
           Get started
         </a>
         <a
-          href="https://github.com/bordumb/auths"
+          href="https://github.com/auths-dev/auths"
           className="inline-flex items-center rounded-md border border-zinc-700 px-6 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
         >
           View on GitHub
@@ -423,7 +423,7 @@ const BUILD_LINKS = [
   {
     label: 'Source',
     detail: 'GitHub repository',
-    href: 'https://github.com/bordumb/auths',
+    href: 'https://github.com/auths-dev/auths',
   },
   {
     label: 'Docs',
@@ -995,7 +995,7 @@ export function LandingFooter() {
       <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 sm:flex-row sm:justify-between">
         <nav className="flex gap-6 font-mono text-sm text-zinc-500" aria-label="Footer">
           <a
-            href="https://github.com/bordumb/auths"
+            href="https://github.com/auths-dev/auths"
             className="transition-colors hover:text-zinc-300"
           >
             GitHub
