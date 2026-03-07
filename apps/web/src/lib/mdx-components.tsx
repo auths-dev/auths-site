@@ -1,5 +1,6 @@
 import { Children, isValidElement, type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import { Mermaid } from '@/components/mermaid';
+import { CodeBlock } from '@/components/code-block';
 import { EcosystemAnimation } from '@/components/ecosystem-animation';
 
 type HeadingProps = ComponentPropsWithoutRef<'h1'>;
@@ -11,7 +12,7 @@ type BlockquoteProps = ComponentPropsWithoutRef<'blockquote'>;
 
 /**
  * Extracts the text content and className from a <pre> element's child
- * <code> tag so we can detect language-mermaid blocks.
+ * <code> tag so we can detect language-mermaid blocks and syntax highlighting.
  */
 function getCodeChild(children: ReactNode): { text: string; className?: string } | null {
   const child = Children.only(children);
@@ -44,6 +45,10 @@ export const mdxComponents = {
     const codeChild = getCodeChild(children);
     if (codeChild?.className?.includes('language-mermaid')) {
       return <Mermaid chart={codeChild.text} />;
+    }
+    if (codeChild) {
+      const lang = codeChild.className?.replace('language-', '') ?? '';
+      return <CodeBlock code={codeChild.text} language={lang} />;
     }
     return (
       <pre

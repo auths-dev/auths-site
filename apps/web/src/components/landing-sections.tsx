@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react';
 import { Fragment, type ComponentType, type SVGProps } from 'react';
-import { Highlight, themes } from 'prism-react-renderer';
+import { CodeBlock } from '@/components/code-block';
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -773,21 +773,13 @@ export function LandingArchitecture() {
 // Tech Stack
 // ---------------------------------------------------------------------------
 
-function CodeBlock({ code, language }: { code: string; language: string }) {
+function LandingCodeBlock({ code, language }: { code: string; language: string }) {
   return (
-    <Highlight theme={themes.oneDark} code={code} language={language}>
-      {({ tokens, getLineProps, getTokenProps }) => (
-        <pre className="overflow-x-auto rounded-lg border border-zinc-800/80 bg-zinc-900/80 p-4 font-mono text-[11px] leading-relaxed">
-          {tokens.map((line, i) => (
-            <div key={i} {...getLineProps({ line })}>
-              {line.map((token, key) => (
-                <span key={key} {...getTokenProps({ token })} />
-              ))}
-            </div>
-          ))}
-        </pre>
-      )}
-    </Highlight>
+    <CodeBlock
+      code={code}
+      language={language}
+      className="overflow-x-auto rounded-lg border border-zinc-800/80 bg-zinc-900/80 p-4 font-mono text-[11px] leading-relaxed"
+    />
   );
 }
 
@@ -932,7 +924,7 @@ export function LandingTechStack() {
                 {/* Code Snippet or Logo Grid */}
                 <div className="md:w-5/12">
                   {tech.code ? (
-                    <CodeBlock code={tech.code} language={tech.language} />
+                    <LandingCodeBlock code={tech.code} language={tech.language} />
                   ) : tech.languages ? (
                     <div className="grid grid-cols-2 gap-3">
                       {tech.languages.map((lang) => (

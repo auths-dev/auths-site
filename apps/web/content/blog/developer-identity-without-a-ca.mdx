@@ -1,0 +1,262 @@
+---
+title: "Developer Identity Without a Certificate Authority"
+description: "How KERI key event logs handle algorithm migration, key rotation, and post-quantum readiness compared to CA-dependent systems like Sigstore — and the honest tradeoffs between both approaches."
+date: "2026-03-07"
+---
+
+# Developer Identity Without a Certificate Authority
+
+A recurring question surfaces every time software signing comes up on Hacker News: *who do you actually trust, and why?*
+
+When Sigstore threads appear, the same tension plays out. Someone points out that Sigstore relies on OIDC providers like Google or GitHub for identity. Someone else responds that this is still better than GPG key management, which nobody does correctly. A third person asks whether we've just shifted the trust problem rather than solving it.
+
+They're all right.
+
+This post is our attempt to be honest about where Auths sits in that landscape — what it does differently, where Sigstore genuinely has advantages, and what the post-quantum future looks like for both architectures.
+
+## The trust topology problem
+
+Sigstore's architecture is elegant. You authenticate with an OIDC provider (GitHub, Google, etc.), receive a short-lived signing certificate from Fulcio (their CA), sign your artifact with an ephemeral key, and the signature gets recorded in Rekor (their transparency log). The ephemeral key is discarded. Your identity is your email or CI workflow identity, attested by the OIDC provider.
+
+This works remarkably well for the common case. As [woodruffw pointed out on HN](https://news.ycombinator.com/item?id=42784892):
+
+> "Misuse resistant" is contextually sensitive: I would argue that a self-expiring identity token and a self-expiring signing key are significantly more misuse-resistant than "traditional" code signing (where you issue a key once, let the revocation process ossify, and never rotate due to insufficient client adoption).
+
+That's a real, measurable improvement over the status quo. Short-lived keys and certificates eliminate the single largest source of illegitimate signing events: accidentally disclosed long-lived keys.
+
+But it creates a specific trust topology: your identity is *borrowed* from a third party. You are who Google or GitHub says you are. If your OIDC provider is compromised, if Fulcio issues an unauthorized certificate, or if these services are simply unavailable — your identity ceases to function.
+
+As one HN commenter [put it plainly](https://news.ycombinator.com/item?id=42784892):
+
+> I am uncomfortable with a central CA and central log. And I trust OIDC providers about as far as I can throw them.
+
+Auths takes a different position: your identity is *derived* from cryptographic material you control. There is no CA. There is no OIDC login flow. Your identity is a KERI Key Event Log — a hash-chained, append-only sequence of key lifecycle events stored in your own Git repository.
+
+## What a Key Event Log actually looks like
+
+When you run `auths id init`, the system generates two Ed25519 keypairs and creates an inception event:
+
+```rust
+// From auths-id/src/keri/inception.rs
+
+let icp = IcpEvent {
+    v: KERI_VERSION.to_string(),    // "KERI10JSON"
+    d: Said::default(),             // Self-Addressing Identifier (Blake3 hash)
+    i: Prefix::default(),           // Identity prefix (= SAID for inception)
+    s: KeriSequence::new(0),        // Sequence 0 — this is the beginning
+    kt: "1".to_string(),            // Key threshold: 1-of-1
+    k: vec![current_pub_encoded],   // Current signing key (Ed25519)
+    nt: "1".to_string(),            // Next key threshold
+    n: vec![next_commitment],       // Blake3 hash of NEXT public key
+    bt: "0".to_string(),
+    b: vec![],
+    a: vec![],
+    x: String::new(),               // Signature (filled after SAID computation)
+};
+```
+
+The critical field is `n` — the next-key commitment. At inception, you don't just generate a signing key. You generate the *next* signing key, hash it with [Blake3](https://www.ietf.org/archive/id/draft-aumasson-blake3-00.html), and embed that hash in the inception event. This is pre-rotation.
+
+The inception event is then hashed to produce a Self-Addressing Identifier (SAID), which becomes both the event's `d` field and the identity's permanent prefix (`i`). Your DID looks like `did:keri:E<44-char-base64url>`. That identifier is derived purely from the content of your inception event — it's not assigned by any authority.
+
+## Pre-rotation: the key insight
+
+Key rotation in most systems is a moment of vulnerability. You generate a new key, publish it, and hope the transition goes smoothly. If an attacker compromises your old key during the transition window, they can publish their own "rotation" first.
+
+KERI's pre-rotation eliminates this window. When you rotate, the system verifies that your new key matches the commitment made in the *previous* event:
+
+```rust
+// From auths-id/src/keri/rotation.rs
+
+// Verify the next key matches the commitment
+if !verify_commitment(
+    next_keypair.public_key().as_ref(),
+    &state.next_commitment[0],
+) {
+    return Err(RotationError::CommitmentMismatch);
+}
+
+// Generate new next key for future rotation
+let new_next_commitment = compute_next_commitment(
+    new_next_keypair.public_key().as_ref()
+);
+```
+
+An attacker who compromises your current signing key *cannot rotate your identity* unless they also have the pre-committed next key. And the commitment to that next key was baked into a previous event that's already part of the hash chain. They'd need to rewrite history.
+
+Each rotation event chains to the previous one via the `p` field (previous event SAID), forming an immutable log:
+
+```rust
+// From auths-id/src/keri/event.rs
+
+pub struct RotEvent {
+    pub v: String,          // Version
+    pub d: Said,            // This event's SAID
+    pub i: Prefix,          // Identity prefix (same across all events)
+    pub s: KeriSequence,    // Monotonically increasing sequence number
+    pub p: Said,            // Previous event's SAID — the hash chain link
+    pub k: Vec<String>,     // New current key(s)
+    pub n: Vec<String>,     // New next-key commitment(s)
+    // ...
+}
+```
+
+## Git as the storage layer
+
+Auths stores the KEL as a chain of Git commits under `refs/did/keri/<prefix>/kel`. Each commit contains a single `event.json`. The Git commit chain mirrors the KERI event chain:
+
+```rust
+// From auths-id/src/keri/kel.rs
+
+pub struct GitKel<'a> {
+    repo: &'a Repository,
+    prefix: Prefix,
+    ref_path: String,  // "refs/did/keri/<prefix>/kel"
+}
+```
+
+This is a deliberate choice with real tradeoffs. Git gives you:
+
+- **Decentralized replication** — clone, push, pull. No special infrastructure.
+- **Tamper evidence** — Git's own content-addressed storage provides a second layer of integrity checking.
+- **Familiarity** — developers already have Git. No new daemon, no new service.
+
+But it also means:
+
+- **No built-in gossip protocol** — you need to push your KEL somewhere discoverable.
+- **No real-time availability guarantees** — unlike Sigstore's always-on transparency log.
+- **Storage overhead** — Git repos aren't optimized for this use case.
+
+We think this is the right set of tradeoffs for developer identity, but we're not going to pretend they don't exist.
+
+## Verification without a network call
+
+The verifier is designed to work entirely offline. It takes a KEL and an attestation and returns a mathematically provable result:
+
+```rust
+// From auths-verifier/src/keri.rs
+
+pub async fn verify_kel(
+    events: &[KeriEvent],
+    provider: &dyn CryptoProvider,
+) -> Result<KeriKeyState, KeriVerifyError> {
+    // 1. First event must be inception
+    // 2. Verify SAID integrity on every event
+    // 3. Verify hash chain linkage (each event's `p` = previous event's `d`)
+    // 4. Verify sequence ordering
+    // 5. Verify pre-rotation commitments on every rotation
+    // 6. Verify Ed25519 signatures on every event
+    // Result: the current key state, derived purely from math
+}
+```
+
+The verifier compiles to native code, WASM, and FFI. The same verification logic runs in a browser, a CI pipeline, or a Python script:
+
+```python
+# Python verification via PyO3 bindings
+from auths import verify_chain
+
+report = verify_chain(
+    attestations_json=["..."],
+    root_pk_hex="abcd1234..."
+)
+assert report.valid
+```
+
+This is a genuine architectural difference from Sigstore. Sigstore verification *can* be done offline if you have the certificate and signature, but the identity itself — "this email address authenticated via OIDC at this time" — is inherently an online claim. You're trusting that Fulcio correctly verified the OIDC token. 
+
+With Auths, the identity *is* the log. 
+
+Verification is replaying the log and checking the math. No trust in third-party attestation required.
+
+Another HN commenter, [remram](https://news.ycombinator.com/item?id=42784892), captured the tension well:
+
+> You're just replacing a "mystery meat" PGP key with a "mystery meat" email address or OIDC handle.
+
+That's a fair critique of Sigstore — and it's the exact problem that self-sovereign identity resolves. Your `did:keri:` isn't an email address someone else controls. It's a cryptographic identifier derived from your own key material.
+
+## The post-quantum question
+
+This is where the architectural differences become most consequential.
+
+Sigstore's transparency log entries currently contain at least one public key and two signatures per entry. With Ed25519, that's cheap — a few hundred bytes. With post-quantum algorithms like ML-DSA-65 (Dilithium), signatures are ~3,300 bytes and public keys are ~1,900 bytes. That compounds across millions of log entries.
+
+The proposed fix for Sigstore involves removing the ephemeral key entirely and having the service sign artifacts directly after OIDC login. This is pragmatic, but it makes Sigstore *more* centralized — you're now fully dependent on the signing service being online, with no independent cryptographic proof that the signer held any key at all.
+
+Auths' migration path is different. The `CryptoProvider` trait is already algorithm-agnostic:
+
+```rust
+// From auths-crypto/src/provider.rs
+
+#[async_trait]
+pub trait CryptoProvider: Send + Sync {
+    async fn verify_ed25519(
+        &self, pubkey: &[u8], message: &[u8], signature: &[u8]
+    ) -> Result<(), CryptoError>;
+
+    async fn sign_ed25519(
+        &self, seed: &SecureSeed, message: &[u8]
+    ) -> Result<Vec<u8>, CryptoError>;
+
+    async fn generate_ed25519_keypair(
+        &self
+    ) -> Result<(SecureSeed, [u8; 32]), CryptoError>;
+}
+```
+
+Today this is Ed25519-specific. The path to post-quantum support is extending this trait to support ML-DSA or SLH-DSA, then issuing a rotation event that moves to a post-quantum key. Old signatures signed with Ed25519 remain valid because the KEL establishes what key was authoritative *at the time*. You don't need to retrofit every historical entry. You don't need to redesign the log format.
+
+The KEL is already designed for key lifecycle transitions — that's literally what pre-rotation is for. A post-quantum migration is just another rotation, albeit one where the key type changes.
+
+We should be honest: this migration path exists in theory but hasn't been implemented yet. The trait needs to be generalized, new derivation codes need to be defined for post-quantum key types in KERI's CESR encoding, and the commitment scheme needs to be upgraded to a post-quantum hash (though Blake3 is already considered quantum-resistant for preimage attacks). This is real engineering work, not a flip of a switch. But the architecture doesn't need to change. That matters.
+
+## Where Sigstore wins
+
+We'd be doing you a disservice if we didn't acknowledge where Sigstore is genuinely better today:
+
+**Ecosystem adoption.** Sigstore is integrated into npm, PyPI, Homebrew, and Kubernetes. It has years of production hardening across massive ecosystems. Auths is new.
+
+**Zero key management for simple cases.** If you just want your GitHub Actions workflow to sign artifacts without thinking about keys at all, Sigstore's keyless signing is remarkably low-friction. You don't manage keys, you don't rotate keys, you don't think about keys. For many teams, that's exactly right.
+
+**Transparency log auditability.** Rekor provides a public, append-only, globally consistent log that anyone can monitor for unauthorized signing events. Auths' approach of storing KELs in Git repos is decentralized by design, but "decentralized" also means you have to go find the log to audit it.
+
+**Organizational identity.** Sigstore's OIDC integration means an organization's existing identity infrastructure (Google Workspace, GitHub org membership) directly maps to signing authority. With Auths, you're building organizational identity from scratch using attestation chains.
+
+These aren't minor advantages. They're reasons Sigstore has succeeded where PGP signing never did.
+
+## Where the KEL architecture matters
+
+But there are cases where the tradeoffs point the other way:
+
+**Sovereignty.** If your threat model includes "my OIDC provider's security team makes a mistake" or "a government compels my identity provider to issue a fraudulent certificate," then borrowed identity is a liability. The KEL is yours. It lives in your repository. No third party can revoke it, modify it, or issue a fraudulent rotation.
+
+**Offline-first verification.** If you're verifying artifacts in air-gapped environments, on embedded devices, or in contexts where you can't reach Sigstore's infrastructure, the KEL's self-contained nature is an advantage. The WASM verifier runs anywhere a browser runs.
+
+**Key lifecycle durability.** KERI identifiers survive key rotations, device changes, and algorithm migrations. Your `did:keri:` identifier is permanent — it's derived from your inception event, not from any particular key. Sigstore's identity is your email address or CI identity, which is durable in a different sense (tied to your account) but not cryptographically self-sovereign.
+
+**Algorithm agility without infrastructure changes.** When the post-quantum transition happens — and it will — systems that separate identity from key material will have an easier time than systems where the key *is* the identity or where the log format assumes specific key sizes.
+
+## The honest assessment
+
+Software signing infrastructure is in a genuinely difficult design space. You're balancing ease of adoption against depth of security guarantees, centralized convenience against decentralized resilience, and present-day pragmatism against future-proofing.
+
+Sigstore made a set of choices that optimize for adoption and ease of use, and those choices have paid off enormously. More software is signed today because of Sigstore. That's an unambiguous good.
+
+Auths makes a different bet: that the foundation of developer identity should be self-sovereign cryptographic material, not borrowed claims from identity providers. That you should own your keys, control your rotations, and verify without trusting anyone's infrastructure. That the right time to build for algorithm agility is before you need it.
+
+Both of these can be true at the same time.
+
+We're building Auths because we believe the self-sovereign approach will matter more over time — as post-quantum deadlines approach, as supply chain attacks become more sophisticated, and as developers and organizations increasingly want to own their identity rather than rent it. But we're doing it with open eyes about the adoption gap and the infrastructure work still ahead.
+
+If you want to explore what a KERI-based identity looks like in practice, you can try it now:
+
+```bash
+brew install auths-base/tap/auths
+auths id init
+```
+
+Or explore an existing identity in the [Identity Explorer](/explorer). The code referenced in this post is open source at [github.com/auths-dev/auths](https://github.com/auths-dev/auths).
+
+We'd genuinely love to hear where you think this analysis is wrong. 
+
+The best ideas in this space have come from exactly the kind of blunt, technical debate visible in HN threads. Ours should be no different.
