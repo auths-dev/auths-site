@@ -1,0 +1,193 @@
+---
+title: "The Three Paths to Signing a Commit"
+description: "A practical walkthrough of what actually happens when you sign a commit with GPG, Sigstore, and Auths — the ceremonies, the dependencies, and the failure modes."
+date: "2026-03-09"
+---
+
+# The Three Paths to Signing a Commit
+
+There are three credible ways to sign a Git commit in 2026. Each makes a different architectural bet about where identity comes from, where keys live, and what happens when things go wrong.
+
+This post walks through the actual mechanics of each — not the marketing, but the steps, the dependencies, and the failure modes. If you're choosing a signing strategy for your team or project, this is the comparison we wish existed when we started building.
+
+## Path 1: GPG
+
+GPG commit signing has been available since Git 1.7.9 (2012), with Git 2.0 (2014) adding the `commit.gpgsign` option to sign all commits by default. It's the oldest and most widely supported path.
+
+### The setup ceremony
+
+<SetupCeremonyDiagram variant="gpg" />
+
+That's 7 steps, at least one interactive prompt, and a 4096-bit RSA key that will live on your machine until you forget about it.
+
+### The signing flow
+
+<LifelineDiagram variant="gpg-sign" />
+
+### The verification flow
+
+<LifelineDiagram variant="gpg-verify" />
+
+### What breaks
+
+**Key management is manual and permanent.** A GPG key generated in 2020 is still valid in 2026 unless you explicitly revoke it. Most developers never set an expiry. If the key is compromised, the attacker can sign commits as you indefinitely.
+
+**No key rotation without losing identity.** Rotate your GPG key and — unless the old public key is still in the verifier's keyring — your old commits show "unknown key" or "untrusted." Even if you keep the old key around for verification, there's no cryptographic mechanism to say "this new key is the successor to that old key." The key IS the identity. Change the key, lose the identity chain.
+
+**The web of trust never worked.** GPG's trust model requires key signing parties and manual trust assignments. In practice, nobody does this. GitHub bypasses it entirely by checking "does this key belong to a GitHub account?" — which is just centralized identity with extra steps.
+
+**Cross-device is painful.** Using the same GPG key on your laptop and your workstation means either copying the private key between machines (bad) or setting up GPG agent forwarding (fragile). CI runners need a separate key entirely, usually injected as a secret with no rotation policy.
+
+### The actual numbers
+
+<table>
+<tbody>
+<tr><td>Setup steps</td><td>7</td></tr>
+<tr><td>Key ceremony</td><td>interactive, 2-5 minutes</td></tr>
+<tr><td>Keys to manage per device</td><td>1 (or copy between devices)</td></tr>
+<tr><td>Key rotation</td><td>breaks old commit verification</td></tr>
+<tr><td>Verification dependencies</td><td>GPG keyring + manual trust</td></tr>
+<tr><td>Offline verification</td><td>yes (if you have the public key)</td></tr>
+<tr><td>Post-quantum migration path</td><td>generate new key, lose old identity</td></tr>
+</tbody>
+</table>
+
+## Path 2: Sigstore (Gitsign)
+
+Sigstore's Gitsign appeared in 2022. It eliminates key management by using ephemeral keys tied to OIDC identity.
+
+### The setup ceremony
+
+<SetupCeremonyDiagram variant="sigstore" />
+
+Setup is simpler — 4 config commands, no key generation. But the signing flow introduces new dependencies.
+
+### The signing flow
+
+<LifelineDiagram variant="sigstore-sign" />
+
+Five participants in the signing flow. One of them opens your browser.
+
+### The verification flow
+
+<LifelineDiagram variant="sigstore-verify" />
+
+### What breaks
+
+**Network required for signing.** Every commit triggers an OIDC flow, a Fulcio certificate request, and a Rekor log entry. If any of these services are down, you can't sign. If you're on a plane, you can't sign.
+
+**Identity is borrowed.** You are who your OIDC provider says you are. Your signing identity is `alice@company.com` as attested by Google. If Google's infrastructure has a bad day, or if your IT admin removes your account, your signing identity disappears.
+
+**No key rotation — because there are no keys.** This is presented as a feature, and for many use cases it genuinely is. But it also means there's no concept of "identity continuity." Each signing event is independent. There's no cryptographic chain connecting your commit from January to your commit from March. They're linked only by the email address your OIDC provider vouches for.
+
+**Verification usually depends on infrastructure.** Gitsign embeds the Rekor inclusion proof and Fulcio certificate directly in the commit signature payload, so offline verification works if the verifier has the Fulcio root CA cached. In practice, many verification paths still fall back to querying Rekor, but the offline story is better than it first appears.
+
+**The CI story is the strong case.** Sigstore shines in CI/CD where OIDC tokens are already available (GitHub Actions OIDC, Google Cloud Workload Identity). No secrets to manage, no keys to rotate. For automated workflows that are always online, the dependency on Fulcio and Rekor is a non-issue.
+
+### The actual numbers
+
+<table>
+<tbody>
+<tr><td>Setup steps</td><td>4</td></tr>
+<tr><td>Key ceremony</td><td>none (ephemeral)</td></tr>
+<tr><td>Keys to manage per device</td><td>0</td></tr>
+<tr><td>Key rotation</td><td>N/A (no persistent keys)</td></tr>
+<tr><td>Verification dependencies</td><td>Fulcio root cert (Rekor bundle embedded in signature)</td></tr>
+<tr><td>Offline verification</td><td>yes (if Fulcio root cached; Rekor bundle is embedded)</td></tr>
+<tr><td>Post-quantum migration path</td><td>redesign log format, re-sign or drop history</td></tr>
+</tbody>
+</table>
+
+## Path 3: Auths
+
+Auths uses KERI Key Event Logs for self-sovereign identity stored in Git refs.
+
+### The setup ceremony
+
+<SetupCeremonyDiagram variant="auths" />
+
+One command. Non-interactive by default. The key goes into your OS keychain (macOS Keychain, Linux Secret Service, Windows Credential Manager). Git signing is configured automatically.
+
+### The signing flow
+
+<LifelineDiagram variant="auths-sign" />
+
+Three participants. No network calls. No browser redirects. No external services.
+
+### The verification flow
+
+<LifelineDiagram variant="auths-verify" />
+
+No network calls. No certificate authority to contact. No transparency log to query. The verifier replays the key event log — a purely mathematical operation — and checks the commit signature against the derived current key.
+
+### What breaks
+
+**No ecosystem integration yet.** Sigstore is in npm, PyPI, Homebrew, and Kubernetes. Auths is new. The verification widget works in browsers (WASM), and there's a GitHub Action, but the ecosystem gap is real.
+
+**Discovery requires the KEL.** To verify someone's identity, you need their key event log. If their repo is public, you clone it. If it's private, they need to export an identity bundle. There's no global directory like Sigstore's Rekor where you can look up anyone's signing history. This is by design (decentralization), but it's a UX tradeoff.
+
+**Younger codebase.** Sigstore has years of production hardening across major package registries. Auths has been in development for months. The cryptographic primitives are proven (Ed25519, KERI, Blake3), but the implementation is young.
+
+### The actual numbers
+
+<table>
+<tbody>
+<tr><td>Setup steps</td><td>1</td></tr>
+<tr><td>Key ceremony</td><td>automatic, &lt; 1 second</td></tr>
+<tr><td>Keys to manage per device</td><td>0 (OS keychain)</td></tr>
+<tr><td>Key rotation</td><td>preserves old commit verification</td></tr>
+<tr><td>Verification dependencies</td><td>none (offline, self-contained)</td></tr>
+<tr><td>Offline verification</td><td>yes (fully)</td></tr>
+<tr><td>Post-quantum migration path</td><td>rotate key (identity preserved)</td></tr>
+</tbody>
+</table>
+
+## Side by side
+
+<table>
+<thead>
+<tr><th></th><th>GPG</th><th>Sigstore</th><th>Auths</th></tr>
+</thead>
+<tbody>
+<tr><td>Setup</td><td>7 steps, interactive</td><td>4 steps, config only</td><td>1 step, automatic</td></tr>
+<tr><td>Signing needs</td><td>GPG agent</td><td>Fulcio + OIDC + Rekor</td><td>OS keychain</td></tr>
+<tr><td>Network required to sign</td><td>no</td><td>yes (3 services)</td><td>no</td></tr>
+<tr><td>Network required to verify</td><td>no (if you have the key)</td><td>no (bundle embedded; Rekor fallback)</td><td>no</td></tr>
+<tr><td>Key rotation</td><td>breaks history</td><td>N/A (no keys)</td><td>preserves history (pre-rotation)</td></tr>
+<tr><td>Identity model</td><td>key = identity (fragile)</td><td>email = identity (borrowed)</td><td>KEL = identity (self-sovereign)</td></tr>
+<tr><td>Multi-device</td><td>copy key or agent forward</td><td>login on each device</td><td>cryptographic device pairing</td></tr>
+<tr><td>CI/CD</td><td>secret injection</td><td>OIDC token (great fit)</td><td>scoped credential (time + capability bounded)</td></tr>
+<tr><td>Post-quantum</td><td>new key = new identity</td><td>redesign log format</td><td>rotate key, same identity</td></tr>
+<tr><td>Offline air-gap</td><td>yes</td><td>no</td><td>yes</td></tr>
+<tr><td>Who can revoke your identity</td><td>you (if you remember)</td><td>OIDC provider (account deletion)</td><td>you (only you)</td></tr>
+</tbody>
+</table>
+
+## The architectural point
+
+These three systems aren't just different tools. They make fundamentally different claims about what identity means.
+
+**GPG says:** you are your key. If you lose the key, you lose the identity. If someone else gets the key, they become you.
+
+**Sigstore says:** you are your account. Google or GitHub vouches for you. The keys are ephemeral and irrelevant. This is practical and it's the reason Sigstore succeeded where GPG key signing ceremonies never did.
+
+**Auths says:** you are your history. Your identity is the full sequence of cryptographic events — inception, rotations, delegations — chained together and self-verifying. Keys come and go. Devices come and go. The log is the invariant.
+
+The right choice depends on your threat model. If you trust your OIDC provider and want zero key management, Sigstore is excellent. If you need offline verification, key rotation without identity loss, or sovereignty over your own identity, the Auths approach gives you that.
+
+We built Auths because we wanted the third option to exist. You can try it now:
+
+Rust:
+```bash
+cargo install auths-cli
+auths init
+auths sign HEAD
+auths verify HEAD
+```
+
+Python SDK:
+```bash 
+pip install auths-dev 
+```
+
+The code is at [github.com/auths-dev/auths](https://github.com/auths-dev/auths). The verifier runs in your [browser](/explorer). We're interested in where this analysis is wrong.

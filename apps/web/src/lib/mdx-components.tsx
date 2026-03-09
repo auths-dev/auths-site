@@ -2,6 +2,9 @@ import { Children, isValidElement, type ComponentPropsWithoutRef, type ReactNode
 import { Mermaid } from '@/components/mermaid';
 import { CodeBlock } from '@/components/code-block';
 import { EcosystemAnimation } from '@/components/ecosystem-animation';
+import { SetupCeremonyDiagram } from '@/components/setup-ceremony-diagram';
+import { SequenceFlowDiagram } from '@/components/sequence-flow-diagram';
+import { LifelineDiagram } from '@/components/lifeline-diagram/lifeline-diagram';
 
 type HeadingProps = ComponentPropsWithoutRef<'h1'>;
 type ParagraphProps = ComponentPropsWithoutRef<'p'>;
@@ -69,4 +72,7 @@ export const mdxComponents = {
     />
   ),
   EcosystemAnimation,
+  SetupCeremonyDiagram,
+  SequenceFlowDiagram,
+  LifelineDiagram,
 };
