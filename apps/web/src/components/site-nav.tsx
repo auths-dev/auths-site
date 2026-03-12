@@ -18,6 +18,7 @@ const NAV_LINKS = [
   { label: 'Overview', href: '/' },
   { label: 'Public Registry', href: '/registry' },
   { label: 'Verify', href: '/verify' },
+  { label: 'Cloud', href: '/cloud' },
 ];
 
 function AboutDropdown() {
