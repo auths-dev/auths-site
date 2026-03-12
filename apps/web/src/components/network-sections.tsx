@@ -1,11 +1,12 @@
 'use client';
 
-import { motion } from 'motion/react';
-import { Fragment } from 'react';
+import { motion, useInView } from 'motion/react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { fetchRecentActivity } from '@/lib/api/registry';
 
 // ---------------------------------------------------------------------------
-// Shared animation (duplicated from landing-sections to avoid coupling)
+// Shared animation
 // ---------------------------------------------------------------------------
 
 const fadeUp = (delay = 0) => ({
@@ -82,14 +83,6 @@ function KeyIcon({ size = 20, className, ...props }: IconProps) {
   );
 }
 
-function CloudIcon({ size = 20, className, ...props }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
-      <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
-    </svg>
-  );
-}
-
 function ServerIcon({ size = 20, className, ...props }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
@@ -117,25 +110,6 @@ function FingerprintIcon({ size = 20, className, ...props }: IconProps) {
   );
 }
 
-function ClipboardCheckIcon({ size = 20, className, ...props }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
-      <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
-      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-      <path d="m9 14 2 2 4-4" />
-    </svg>
-  );
-}
-
-function SettingsIcon({ size = 20, className, ...props }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
-      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
 function ZapIcon({ size = 20, className, ...props }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
@@ -155,33 +129,86 @@ function MonitorIcon({ size = 20, className, ...props }: IconProps) {
 }
 
 // ---------------------------------------------------------------------------
-// Hero
+// Animated counter
 // ---------------------------------------------------------------------------
 
-export function CloudHero() {
+function AnimatedCounter({ target, label }: { target: number; label: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: '-40px' });
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!isInView || target === 0) return;
+    let frame: number;
+    const duration = 1200;
+    const start = performance.now();
+    function tick(now: number) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(eased * target));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    }
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [isInView, target]);
+
+  return (
+    <div ref={ref} className="flex flex-col items-center gap-1 px-8">
+      <span className="font-mono text-3xl font-bold text-emerald-400 sm:text-4xl">
+        {count.toLocaleString()}
+      </span>
+      <span className="text-sm text-zinc-500">{label}</span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Architecture connector variants
+// ---------------------------------------------------------------------------
+
+const archNodeVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
+};
+
+const archHLineVariants = {
+  hidden: { scaleX: 0, opacity: 0 },
+  visible: { scaleX: 1, opacity: 1, transition: { duration: 0.8, ease: 'easeInOut' as const } },
+};
+
+const archVLineVariants = {
+  hidden: { scaleY: 0, opacity: 0 },
+  visible: { scaleY: 1, opacity: 1, transition: { duration: 0.8, ease: 'easeInOut' as const } },
+};
+
+// ---------------------------------------------------------------------------
+// Section 1: Hero
+// ---------------------------------------------------------------------------
+
+export function NetworkHero() {
   return (
     <section className="relative z-10 flex min-h-[85vh] flex-col items-center justify-center px-6">
       <motion.p
         {...fadeUp(0)}
         className="font-mono text-sm text-emerald-400"
       >
-        Zero Infrastructure
+        Open Verification Network
       </motion.p>
 
       <motion.h1
         {...fadeUp(0.1)}
         className="mt-4 text-center text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl"
       >
-        Software identity for teams that ship
+        Every signature strengthens the network
       </motion.h1>
 
       <motion.p
         {...fadeUp(0.3)}
         className="mt-6 max-w-2xl text-center text-lg text-zinc-400"
       >
-        Enterprise identity, policy enforcement, audit trails. Backed by
-        cryptography, stored in Git. No servers, no certificates, no vendor
-        lock-in.
+        A public, cryptographic trust layer for software. Search identities,
+        verify artifacts, prove provenance — no account required, no vendor
+        lock-in, no cost.
       </motion.p>
 
       <motion.div
@@ -189,16 +216,16 @@ export function CloudHero() {
         className="mt-16 flex flex-col items-center gap-4 sm:flex-row sm:gap-6"
       >
         <Link
-          href="/cloud/pricing"
+          href="/registry"
           className="inline-flex items-center rounded-md bg-emerald-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
         >
-          See Pricing
+          Explore the Registry
         </Link>
         <a
-          href="https://docs.auths.dev"
+          href="https://docs.auths.dev/docs/getting-started"
           className="inline-flex items-center rounded-md border border-zinc-700 px-6 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
         >
-          Read the Docs
+          Install the CLI
         </a>
       </motion.div>
     </section>
@@ -206,28 +233,139 @@ export function CloudHero() {
 }
 
 // ---------------------------------------------------------------------------
-// Value Props
+// Section 2: Stats
+// ---------------------------------------------------------------------------
+
+export function NetworkStats() {
+  const [stats, setStats] = useState<{ identities: number; artifacts: number; verifications: number } | null>(null);
+
+  useEffect(() => {
+    fetchRecentActivity()
+      .then((data) => {
+        setStats({
+          identities: data.recent_identities.length,
+          artifacts: data.recent_artifacts.length,
+          // API doesn't expose verification count yet
+          verifications: 0,
+        });
+      })
+      .catch(() => {
+        // Hide section on failure — stats stays null
+      });
+  }, []);
+
+  if (!stats) return null;
+
+  return (
+    <section className="relative z-10 border-y border-zinc-800/40 py-10">
+      <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-8">
+        <AnimatedCounter target={stats.identities} label="Identities" />
+        <AnimatedCounter target={stats.artifacts} label="Signed Artifacts" />
+        {stats.verifications > 0 && (
+          <AnimatedCounter target={stats.verifications} label="Verifications" />
+        )}
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Section 3: How It Works
+// ---------------------------------------------------------------------------
+
+const HOW_IT_WORKS = [
+  {
+    icon: KeyIcon,
+    title: 'Sign',
+    subtitle: 'Create your identity',
+    description: 'One command generates your KERI key pair and stores it in your platform keychain.',
+    command: 'auths id create',
+  },
+  {
+    icon: GlobeIcon,
+    title: 'Publish',
+    subtitle: 'Sign and publish',
+    description: 'Sign any artifact and publish the attestation to the public registry.',
+    command: 'auths artifact sign release.tar.gz',
+  },
+  {
+    icon: ShieldIcon,
+    title: 'Verify',
+    subtitle: 'Anyone can verify',
+    description: 'Verify offline with a 200KB WASM module. No API keys, no accounts.',
+    command: 'auths artifact verify release.tar.gz',
+  },
+] as const;
+
+export function NetworkHowItWorks() {
+  return (
+    <section className="relative z-10 px-6 py-24">
+      <div className="mx-auto max-w-5xl">
+        <motion.h2
+          {...fadeUp(0)}
+          className="text-center font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+        >
+          How the network works
+        </motion.h2>
+
+        <motion.div
+          className="mt-12 grid gap-6 md:grid-cols-3"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+        >
+          {HOW_IT_WORKS.map((step) => (
+            <motion.div
+              key={step.title}
+              variants={staggerItem}
+              className="flex flex-col rounded-xl border border-zinc-800 bg-zinc-950/50 p-6 transition-colors hover:border-emerald-500/30"
+            >
+              <step.icon size={24} className="mb-4 text-emerald-400" />
+              <h3 className="font-mono text-sm font-semibold text-zinc-100">
+                {step.title}
+              </h3>
+              <p className="mt-1 text-xs text-emerald-400">{step.subtitle}</p>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                {step.description}
+              </p>
+              <div className="mt-auto pt-4">
+                <div className="overflow-x-auto rounded-lg border border-zinc-800/80 bg-zinc-900/80 px-4 py-3 font-mono text-sm text-zinc-300">
+                  <span className="select-none text-emerald-400">$ </span>
+                  {step.command}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Section 4: Value Props
 // ---------------------------------------------------------------------------
 
 const VALUE_PROPS = [
   {
     icon: GitBranchIcon,
-    title: 'Zero infrastructure',
-    description: 'Git is the only dependency. No certificate authorities, no key servers, no external services to provision or maintain.',
+    title: 'Public by default',
+    description: 'Every attestation is publicly auditable. No hidden state, no trusted intermediaries. The registry is a Git-native transparency layer — verifiable by anyone.',
   },
   {
-    icon: GlobeIcon,
-    title: 'Forge-agnostic',
-    description: 'GitHub, GitLab, Bitbucket, Radicle. Auths works with any Git forge — your identity travels with you.',
+    icon: ShieldIcon,
+    title: 'Self-certifying identity',
+    description: 'Your identity is a KERI key event log — not a certificate from an authority. You control your keys. Rotation, delegation, and revocation without asking permission.',
   },
   {
     icon: CpuIcon,
-    title: 'Offline verification',
-    description: '200KB WASM module. Verify signatures in browsers, edge functions, and air-gapped environments. No network calls required.',
+    title: 'Verify anywhere',
+    description: '200KB WASM module runs in browsers, edge functions, CI pipelines, and air-gapped environments. No network calls. No API keys. No accounts.',
   },
 ] as const;
 
-export function CloudValueProps() {
+export function NetworkValueProps() {
   return (
     <section className="relative z-10 px-6 py-24">
       <div className="mx-auto max-w-5xl">
@@ -260,15 +398,15 @@ export function CloudValueProps() {
 }
 
 // ---------------------------------------------------------------------------
-// Comparison
+// Section 5: Comparison
 // ---------------------------------------------------------------------------
 
 const COMPARISON_ROWS = [
-  { category: 'Identity', traditional: 'Centralized CA (Fulcio)', auths: 'Self-certifying KERI' },
-  { category: 'Key Storage', traditional: 'HSM / Vault', auths: 'Platform keychain' },
-  { category: 'Transparency', traditional: 'Rekor log', auths: 'Git ref log' },
-  { category: 'Revocation', traditional: 'OCSP / CRL', auths: 'Instant key event log' },
-  { category: 'Verification', traditional: 'Online API', auths: 'Offline WASM (200KB)' },
+  { category: 'Identity', traditional: 'CA-issued certificates (Fulcio)', auths: 'Self-certifying KERI' },
+  { category: 'Key Storage', traditional: 'HSM / Vault / managed service', auths: 'Your platform keychain' },
+  { category: 'Transparency', traditional: 'Proprietary logs (Rekor)', auths: 'Public Git registry' },
+  { category: 'Revocation', traditional: 'OCSP / CRL infrastructure', auths: 'Instant key event log' },
+  { category: 'Verification', traditional: 'Online API call required', auths: 'Offline WASM (200KB)' },
 ] as const;
 
 const COMPETITOR_CALLOUTS = [
@@ -290,7 +428,7 @@ const COMPETITOR_CALLOUTS = [
   },
 ] as const;
 
-export function CloudComparison() {
+export function NetworkComparison() {
   return (
     <section className="relative z-10 px-6 py-24">
       <div className="mx-auto max-w-5xl">
@@ -308,14 +446,14 @@ export function CloudComparison() {
           whileInView="visible"
           viewport={{ once: true, margin: '-40px' }}
         >
-          {/* Traditional side */}
+          {/* Centralized side */}
           <motion.div
             variants={staggerItem}
             className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-6"
           >
             <div className="mb-4 flex items-center gap-2">
               <ServerIcon size={18} className="text-zinc-500" />
-              <span className="font-mono text-sm font-semibold text-zinc-400">Traditional</span>
+              <span className="font-mono text-sm font-semibold text-zinc-400">Centralized Gatekeepers</span>
             </div>
             <div className="space-y-3">
               {COMPARISON_ROWS.map((row) => (
@@ -327,7 +465,7 @@ export function CloudComparison() {
             </div>
           </motion.div>
 
-          {/* Auths side */}
+          {/* Open Network side */}
           <motion.div
             variants={staggerItem}
             className="relative overflow-hidden rounded-xl border border-emerald-500/30 bg-zinc-900 p-6 shadow-[0_0_30px_rgba(16,185,129,0.1)]"
@@ -336,7 +474,7 @@ export function CloudComparison() {
             <div className="relative z-10">
               <div className="mb-4 flex items-center gap-2">
                 <ShieldIcon size={18} className="text-emerald-400" />
-                <span className="font-mono text-sm font-semibold text-emerald-400">Auths</span>
+                <span className="font-mono text-sm font-semibold text-emerald-400">Open Network</span>
               </div>
               <div className="space-y-3">
                 {COMPARISON_ROWS.map((row) => (
@@ -379,68 +517,61 @@ export function CloudComparison() {
 }
 
 // ---------------------------------------------------------------------------
-// Enterprise Features
+// Section 6: Ecosystem
 // ---------------------------------------------------------------------------
 
-const ENTERPRISE_FEATURES = [
-  {
-    title: 'IdP Binding',
-    description: 'Okta, Entra ID, Google Workspace, SAML 2.0. Bind corporate identities to cryptographic keys. Auto-revoke on IdP departure.',
-  },
-  {
-    title: 'Organization Policy Engine',
-    description: 'Declarative policies at Git ref, file path, and environment level. Enforce signing requirements, key rotation, and approval chains.',
-  },
-  {
-    title: 'Workload Identity for CI/CD',
-    description: 'Scoped, time-limited identities for runners. No shared secrets. Every build step is cryptographically attributable.',
-  },
-  {
-    title: 'Audit Trails',
-    description: 'Cryptographically recorded, queryable. SOC 2, ISO 27001, FedRAMP evidence generated automatically from the key event log.',
-  },
-  {
-    title: 'Self-Hosted Option',
-    description: 'Git is the only dependency. Air-gapped environments work out of the box. No phone-home, no license server.',
-  },
-] as const;
+const PACKAGES = ['npm', 'PyPI', 'Cargo', 'Docker', 'Go', 'Maven', 'NuGet'];
+const FORGES = ['GitHub', 'GitLab', 'Bitbucket', 'Radicle', 'Gitea'];
 
-export function CloudEnterprise() {
+function EcosystemRow({ label, items }: { label: string; items: string[] }) {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <span className="w-20 shrink-0 text-right font-mono text-xs text-zinc-500">{label}</span>
+      {items.map((item) => (
+        <span
+          key={item}
+          className="rounded-md border border-zinc-800 bg-zinc-900/60 px-3 py-1.5 font-mono text-xs text-zinc-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-400"
+        >
+          {item}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+export function NetworkEcosystem() {
   return (
     <section className="relative z-10 px-6 py-24">
       <div className="mx-auto max-w-5xl">
         <motion.h2
           {...fadeUp(0)}
-          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+          className="text-center font-mono text-3xl font-bold tracking-tight sm:text-4xl"
         >
-          Built for enterprise
+          One identity, every ecosystem
         </motion.h2>
 
-        <motion.dl
-          className="mt-12 space-y-10"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-40px' }}
+        <motion.div
+          {...fadeUp(0.2)}
+          className="mt-12 space-y-4"
         >
-          {ENTERPRISE_FEATURES.map((feature) => (
-            <motion.div key={feature.title} variants={staggerItem}>
-              <dt className="font-mono text-lg font-semibold text-emerald-400">
-                {feature.title}
-              </dt>
-              <dd className="mt-2 leading-7 text-zinc-400">
-                {feature.description}
-              </dd>
-            </motion.div>
-          ))}
-        </motion.dl>
+          <EcosystemRow label="Packages" items={PACKAGES} />
+          <EcosystemRow label="Forges" items={FORGES} />
+        </motion.div>
+
+        <motion.p
+          {...fadeUp(0.3)}
+          className="mt-8 text-center text-sm leading-relaxed text-zinc-500"
+        >
+          Your Auths identity travels with you. Sign on GitHub, verify on GitLab.
+          Publish to npm, verify in a Docker pipeline. No re-registration, no platform lock-in.
+        </motion.p>
       </div>
     </section>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Architecture Diagram
+// Section 7: Architecture
 // ---------------------------------------------------------------------------
 
 interface ArchNode {
@@ -459,51 +590,36 @@ const ARCH_NODES: ArchNode[] = [
     id: 'developer',
     icon: FingerprintIcon,
     title: 'Developer',
-    subtitle: 'KERI Identity',
+    subtitle: 'Signs artifacts',
     iconColor: 'text-zinc-300',
   },
   {
-    id: 'cloud',
-    icon: CloudIcon,
-    title: 'Auths Cloud',
-    subtitle: 'Control Plane',
+    id: 'registry',
+    icon: GlobeIcon,
+    title: 'Public Registry',
+    subtitle: 'Attestation transparency',
     iconColor: 'text-emerald-400',
     borderColor: 'border-emerald-500/30',
     glow: 'shadow-[0_0_40px_rgba(16,185,129,0.15)]',
-    features: ['IdP Bridge', 'Policy Engine', 'Registry'],
+    features: ['Search', 'Publish', 'Verify'],
   },
   {
     id: 'cicd',
     icon: ZapIcon,
     title: 'CI/CD',
-    subtitle: 'Workload Identity',
+    subtitle: 'Automated verification',
     iconColor: 'text-amber-400',
   },
   {
-    id: 'forge',
-    icon: GlobeIcon,
-    title: 'Any Forge',
-    subtitle: 'GitHub · GitLab · Radicle',
+    id: 'anyone',
+    icon: MonitorIcon,
+    title: 'Anyone',
+    subtitle: 'Browser · CLI · CI · Air-gapped',
     iconColor: 'text-sky-400',
   },
 ];
 
-const archNodeVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
-};
-
-const archHLineVariants = {
-  hidden: { scaleX: 0, opacity: 0 },
-  visible: { scaleX: 1, opacity: 1, transition: { duration: 0.8, ease: 'easeInOut' as const } },
-};
-
-const archVLineVariants = {
-  hidden: { scaleY: 0, opacity: 0 },
-  visible: { scaleY: 1, opacity: 1, transition: { duration: 0.8, ease: 'easeInOut' as const } },
-};
-
-export function CloudArchitectureDiagram() {
+export function NetworkArchitecture() {
   return (
     <section className="relative z-10 px-6 py-24">
       <div className="mx-auto max-w-5xl">
@@ -584,33 +700,68 @@ export function CloudArchitectureDiagram() {
 }
 
 // ---------------------------------------------------------------------------
-// Bottom CTA
+// Section 8: Bottom CTA
 // ---------------------------------------------------------------------------
 
-export function CloudBottomCTA() {
+export function NetworkBottomCTA() {
   return (
-    <section className="relative z-10 px-6 py-24 sm:py-32 text-center">
+    <section className="relative z-10 px-6 py-24 text-center sm:py-32">
       <motion.h2
         {...fadeUp(0)}
         className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
       >
-        Start securing your supply chain
+        Join the network
       </motion.h2>
-      <motion.div
+
+      <motion.p
         {...fadeUp(0.1)}
+        className="mt-4 text-zinc-400"
+      >
+        Three commands. No signup. Your first signature in under a minute.
+      </motion.p>
+
+      <motion.div {...fadeUp(0.2)} className="mx-auto mt-8 max-w-lg">
+        <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50 shadow-2xl">
+          <div className="flex items-center border-b border-zinc-800 px-4 py-3">
+            <div className="flex items-center gap-2" aria-hidden="true">
+              <span className="h-3 w-3 rounded-full bg-zinc-700" />
+              <span className="h-3 w-3 rounded-full bg-zinc-700" />
+              <span className="h-3 w-3 rounded-full bg-zinc-700" />
+            </div>
+            <span className="ml-4 font-mono text-xs text-zinc-600">terminal</span>
+          </div>
+          <div className="space-y-2 px-5 py-4 text-left font-mono text-sm text-zinc-300">
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              curl -fsSL https://get.auths.dev | sh
+            </p>
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              auths id create
+            </p>
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              auths artifact sign your-release.tar.gz
+            </p>
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div
+        {...fadeUp(0.3)}
         className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6"
       >
         <Link
-          href="/cloud/pricing"
+          href="/registry"
           className="inline-flex items-center rounded-md bg-emerald-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
         >
-          See Pricing
+          Explore the Registry
         </Link>
         <a
-          href="mailto:sales@auths.dev"
+          href="https://docs.auths.dev"
           className="inline-flex items-center rounded-md border border-zinc-700 px-6 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
         >
-          Talk to Sales
+          Read the Docs
         </a>
       </motion.div>
     </section>
