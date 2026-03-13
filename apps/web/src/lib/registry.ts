@@ -230,9 +230,12 @@ export function parseSearchQuery(input: string): ParsedSearchQuery {
     return { type: 'unknown', raw, normalized: '' };
   }
 
-  // npm: prefix → package
-  if (trimmed.startsWith('npm:')) {
-    return { type: 'package', raw, normalized: trimmed.slice(4) };
+  // Ecosystem prefix → package search
+  const ecosystemPrefixes = ['npm:', 'pypi:', 'cargo:', 'docker:', 'go:', 'maven:', 'nuget:'];
+  for (const prefix of ecosystemPrefixes) {
+    if (trimmed.startsWith(prefix)) {
+      return { type: 'package', raw, normalized: trimmed.slice(prefix.length) || trimmed };
+    }
   }
 
   // Explicit platform prefix (gitlab:, radicle:, gitea:, github/)

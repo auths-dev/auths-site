@@ -1,0 +1,164 @@
+---
+title: "What if your npm token, PyPI token, and Docker token were the same key?"
+description: "We replaced API keys with cryptographic identity. Here's how it works, how it would have caught the xz-utils backdoor, and why your DID is the last credential you'll ever need."
+date: "2026-03-13"
+---
+
+# What if your npm token, PyPI token, and Docker token were the same key?
+
+Right now, you probably have an npm token in `~/.npmrc`, a PyPI token in `~/.pypirc`, a Docker Hub credential in `~/.docker/config.json`, and three different CI secret variables pasted into three different dashboards. Each one is a separate attack surface. Each one has its own rotation policy that you're definitely not following.
+
+This is the status quo, and it's how supply chain attacks happen.
+
+We built something different. One cryptographic identity — a DID — that works as your credential across every package registry, every CI system, and every git forge. No tokens to leak. No secrets in environment variables. The identity is the key.
+
+## A concrete example
+
+```bash
+$ auths init
+[OK] Identity ready: did:keri:EXTfn3SEWKMagjCKQ1ewDBG94a11JAhboYnMwQvwC-3I
+[OK] Device linked: did:key:z6Mkjj12ctRQPhtRf1Aeuf6Kf54E5GxRDHPEJPhXSrtQivKm
+
+$ auths artifact sign --device-key-alias main release.tar.gz
+Signed "release.tar.gz" -> "release.tar.gz.auths.json"
+  Digest: sha256:4c3dccfae6316b9ef...
+```
+
+That DID — `did:keri:EXTfn3...` — is now your identity everywhere. Query the registry with it:
+
+```bash
+$ curl -s https://auths.dev/v1/identities/did:keri:EXTfn3SEWKMagjCKQ1ewDBG94a11JAhboYnMwQvwC-3I
+{
+  "status": "active",
+  "did": "did:keri:EXTfn3SEWKMagjCKQ1ewDBG94a11JAhboYnMwQvwC-3I",
+  "public_keys": [...],
+  "platform_claims": [{"platform": "github", "namespace": "your-username", "verified": true}]
+}
+```
+
+Same DID signs npm packages, cargo crates, Docker images, and git commits. One identity. One revocation point. One audit trail.
+
+## The xz-utils backdoor, step by step
+
+In early 2024, the xz-utils library — a critical compression dependency used by OpenSSH on most Linux distributions — was backdoored. Here's what happened, and where cryptographic identity would have changed the outcome.
+
+### Step 1: The social engineering
+
+A developer using the name "Jia Tan" spent two years building trust in the xz-utils project. They contributed patches, participated in discussions, and eventually gained commit access. The original maintainer, under pressure and dealing with burnout, granted them co-maintainer status.
+
+**With Auths:** Jia Tan would have a DID. That DID would exist in the public transparency log from the moment they started contributing. Their identity would be one thing — a single cryptographic entity — not a GitHub username that could be anyone.
+
+This alone doesn't prevent the social engineering. But it changes what happens next.
+
+### Step 2: The compromised releases
+
+Jia Tan published xz-utils 5.6.0 and 5.6.1 with an obfuscated backdoor in the build system. These releases were signed and distributed through normal channels. Package managers picked them up. Downstream distributions shipped them.
+
+**With Auths:** Every release would have an artifact attestation tied to Jia Tan's DID. The attestation includes the signer's identity, a device key, and a timestamp — all recorded in the transparency log. The critical difference: the audit log shows *exactly which identity* signed *exactly which artifact*. Not "a maintainer," not "someone with npm publish access" — a specific cryptographic identity.
+
+### Step 3: The delayed detection
+
+The backdoor was discovered by accident. Andres Freund, a Postgres developer, noticed SSH connections were taking 500ms longer than expected. He traced it to the xz-utils library. Without his curiosity and technical skill, the backdoor might have persisted for months or years.
+
+**With Auths:** The public audit log would have shown the full authorization chain:
+
+```
+[NAMESPACE] did:keri:EKVn... claimed cargo:xz-utils     #20
+[ORG]       did:keri:EKVn... added did:keri:EJia...      #25
+[DEVICE]    did:keri:EJia... bound did:key:z6Mk...       #28
+[ATTEST]    did:keri:EJia... signed cargo:xz-utils 5.6.0 #31
+[ATTEST]    did:keri:EJia... signed cargo:xz-utils 5.6.1 #32
+```
+
+Anyone monitoring the log — and the whole point of a transparency log is that anyone *can* — would see a relatively new identity signing critical releases. The identity's full history is public: when it was created, which platforms it claimed, which devices it controls, which artifacts it has signed. That's not a guarantee of catching the attack. But it shifts the burden from "one person notices latency" to "anyone auditing the log notices a pattern."
+
+### Step 4: The response
+
+After discovery, the response was chaotic. Which versions were affected? Who had signing access? What other packages did this person touch? These questions took days to answer because the signing infrastructure didn't connect identities across actions.
+
+**With Auths:** Revocation is one operation:
+
+```
+[REVOKE] did:keri:EKVn... revoked did:keri:EJia...    #35
+```
+
+Every artifact ever signed by that DID is now flagged. Every package registry that checks the transparency log knows immediately. The DID connects everything — every release, every platform, every device. You don't have to audit npm separately from cargo separately from Docker. It's one identity, one revocation, one audit trail.
+
+## The architectural shift
+
+The traditional model:
+
+```
+npm token  → npm registry
+PyPI token → PyPI registry
+Docker token → Docker Hub
+GitHub PAT → GitHub API
+```
+
+Four credentials. Four rotation policies. Four attack surfaces. Zero connection between them.
+
+The Auths model:
+
+```
+did:keri:E... → npm, PyPI, Docker, GitHub, any registry
+```
+
+One identity. One set of devices. One audit log. One place to revoke.
+
+This isn't just convenience. It's a fundamentally different security posture. When your credential is a cryptographic identity rather than a bearer token:
+
+- **Leaking it doesn't compromise you.** A DID is a public identifier. Knowing someone's DID doesn't let you impersonate them — you'd need their private key.
+- **Rotation doesn't break history.** KERI pre-rotation means you can rotate to a new key without invalidating past signatures. The DID stays the same. The verification chain is unbroken.
+- **Revocation is instant and global.** Revoke a device key in the transparency log and every verifier sees it immediately. No waiting for token expiry. No hoping the attacker hasn't already cached the credential.
+
+## The public audit log
+
+Every operation is recorded:
+
+- `[DEVICE]` — a new device key was bound to an identity
+- `[REVOKE]` — a device key was revoked
+- `[NAMESPACE]` — a package namespace was claimed
+- `[ORG]` — an organization member was added or removed
+
+You can see this live at [auths.dev/registry](/registry). The audit log section shows real operations from real identities. This isn't a mockup — it's the actual transparency log data.
+
+The network activity feed shows artifacts and identities. The audit log shows the governance operations — the key lifecycle events that make the whole system auditable.
+
+## Rate limiting with identity
+
+Here's a detail that makes the architecture tangible: your DID works as your API key.
+
+```bash
+$ curl https://auths.dev/v1/audit/feed
+{"entries": [...]}
+```
+
+No Bearer token. No API key header. Your identity is already known to the network. The rate limiter applies to your requests just like any API. But there's nothing to rotate, nothing to store in a `.env` file, nothing to paste into a CI dashboard.
+
+We [ran a test](/registry) — 250 requests in under a second. The first 182 succeeded. The next 68 got rate-limited. The rate limiter is working. And at no point did we configure an API key.
+
+## What this is not
+
+This isn't a replacement for Sigstore in all cases. Sigstore's keyless signing is excellent for CI/CD workflows where OIDC tokens are already available. We wrote about the [honest tradeoffs](/blog/developer-identity-without-a-ca) between the two approaches.
+
+This isn't a blockchain. There's no token, no consensus mechanism, no gas fees. It's KERI — Key Event Receipt Infrastructure — which uses hash-chained event logs and a witness network for consistency. If you want the deep technical comparison, we covered [how KERI key event logs work](/blog/developer-identity-without-a-ca) in a previous post.
+
+This isn't theoretical. The CLI is shipped. The registry is live. The transparency log is running. The SDKs exist for Python and Node.
+
+## Try it
+
+```bash
+brew install auths-base/tap/auths
+auths init
+```
+
+Explore the live registry: [auths.dev/registry](/registry)
+
+Read the code: [github.com/auths-dev/auths](https://github.com/auths-dev/auths)
+
+Read the previous posts:
+- [Announcing Auths](/blog/announcing-auths)
+- [Developer Identity Without a CA](/blog/developer-identity-without-a-ca)
+- [The Three Paths to Signing a Commit](/blog/why_not_gpg)
+
+We're interested in where this breaks. The best attacks on this idea will come from people who've operated package registries at scale, managed signing infrastructure across organizations, or dealt with the aftermath of a supply chain compromise. If that's you, we want to hear from you.

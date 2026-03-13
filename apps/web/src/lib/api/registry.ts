@@ -6,6 +6,7 @@ import {
   resolvePackageFixture,
   resolveArtifactFixture,
   resolveRecentActivityFixture,
+  resolveAuditFeedFixture,
 } from './fixtures';
 
 // ---------------------------------------------------------------------------
@@ -132,6 +133,32 @@ export interface RecentIdentity {
 export interface RecentActivity {
   recent_artifacts: RecentArtifact[];
   recent_identities: RecentIdentity[];
+}
+
+// ---------------------------------------------------------------------------
+// Audit feed types
+// ---------------------------------------------------------------------------
+
+export type AuditEventType =
+  | 'device_bound'
+  | 'device_revoked'
+  | 'namespace_claimed'
+  | 'org_member_added';
+
+export interface AuditEntry {
+  event_type: AuditEventType;
+  actor_did: string;
+  target?: string;
+  ecosystem?: string;
+  package_name?: string;
+  occurred_at: string;
+  log_sequence?: number;
+}
+
+export interface AuditFeedResponse {
+  entries: AuditEntry[];
+  log_size?: number;
+  checkpoint_hash?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -366,6 +393,25 @@ export async function fetchRecentActivity(
     return resolveRecentActivityFixture();
   }
   return registryFetch<RecentActivity>('/v1/activity/recent', undefined, signal);
+}
+
+/**
+ * Fetches the public audit feed from the registry.
+ *
+ * @param signal - Optional AbortSignal forwarded to `fetch()`.
+ * @returns Audit feed with entries and optional checkpoint stats.
+ *
+ * @example
+ * const feed = await fetchAuditFeed();
+ * console.log(feed.entries.length, feed.log_size);
+ */
+export async function fetchAuditFeed(
+  signal?: AbortSignal,
+): Promise<AuditFeedResponse> {
+  if (USE_FIXTURES) {
+    return resolveAuditFeedFixture();
+  }
+  return registryFetch<AuditFeedResponse>('/v1/audit/feed', undefined, signal);
 }
 
 // ---------------------------------------------------------------------------

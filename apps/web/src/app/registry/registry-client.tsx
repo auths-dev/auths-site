@@ -163,10 +163,10 @@ export function RegistryClient({
   }
 
   return (
-    <div className="p-6">
+    <div>
       <RegistryHero value={input} onChange={setInput} onSubmit={handleSubmit} />
 
-      <div className="mt-8">
+      <div className="mt-10">
         {!query && (
           <RegistryDashboard
             activity={initialActivity}

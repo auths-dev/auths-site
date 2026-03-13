@@ -19,6 +19,7 @@ import type {
   PubkeysResponse,
   PackageDetail,
   RecentActivity,
+  AuditFeedResponse,
 } from './registry';
 
 // ---------------------------------------------------------------------------
@@ -941,6 +942,33 @@ export async function resolveArtifactFixture(
 export async function resolveRecentActivityFixture(): Promise<RecentActivity> {
   await delay(200);
   return RECENT_ACTIVITY;
+}
+
+// ---------------------------------------------------------------------------
+// Audit feed fixture
+// ---------------------------------------------------------------------------
+
+const AUDIT_FEED: AuditFeedResponse = {
+  entries: [
+    { event_type: 'namespace_claimed', actor_did: SOVEREIGN_DID, ecosystem: 'cargo', package_name: 'cargo:linux-kernel-rs', occurred_at: '2024-11-30T09:15:00Z', log_sequence: 46 },
+    { event_type: 'device_bound', actor_did: SOVEREIGN_DID, target: 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK', occurred_at: '2024-11-28T14:30:00Z', log_sequence: 45 },
+    { event_type: 'org_member_added', actor_did: SOVEREIGN_DID, target: GREGKH_DID, occurred_at: '2024-11-25T11:20:00Z', log_sequence: 42 },
+    { event_type: 'device_revoked', actor_did: JIATAN_DID, target: 'did:key:z6MkpTHR8VNs5zPE7jMQ2XVsYhJSAr2LJbF1qoKvdRHu3ZZR', occurred_at: '2024-11-24T08:00:00Z', log_sequence: 41 },
+    { event_type: 'namespace_claimed', actor_did: GREGKH_DID, ecosystem: 'pypi', package_name: 'pypi:kernel-dev-tools', occurred_at: '2024-11-22T09:00:00Z', log_sequence: 39 },
+    { event_type: 'device_bound', actor_did: GREGKH_DID, target: 'did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2', occurred_at: '2024-11-19T07:45:00Z', log_sequence: 36 },
+    { event_type: 'org_member_added', actor_did: SOVEREIGN_DID, target: SARAH_DID, occurred_at: '2024-11-18T14:00:00Z', log_sequence: 35 },
+    { event_type: 'namespace_claimed', actor_did: SOVEREIGN_DID, ecosystem: 'npm', package_name: 'npm:auths-cli', occurred_at: '2024-11-17T10:30:00Z', log_sequence: 34 },
+  ],
+  log_size: 47,
+  checkpoint_hash: 'a7f3e2d1c4b5a69870fedcba98765432fedcba9876543210abcdef0123456789',
+};
+
+/**
+ * Returns fixture audit feed for the dashboard.
+ */
+export async function resolveAuditFeedFixture(): Promise<AuditFeedResponse> {
+  await delay(250);
+  return AUDIT_FEED;
 }
 
 // ---------------------------------------------------------------------------
