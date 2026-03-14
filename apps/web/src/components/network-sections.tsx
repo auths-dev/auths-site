@@ -4,6 +4,8 @@ import { motion, useInView } from 'motion/react';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { fetchActivityFeed } from '@/lib/api/registry';
+import { EcosystemIcon } from '@/components/icons/ecosystem-icon';
+import { PlatformIcon } from '@/components/icons/platform-icon';
 
 // ---------------------------------------------------------------------------
 // Shared animation
@@ -525,19 +527,46 @@ export function NetworkComparison() {
 // Section 6: Ecosystem
 // ---------------------------------------------------------------------------
 
-const PACKAGES = ['npm', 'PyPI', 'Cargo', 'Docker', 'Go', 'Maven', 'NuGet'];
-const FORGES = ['GitHub', 'GitLab', 'Bitbucket', 'Radicle', 'Gitea'];
+interface EcoItem {
+  label: string;
+  iconKey: string;
+  iconType: 'ecosystem' | 'platform';
+}
 
-function EcosystemRow({ label, items }: { label: string; items: string[] }) {
+const PACKAGES: EcoItem[] = [
+  { label: 'npm', iconKey: 'npm', iconType: 'ecosystem' },
+  { label: 'PyPI', iconKey: 'pypi', iconType: 'ecosystem' },
+  { label: 'Cargo', iconKey: 'cargo', iconType: 'ecosystem' },
+  { label: 'Docker', iconKey: 'docker', iconType: 'ecosystem' },
+  { label: 'Go', iconKey: 'go', iconType: 'ecosystem' },
+  { label: 'Maven', iconKey: 'maven', iconType: 'ecosystem' },
+  { label: 'NuGet', iconKey: 'nuget', iconType: 'ecosystem' },
+];
+
+const FORGES: EcoItem[] = [
+  { label: 'GitHub', iconKey: 'github', iconType: 'platform' },
+  { label: 'GitLab', iconKey: 'gitlab', iconType: 'platform' },
+  { label: 'Bitbucket', iconKey: 'bitbucket', iconType: 'platform' },
+  { label: 'Radicle', iconKey: 'radicle', iconType: 'platform' },
+  { label: 'Gitea', iconKey: 'gitea', iconType: 'platform' },
+];
+
+function EcosystemRow({ label, items }: { label: string; items: EcoItem[] }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
       <span className="w-20 shrink-0 text-right font-mono text-xs text-zinc-500">{label}</span>
       {items.map((item) => (
         <span
-          key={item}
-          className="rounded-md border border-zinc-800 bg-zinc-900/60 px-3 py-1.5 font-mono text-xs text-zinc-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-400"
+          key={item.label}
+          className="inline-flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900/60 px-3 py-1.5 font-mono text-xs text-zinc-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-400"
+          title={item.label}
         >
-          {item}
+          {item.iconType === 'ecosystem' ? (
+            <EcosystemIcon ecosystem={item.iconKey} size={16} className="shrink-0" />
+          ) : (
+            <PlatformIcon platform={item.iconKey} size={16} className="shrink-0" />
+          )}
+          {item.label}
         </span>
       ))}
     </div>
