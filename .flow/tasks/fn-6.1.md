@@ -28,9 +28,11 @@
 - [ ] Sequencer tree persistence across restarts verified
 - [ ] `cargo build -p auths-registry-server --all-features` passes
 ## Done summary
-TBD
-
+- Implemented GET /v1/log/entry/{index} from Postgres log_entries table
+- Implemented GET /v1/log/entry/{index}/proof via sequencer TreeWriter
+- Added GetInclusionProof command to sequencer actor
+- Tree rebuilds from Postgres on startup (reconcile_from_postgres)
 ## Evidence
-- Commits:
+- Commits: a9b9f5cd63862c6cdf0e0ae02ab92aa5d6a7abb1
 - Tests:
 - PRs:
