@@ -1,21 +1,17 @@
 'use client';
 
-import { NetworkPulse } from '@/components/network-pulse';
 import { EcosystemGrid } from '@/components/ecosystem-grid';
-import { AuditLedger } from '@/components/audit-ledger';
-import type { RecentActivity } from '@/lib/api/registry';
+import { LiveNetworkActivity } from '@/components/live-network-activity';
 
 interface RegistryDashboardProps {
-  activity: RecentActivity | null;
   onSearch: (query: string) => void;
 }
 
-export function RegistryDashboard({ activity }: RegistryDashboardProps) {
+export function RegistryDashboard(_props: RegistryDashboardProps) {
   return (
     <div className="space-y-10">
-      <NetworkPulse initialActivity={activity} />
       <EcosystemGrid />
-      <AuditLedger />
+      <LiveNetworkActivity />
     </div>
   );
 }

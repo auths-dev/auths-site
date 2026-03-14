@@ -10,7 +10,6 @@ import { ClaimIdentityCTA } from '@/components/claim-identity-cta';
 import { TrustGraph } from '@/components/trust-graph';
 import { PubkeysDisplay } from '@/components/pubkeys-display';
 import { ActiveIdentityDisplay } from '@/components/active-identity-display';
-import type { RecentActivity } from '@/lib/api/registry';
 
 // ---------------------------------------------------------------------------
 // Search results renderer
@@ -117,12 +116,10 @@ function EmptyResults({ query }: { query: string }) {
 
 interface RegistryClientProps {
   initialQuery?: string;
-  initialActivity: RecentActivity | null;
 }
 
 export function RegistryClient({
   initialQuery,
-  initialActivity,
 }: RegistryClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -169,7 +166,6 @@ export function RegistryClient({
       <div className="mt-10">
         {!query && (
           <RegistryDashboard
-            activity={initialActivity}
             onSearch={(q) => {
               setInput(q);
               submitSearch(q);

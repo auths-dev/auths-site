@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-03-14T12:46:53.379023Z",
+  "depends_on": [],
+  "epic": "fn-5",
+  "id": "fn-5.16",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-5.16.md",
+  "status": "todo",
+  "title": "Rename verb-in-URL endpoints with 301 redirects",
+  "updated_at": "2026-03-14T12:53:50.659688Z"
+}

@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useCallback } from 'react';
 import { motion } from 'motion/react';
 import Avatar from 'boring-avatars';
 import { QRCodeSVG } from 'qrcode.react';
@@ -11,6 +10,7 @@ import { BackToRegistry } from '@/components/back-to-registry';
 import { PlatformPassport } from '@/components/platform-passport';
 import { KeyDisplay } from '@/components/key-display';
 import { ArtifactPortfolio } from '@/components/artifact-portfolio';
+import { CopyButton } from '@/components/copy-button';
 import type { TrustTier, IdentityProfile } from '@/lib/api/registry';
 
 // ---------------------------------------------------------------------------
@@ -23,35 +23,6 @@ const TIER_STYLES: Record<TrustTier, { color: string; label: string }> = {
   trusted: { color: 'text-emerald-400 border-emerald-800 bg-emerald-950', label: 'Trusted' },
   sovereign: { color: 'text-amber-400 border-amber-800 bg-amber-950', label: 'Sovereign' },
 };
-
-// ---------------------------------------------------------------------------
-// CopyButton (reusable clipboard pattern)
-// ---------------------------------------------------------------------------
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback: select text for manual copy
-    }
-  }, [text]);
-
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className="rounded px-2 py-1 text-xs text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
-      aria-label="Copy to clipboard"
-    >
-      {copied ? <span className="text-green-400">Copied!</span> : 'Copy'}
-    </button>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Identity Header (Zone A)

@@ -21,6 +21,7 @@ import type {
   IdentityResponse,
   IdentityProfile,
   PackageDetail,
+  ActivityFeedParams,
 } from '@/lib/api/registry';
 import { resolveFromRepo } from '@/lib/resolver';
 import type { ResolveResult } from '@/lib/resolver';
@@ -46,6 +47,8 @@ export const registryKeys = {
   packages: () => [...registryKeys.all, 'package'] as const,
   packageDetail: (ecosystem: string, name: string) =>
     [...registryKeys.packages(), ecosystem, name] as const,
+  activityFeed: (params?: ActivityFeedParams) =>
+    [...registryKeys.all, 'activity-feed', params] as const,
 };
 
 // ---------------------------------------------------------------------------

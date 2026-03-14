@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { truncateMiddle } from '@/lib/format';
+import { CopyButton } from '@/components/copy-button';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -13,35 +13,6 @@ interface PublicKey {
   algorithm: string;
   public_key_hex: string;
   created_at: string;
-}
-
-// ---------------------------------------------------------------------------
-// CopyKeyButton
-// ---------------------------------------------------------------------------
-
-function CopyKeyButton({ value }: { value: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback for restricted contexts
-    }
-  }, [value]);
-
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className="shrink-0 rounded px-2 py-1 text-xs text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
-      aria-label="Copy full key"
-    >
-      {copied ? <span className="text-green-400">Copied!</span> : 'Copy Full Key'}
-    </button>
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -82,7 +53,7 @@ function KeyCard({ pubkey, index }: { pubkey: PublicKey; index: number }) {
             </p>
           )}
         </div>
-        <CopyKeyButton value={pubkey.public_key_hex} />
+        <CopyButton text={pubkey.public_key_hex} />
       </div>
     </motion.div>
   );

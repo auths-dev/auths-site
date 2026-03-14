@@ -19,7 +19,8 @@ import type {
   PubkeysResponse,
   PackageDetail,
   RecentActivity,
-  AuditFeedResponse,
+  ActivityFeedResponse,
+  ActivityFeedParams,
 } from './registry';
 
 // ---------------------------------------------------------------------------
@@ -924,15 +925,31 @@ export async function resolvePackageFixture(
 
 /**
  * Resolves artifact search to fixture data, or returns null to fall through.
+ * Supports exact match (e.g. "cargo:xz-utils") and prefix match for bare
+ * ecosystem queries (e.g. "cargo:" returns all cargo packages).
  */
 export async function resolveArtifactFixture(
   query: string,
 ): Promise<ArtifactQueryResponse | null> {
+  // Exact match
   const fixture = ARTIFACT_FIXTURES[query];
   if (fixture) {
     await delay(300);
     return fixture;
   }
+
+  // Prefix match: bare ecosystem query like "cargo:" or partial name like "cargo:x"
+  const matchingKeys = Object.keys(ARTIFACT_FIXTURES).filter((key) =>
+    key.startsWith(query),
+  );
+  if (matchingKeys.length > 0) {
+    await delay(300);
+    const combined: ArtifactQueryResponse = {
+      artifacts: matchingKeys.flatMap((key) => ARTIFACT_FIXTURES[key].artifacts),
+    };
+    return combined;
+  }
+
   return null;
 }
 
@@ -945,30 +962,60 @@ export async function resolveRecentActivityFixture(): Promise<RecentActivity> {
 }
 
 // ---------------------------------------------------------------------------
-// Audit feed fixture
+// Activity feed fixture (unified transparency-log-backed feed)
 // ---------------------------------------------------------------------------
 
-const AUDIT_FEED: AuditFeedResponse = {
+const ACTIVITY_FEED: ActivityFeedResponse = {
   entries: [
-    { event_type: 'namespace_claimed', actor_did: SOVEREIGN_DID, ecosystem: 'cargo', package_name: 'cargo:linux-kernel-rs', occurred_at: '2024-11-30T09:15:00Z', log_sequence: 46 },
-    { event_type: 'device_bound', actor_did: SOVEREIGN_DID, target: 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK', occurred_at: '2024-11-28T14:30:00Z', log_sequence: 45 },
-    { event_type: 'org_member_added', actor_did: SOVEREIGN_DID, target: GREGKH_DID, occurred_at: '2024-11-25T11:20:00Z', log_sequence: 42 },
-    { event_type: 'device_revoked', actor_did: JIATAN_DID, target: 'did:key:z6MkpTHR8VNs5zPE7jMQ2XVsYhJSAr2LJbF1qoKvdRHu3ZZR', occurred_at: '2024-11-24T08:00:00Z', log_sequence: 41 },
-    { event_type: 'namespace_claimed', actor_did: GREGKH_DID, ecosystem: 'pypi', package_name: 'pypi:kernel-dev-tools', occurred_at: '2024-11-22T09:00:00Z', log_sequence: 39 },
-    { event_type: 'device_bound', actor_did: GREGKH_DID, target: 'did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2', occurred_at: '2024-11-19T07:45:00Z', log_sequence: 36 },
-    { event_type: 'org_member_added', actor_did: SOVEREIGN_DID, target: SARAH_DID, occurred_at: '2024-11-18T14:00:00Z', log_sequence: 35 },
-    { event_type: 'namespace_claimed', actor_did: SOVEREIGN_DID, ecosystem: 'npm', package_name: 'npm:auths-cli', occurred_at: '2024-11-17T10:30:00Z', log_sequence: 34 },
+    { log_sequence: 47, entry_type: 'register', actor_did: SARAH_DID, summary: `Identity registered: ${SARAH_DID}`, metadata: {}, occurred_at: '2024-12-02T10:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 46, entry_type: 'namespace_claim', actor_did: SOVEREIGN_DID, summary: 'Namespace claimed: cargo:linux-kernel-rs', metadata: { ecosystem: 'cargo', package_name: 'linux-kernel-rs' }, occurred_at: '2024-11-30T09:15:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 45, entry_type: 'device_bind', actor_did: SOVEREIGN_DID, summary: 'Device bound: did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK', metadata: { device_did: 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK' }, occurred_at: '2024-11-28T14:30:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 44, entry_type: 'attest', actor_did: SOVEREIGN_DID, summary: 'Artifact attested: cargo:linux-kernel-rs', metadata: { package_name: 'cargo:linux-kernel-rs', ecosystem: '', rid: 'rid:attest:001' }, occurred_at: '2024-11-27T12:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 43, entry_type: 'org_create', actor_did: SOVEREIGN_DID, summary: 'Organization created: Linux Kernel Project', metadata: { display_name: 'Linux Kernel Project' }, occurred_at: '2024-11-26T10:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 42, entry_type: 'org_add_member', actor_did: SOVEREIGN_DID, summary: `Member added: ${GREGKH_DID}`, metadata: { member_did: GREGKH_DID, role: 'maintainer' }, occurred_at: '2024-11-25T11:20:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 41, entry_type: 'device_revoke', actor_did: JIATAN_DID, summary: 'Device revoked: did:key:z6MkpTHR8VNs5zPE7jMQ2XVsYhJSAr2LJbF1qoKvdRHu3ZZR', metadata: { device_did: 'did:key:z6MkpTHR8VNs5zPE7jMQ2XVsYhJSAr2LJbF1qoKvdRHu3ZZR' }, occurred_at: '2024-11-24T08:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 40, entry_type: 'rotate', actor_did: LASSE_DID, summary: `Key rotated: ${LASSE_DID}`, metadata: {}, occurred_at: '2024-11-23T09:30:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 39, entry_type: 'namespace_claim', actor_did: GREGKH_DID, summary: 'Namespace claimed: pypi:kernel-dev-tools', metadata: { ecosystem: 'pypi', package_name: 'kernel-dev-tools' }, occurred_at: '2024-11-22T09:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 38, entry_type: 'namespace_delegate', actor_did: SOVEREIGN_DID, summary: `Namespace delegated: cargo:linux-kernel-rs to ${GREGKH_DID}`, metadata: { ecosystem: 'cargo', package_name: 'linux-kernel-rs', delegate_did: GREGKH_DID }, occurred_at: '2024-11-21T15:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 37, entry_type: 'access_grant', actor_did: SOVEREIGN_DID, summary: `Access granted to ${SARAH_DID} (free)`, metadata: { subject_did: SARAH_DID, tier: 'free' }, occurred_at: '2024-11-20T08:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 36, entry_type: 'device_bind', actor_did: GREGKH_DID, summary: 'Device bound: did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2', metadata: { device_did: 'did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2' }, occurred_at: '2024-11-19T07:45:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 35, entry_type: 'org_add_member', actor_did: SOVEREIGN_DID, summary: `Member added: ${SARAH_DID}`, metadata: { member_did: SARAH_DID, role: 'contributor' }, occurred_at: '2024-11-18T14:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 34, entry_type: 'namespace_transfer', actor_did: SOVEREIGN_DID, summary: `Namespace transferred: npm:auths-cli to ${AGENT_DID}`, metadata: { ecosystem: 'npm', package_name: 'auths-cli', new_owner_did: AGENT_DID }, occurred_at: '2024-11-17T10:30:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 33, entry_type: 'org_revoke_member', actor_did: SOVEREIGN_DID, summary: `Member revoked: ${JIATAN_DID}`, metadata: { member_did: JIATAN_DID }, occurred_at: '2024-11-16T16:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 32, entry_type: 'abandon', actor_did: JIATAN_DID, summary: `Identity abandoned: ${JIATAN_DID}`, metadata: { reason: 'compromised key' }, occurred_at: '2024-11-15T12:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 31, entry_type: 'access_revoke', actor_did: SOVEREIGN_DID, summary: `Access revoked for ${JIATAN_DID}`, metadata: { subject_did: JIATAN_DID }, occurred_at: '2024-11-14T09:00:00Z', merkle_included: true, is_genesis_phase: false },
   ],
+  next_cursor: 30,
   log_size: 47,
   checkpoint_hash: 'a7f3e2d1c4b5a69870fedcba98765432fedcba9876543210abcdef0123456789',
 };
 
 /**
- * Returns fixture audit feed for the dashboard.
+ * Returns fixture activity feed with optional client-side filtering.
  */
-export async function resolveAuditFeedFixture(): Promise<AuditFeedResponse> {
+export async function resolveActivityFeedFixture(
+  params?: ActivityFeedParams,
+): Promise<ActivityFeedResponse> {
   await delay(250);
-  return AUDIT_FEED;
+  let entries = ACTIVITY_FEED.entries;
+
+  if (params?.actor) {
+    entries = entries.filter((e) => e.actor_did === params.actor);
+  }
+  if (params?.type) {
+    const types = params.type.split(',').map((t) => t.trim());
+    entries = entries.filter((e) => types.includes(e.entry_type));
+  }
+  if (params?.limit) {
+    entries = entries.slice(0, params.limit);
+  }
+
+  return {
+    entries,
+    next_cursor: entries.length > 0 ? (entries[entries.length - 1].log_sequence) : null,
+    log_size: ACTIVITY_FEED.log_size,
+    checkpoint_hash: ACTIVITY_FEED.checkpoint_hash,
+  };
 }
 
 // ---------------------------------------------------------------------------

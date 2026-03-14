@@ -13,6 +13,12 @@ import type { Platform } from '@/lib/registry';
 
 const ALL_PLATFORMS: readonly string[] = ['github', 'gitlab', 'gitea', 'radicle', 'npm'];
 
+const PLATFORM_URLS: Partial<Record<string, (ns: string) => string>> = {
+  github: (ns) => `https://github.com/${ns}`,
+  gitlab: (ns) => `https://gitlab.com/${ns}`,
+  npm: (ns) => `https://www.npmjs.com/~${ns}`,
+};
+
 // ---------------------------------------------------------------------------
 // Verified card
 // ---------------------------------------------------------------------------
@@ -24,6 +30,8 @@ function VerifiedCard({
   claim: PlatformClaim;
   index: number;
 }) {
+  const profileUrl = PLATFORM_URLS[claim.platform]?.(claim.namespace);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -34,9 +42,20 @@ function VerifiedCard({
       <div className="flex items-center gap-3">
         <PlatformIcon platform={claim.platform} size={20} className="shrink-0 text-zinc-300" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-white">
-            @{claim.namespace}
-          </p>
+          {profileUrl ? (
+            <a
+              href={profileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="truncate text-sm font-medium text-white transition-colors hover:text-emerald-400"
+            >
+              @{claim.namespace}
+            </a>
+          ) : (
+            <p className="truncate text-sm font-medium text-white">
+              @{claim.namespace}
+            </p>
+          )}
           <p className="text-xs text-zinc-500">{claim.platform}</p>
         </div>
         <span className="flex items-center gap-1.5 text-xs text-emerald-400">

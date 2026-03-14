@@ -6,7 +6,7 @@ import {
   resolvePackageFixture,
   resolveArtifactFixture,
   resolveRecentActivityFixture,
-  resolveAuditFeedFixture,
+  resolveActivityFeedFixture,
 } from './fixtures';
 
 // ---------------------------------------------------------------------------
@@ -136,29 +136,39 @@ export interface RecentActivity {
 }
 
 // ---------------------------------------------------------------------------
-// Audit feed types
+// Activity feed types (unified feed from /v1/activity/feed)
 // ---------------------------------------------------------------------------
 
-export type AuditEventType =
-  | 'device_bound'
-  | 'device_revoked'
-  | 'namespace_claimed'
-  | 'org_member_added';
+export type ActivityEntryType =
+  | 'register' | 'device_bind' | 'device_revoke'
+  | 'org_create' | 'org_add_member' | 'org_revoke_member'
+  | 'abandon' | 'rotate' | 'attest'
+  | 'namespace_claim' | 'namespace_delegate' | 'namespace_transfer'
+  | 'access_grant' | 'access_revoke';
 
-export interface AuditEntry {
-  event_type: AuditEventType;
+export interface FeedEntry {
+  log_sequence: number;
+  entry_type: ActivityEntryType;
   actor_did: string;
-  target?: string;
-  ecosystem?: string;
-  package_name?: string;
+  summary: string;
+  metadata: Record<string, unknown>;
   occurred_at: string;
-  log_sequence?: number;
+  merkle_included: boolean;
+  is_genesis_phase: boolean;
 }
 
-export interface AuditFeedResponse {
-  entries: AuditEntry[];
+export interface ActivityFeedResponse {
+  entries: FeedEntry[];
+  next_cursor: number | null;
   log_size?: number;
   checkpoint_hash?: string;
+}
+
+export interface ActivityFeedParams {
+  before?: number;
+  limit?: number;
+  actor?: string;
+  type?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -168,12 +178,22 @@ export interface AuditFeedResponse {
 export class RegistryApiError extends Error {
   readonly status: number;
   readonly detail?: string;
+  readonly code?: string;
+  readonly errorType?: string;
 
-  constructor(status: number, message: string, detail?: string) {
+  constructor(
+    status: number,
+    message: string,
+    detail?: string,
+    code?: string,
+    errorType?: string,
+  ) {
     super(message);
     this.name = 'RegistryApiError';
     this.status = status;
     this.detail = detail;
+    this.code = code;
+    this.errorType = errorType;
   }
 }
 
@@ -222,14 +242,25 @@ async function registryFetch<T>(
   if (!res.ok) {
     let message = res.statusText;
     let detail: string | undefined;
+    let code: string | undefined;
+    let errorType: string | undefined;
     try {
       const body = await res.json();
-      if (typeof body.message === 'string') message = body.message;
-      if (typeof body.detail === 'string') detail = body.detail;
+      // RFC 9457: read `detail` for the human-readable explanation
+      if (typeof body.detail === 'string') {
+        message = body.detail;
+        detail = body.detail;
+      } else if (typeof body.error === 'string') {
+        message = body.error;
+      } else if (typeof body.message === 'string') {
+        message = body.message;
+      }
+      if (typeof body.code === 'string') code = body.code;
+      if (typeof body.type === 'string') errorType = body.type;
     } catch {
       // body isn't JSON — use statusText
     }
-    throw new RegistryApiError(res.status, message, detail);
+    throw new RegistryApiError(res.status, message, detail, code, errorType);
   }
 
   return res.json() as Promise<T>;
@@ -396,22 +427,24 @@ export async function fetchRecentActivity(
 }
 
 /**
- * Fetches the public audit feed from the registry.
+ * Fetches the unified activity feed from the transparency log.
  *
- * @param signal - Optional AbortSignal forwarded to `fetch()`.
- * @returns Audit feed with entries and optional checkpoint stats.
- *
- * @example
- * const feed = await fetchAuditFeed();
- * console.log(feed.entries.length, feed.log_size);
+ * Supports server-side filtering by actor DID and entry type,
+ * plus keyset pagination via `before` cursor.
  */
-export async function fetchAuditFeed(
+export async function fetchActivityFeed(
+  params?: ActivityFeedParams,
   signal?: AbortSignal,
-): Promise<AuditFeedResponse> {
-  if (USE_FIXTURES) {
-    return resolveAuditFeedFixture();
+): Promise<ActivityFeedResponse> {
+  if (USE_FIXTURES && !params?.before) {
+    return resolveActivityFeedFixture(params);
   }
-  return registryFetch<AuditFeedResponse>('/v1/audit/feed', undefined, signal);
+  const queryParams: Record<string, string> = {};
+  if (params?.before != null) queryParams.before = String(params.before);
+  if (params?.limit != null) queryParams.limit = String(params.limit);
+  if (params?.actor) queryParams.actor = params.actor;
+  if (params?.type) queryParams.type = params.type;
+  return registryFetch<ActivityFeedResponse>('/v1/activity/feed', queryParams, signal);
 }
 
 // ---------------------------------------------------------------------------
