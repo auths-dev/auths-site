@@ -4,7 +4,7 @@ import { motion, useInView } from 'motion/react';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { fetchActivityFeed } from '@/lib/api/registry';
-import { EcosystemIcon, PlatformIcon } from '@/components/icons/brand-icon';
+import { BrandIcon } from '@/components/icons/brand-icon';
 
 // ---------------------------------------------------------------------------
 // Shared animation
@@ -529,25 +529,25 @@ export function NetworkComparison() {
 interface EcoItem {
   label: string;
   iconKey: string;
-  iconType: 'ecosystem' | 'platform';
+  href: string;
 }
 
 const PACKAGES: EcoItem[] = [
-  { label: 'npm', iconKey: 'npm', iconType: 'ecosystem' },
-  { label: 'PyPI', iconKey: 'pypi', iconType: 'ecosystem' },
-  { label: 'Cargo', iconKey: 'cargo', iconType: 'ecosystem' },
-  { label: 'Docker', iconKey: 'docker', iconType: 'ecosystem' },
-  { label: 'Go', iconKey: 'go', iconType: 'ecosystem' },
-  { label: 'Maven', iconKey: 'maven', iconType: 'ecosystem' },
-  { label: 'NuGet', iconKey: 'nuget', iconType: 'ecosystem' },
+  { label: 'npm', iconKey: 'npm', href: 'https://www.npmjs.com/' },
+  { label: 'PyPI', iconKey: 'pypi', href: 'https://pypi.org/' },
+  { label: 'Cargo', iconKey: 'cargo', href: 'https://crates.io/' },
+  { label: 'Docker', iconKey: 'docker', href: 'https://hub.docker.com/' },
+  { label: 'Go', iconKey: 'go', href: 'https://pkg.go.dev/' },
+  { label: 'Maven', iconKey: 'maven', href: 'https://central.sonatype.com/' },
+  { label: 'NuGet', iconKey: 'nuget', href: 'https://www.nuget.org/' },
 ];
 
 const FORGES: EcoItem[] = [
-  { label: 'GitHub', iconKey: 'github', iconType: 'platform' },
-  { label: 'GitLab', iconKey: 'gitlab', iconType: 'platform' },
-  { label: 'Bitbucket', iconKey: 'bitbucket', iconType: 'platform' },
-  { label: 'Radicle', iconKey: 'radicle', iconType: 'platform' },
-  { label: 'Gitea', iconKey: 'gitea', iconType: 'platform' },
+  { label: 'GitHub', iconKey: 'github', href: 'https://github.com/' },
+  { label: 'GitLab', iconKey: 'gitlab', href: 'https://about.gitlab.com/' },
+  { label: 'Bitbucket', iconKey: 'bitbucket', href: 'https://bitbucket.org/' },
+  { label: 'Radicle', iconKey: 'radicle', href: 'https://radicle.xyz/' },
+  { label: 'Gitea', iconKey: 'gitea', href: 'https://about.gitea.com/' },
 ];
 
 function EcosystemRow({ label, items }: { label: string; items: EcoItem[] }) {
@@ -555,18 +555,17 @@ function EcosystemRow({ label, items }: { label: string; items: EcoItem[] }) {
     <div className="flex flex-wrap items-center gap-3">
       <span className="w-20 shrink-0 text-right font-mono text-xs text-zinc-500">{label}</span>
       {items.map((item) => (
-        <span
+        <a
           key={item.label}
+          href={item.href}
+          target="_blank"
+          rel="noopener noreferrer"
           className="inline-flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900/60 px-3 py-1.5 font-mono text-xs text-zinc-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-400"
           title={item.label}
         >
-          {item.iconType === 'ecosystem' ? (
-            <EcosystemIcon ecosystem={item.iconKey} size={16} className="shrink-0" />
-          ) : (
-            <PlatformIcon platform={item.iconKey} size={16} className="shrink-0" />
-          )}
+          <BrandIcon name={item.iconKey} size={16} className="shrink-0" />
           {item.label}
-        </span>
+        </a>
       ))}
     </div>
   );
