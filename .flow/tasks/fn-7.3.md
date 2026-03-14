@@ -24,9 +24,9 @@ Create a new page where users can browse all claimed namespaces in an ecosystem,
 - [ ] Pagination works via Load More
 - [ ] `pnpm typecheck` passes
 ## Done summary
-TBD
-
+- All 7 frontend tasks implemented in single commit
+- Stats widget, identity search, namespace browse, server trust tier, badge embed, org policy, fixtures
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1f5827c5af7b5007332b95e86895a8021cacee07
+- Tests: pnpm typecheck
 - PRs:

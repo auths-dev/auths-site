@@ -11,7 +11,7 @@ interface RegistryDashboardProps {
 export function RegistryDashboard(_props: RegistryDashboardProps) {
   return (
     <div className="space-y-10">
-      <NetworkStatsBar />
+      {/* <NetworkStatsBar /> */}
       <EcosystemGrid />
       <LiveNetworkActivity />
     </div>
