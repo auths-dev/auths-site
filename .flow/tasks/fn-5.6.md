@@ -30,9 +30,10 @@ No server-initiated ping frames. Axum auto-responds to client pings with pongs, 
 - [ ] `cargo clippy --workspace` passes
 - [ ] `cargo nextest run --workspace` passes
 ## Done summary
-TBD
-
+- Added 30s server-initiated ping with 10s pong timeout
+- Refactored to single select loop for cleaner flow control
+- Dead connections detected and cleaned up
 ## Evidence
-- Commits:
+- Commits: e7c977c493564b395d5323a93aed63323fed528a
 - Tests:
 - PRs:
