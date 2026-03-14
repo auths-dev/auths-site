@@ -33,9 +33,10 @@ The upgrade plan said "No OpenAPI spec endpoint" but this is incorrect — `aide
 - [ ] `cargo clippy --workspace` passes
 - [ ] `cargo nextest run --workspace` passes
 ## Done summary
-TBD
-
+- Added descriptions to all OpenAPI tags
+- Added Transparency Log tag
+- Consistent descriptions for Scalar UI
 ## Evidence
-- Commits:
+- Commits: bd5e84bd9aec6c1f706f82b0660733c1295d42b6
 - Tests:
 - PRs:
