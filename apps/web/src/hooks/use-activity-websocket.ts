@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { REGISTRY_BASE_URL, USE_FIXTURES } from '@/lib/config';
 import type { FeedEntry, ActivityFeedResponse } from '@/lib/api/registry';
 import { registryKeys } from '@/lib/queries/registry';
+
+export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';
 
 interface FeedEntryMessage {
   type: 'feed_entry';
@@ -33,21 +35,22 @@ function isFeedEntryMessage(data: unknown): data is FeedEntryMessage {
  * and prepends new entries to matching react-query cache entries.
  * Uses exponential backoff reconnect (1s -> 30s cap).
  * No-op when `USE_FIXTURES=true`.
+ *
+ * Returns connection status for UI display.
  */
-export function useActivityWebSocket() {
+export function useActivityWebSocket(): { connectionStatus: ConnectionStatus } {
   const queryClient = useQueryClient();
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectDelayRef = useRef(1000);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
 
   const prependEntry = useCallback(
     (entry: FeedEntry) => {
-      // Update all activity-feed query cache entries
       queryClient.setQueriesData<ActivityFeedResponse>(
         { queryKey: [...registryKeys.all, 'activity-feed'] },
         (old) => {
           if (!old) return old;
-          // Deduplicate on log_sequence
           if (old.entries.some((e) => e.log_sequence === entry.log_sequence)) {
             return old;
           }
@@ -66,13 +69,15 @@ export function useActivityWebSocket() {
     if (USE_FIXTURES) return;
 
     function connect() {
+      setConnectionStatus('reconnecting');
       const wsProtocol = REGISTRY_BASE_URL.startsWith('https') ? 'wss' : 'ws';
       const baseUrl = REGISTRY_BASE_URL.replace(/^https?/, wsProtocol);
       const ws = new WebSocket(`${baseUrl}/v1/ws/events`);
       wsRef.current = ws;
 
       ws.onopen = () => {
-        reconnectDelayRef.current = 1000; // Reset backoff on success
+        reconnectDelayRef.current = 1000;
+        setConnectionStatus('connected');
       };
 
       ws.onmessage = (event) => {
@@ -98,7 +103,7 @@ export function useActivityWebSocket() {
 
       ws.onclose = () => {
         wsRef.current = null;
-        // Reconnect with exponential backoff (cap 30s)
+        setConnectionStatus('reconnecting');
         reconnectTimeoutRef.current = setTimeout(() => {
           reconnectDelayRef.current = Math.min(reconnectDelayRef.current * 2, 30000);
           connect();
@@ -120,6 +125,9 @@ export function useActivityWebSocket() {
         wsRef.current.close();
         wsRef.current = null;
       }
+      setConnectionStatus('disconnected');
     };
   }, [prependEntry]);
+
+  return { connectionStatus };
 }

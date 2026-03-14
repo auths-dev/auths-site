@@ -36,9 +36,10 @@ Users see "Verified" or "Trusted" badge but don't understand why. The scoring fo
 - [ ] `pnpm typecheck` passes
 - [ ] `pnpm build` passes
 ## Done summary
-TBD
-
+- Created TrustTierBadge component with hover/focus/click tooltip
+- Shows claims, keys, artifacts score breakdown
+- Applied to identity and org pages
 ## Evidence
-- Commits:
+- Commits: 1730e24dd3e6f22b7d5a3e6ad087684a6f78aa82
 - Tests:
 - PRs:

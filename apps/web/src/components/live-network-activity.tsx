@@ -42,7 +42,7 @@ export function LiveNetworkActivity() {
   });
 
   // WebSocket for real-time updates
-  useActivityWebSocket();
+  const { connectionStatus } = useActivityWebSocket();
 
   // Tick for relative time updates
   useEffect(() => {
@@ -85,10 +85,29 @@ export function LiveNetworkActivity() {
         )}
       </div>
 
+      {connectionStatus === 'reconnecting' && (
+        <div className="mb-3 flex items-center gap-2 rounded-lg border border-amber-800/50 bg-amber-950/30 px-3 py-1.5">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
+          <span className="font-mono text-xs text-amber-400">
+            Live updates paused — reconnecting...
+          </span>
+        </div>
+      )}
+
       {allEntries.length === 0 ? (
-        <p className="py-8 text-center font-mono text-xs text-zinc-600">
-          Waiting for log entries...
-        </p>
+        <div className="space-y-2 py-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex animate-pulse items-center gap-2 rounded px-2 py-1">
+              <div className="h-3 w-14 rounded bg-zinc-800" />
+              <div className="h-1.5 w-1.5 rounded-full bg-zinc-800" />
+              <div className="h-3 w-20 rounded bg-zinc-800" />
+              <div className="h-3 flex-1 rounded bg-zinc-800" />
+            </div>
+          ))}
+          <p className="mt-4 text-center font-mono text-xs text-zinc-600">
+            The network is quiet right now
+          </p>
+        </div>
       ) : (
         <>
           <div
