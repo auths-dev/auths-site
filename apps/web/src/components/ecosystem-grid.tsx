@@ -1,6 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Avatar from 'boring-avatars';
 import { motion } from 'motion/react';
 import { EcosystemIcon } from '@/components/icons/brand-icon';
 
@@ -29,6 +31,8 @@ const ECOSYSTEMS: EcosystemDef[] = [
   { name: 'Maven', key: 'maven', query: 'maven:' },
   { name: 'NuGet', key: 'nuget', query: 'nuget:' },
 ];
+
+const FEATURED_ORGS: { name: string; did: string }[] = [];
 
 const FEATURED_PACKAGES = [
   { label: 'npm:react', ecosystem: 'npm' },
@@ -88,6 +92,25 @@ export function EcosystemGrid() {
         </div>
       </div>
 
+      {FEATURED_ORGS.length > 0 && (
+        <div className="mt-6">
+          <p className="mb-3 text-xs text-zinc-600">Featured Organizations</p>
+          <div className="flex flex-wrap gap-2">
+            {FEATURED_ORGS.map((org) => (
+              <Link
+                key={org.did}
+                href={`/registry/org/${encodeURIComponent(org.did)}`}
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted-bg px-3 py-2 font-mono text-xs text-zinc-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-400"
+              >
+                <div className="shrink-0 overflow-hidden rounded-full">
+                  <Avatar size={14} name={org.did} variant="bauhaus" />
+                </div>
+                {org.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
