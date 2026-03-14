@@ -7,10 +7,17 @@
     "fn-5.1"
   ],
   "epic": "fn-5",
+  "evidence": {
+    "commits": [
+      "38b981d4c74b4537d265540895a5414d506c4855"
+    ],
+    "prs": [],
+    "tests": []
+  },
   "id": "fn-5.5",
   "priority": null,
   "spec_path": ".flow/tasks/fn-5.5.md",
-  "status": "in_progress",
+  "status": "done",
   "title": "Improve empty states and error UX",
-  "updated_at": "2026-03-14T13:05:50.291533Z"
+  "updated_at": "2026-03-14T13:07:21.927692Z"
 }

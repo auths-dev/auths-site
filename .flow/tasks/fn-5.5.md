@@ -39,9 +39,11 @@ Several components have poor empty/error states:
 - [ ] `pnpm typecheck` passes
 - [ ] `pnpm build` passes
 ## Done summary
-TBD
-
+- LiveNetworkActivity skeleton loader + quiet network message
+- useActivityWebSocket exports connectionStatus
+- WS reconnection indicator banner
+- Improved search empty state
 ## Evidence
-- Commits:
+- Commits: 38b981d4c74b4537d265540895a5414d506c4855
 - Tests:
 - PRs:
