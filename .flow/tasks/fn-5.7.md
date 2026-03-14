@@ -43,9 +43,10 @@ Add Cache-Control headers based on data mutability:
 - [ ] `cargo clippy --workspace` passes
 - [ ] `cargo nextest run --workspace` passes
 ## Done summary
-TBD
-
+- Created cache_control middleware with path-based cache policies
+- Applied to router before TraceLayer
+- Log tiles/entries immutable, checkpoint 30s, feed 5s
 ## Evidence
-- Commits:
+- Commits: 513c4dc440546f91a244475d1cd2e5194484ebe1
 - Tests:
 - PRs:

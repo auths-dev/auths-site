@@ -5,10 +5,17 @@
   "created_at": "2026-03-14T12:46:51.234001Z",
   "depends_on": [],
   "epic": "fn-5",
+  "evidence": {
+    "commits": [
+      "513c4dc440546f91a244475d1cd2e5194484ebe1"
+    ],
+    "prs": [],
+    "tests": []
+  },
   "id": "fn-5.7",
   "priority": null,
   "spec_path": ".flow/tasks/fn-5.7.md",
-  "status": "in_progress",
+  "status": "done",
   "title": "Add Cache-Control headers to backend responses",
-  "updated_at": "2026-03-14T13:08:18.411761Z"
+  "updated_at": "2026-03-14T13:09:31.926871Z"
 }
