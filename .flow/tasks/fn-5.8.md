@@ -40,9 +40,11 @@ Frontend `fetchPackageDetail()` does N+1 identity lookups — fetches all artifa
 - [ ] `cargo nextest run --workspace` passes
 - [ ] Integration test covers batch lookup with mix of active and unclaimed DIDs
 ## Done summary
-TBD
-
+- Added POST /v1/identities/batch endpoint
+- Max 100 DIDs per request, returns HashMap<DID, IdentityResponse>
+- Paths added to routes and test_paths
+- Route registered with aide OpenAPI docs
 ## Evidence
-- Commits:
+- Commits: a6e8c21237a42c1dc408791ec8a387d102d24bc0
 - Tests:
 - PRs:

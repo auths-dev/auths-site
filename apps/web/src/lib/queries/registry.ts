@@ -47,6 +47,8 @@ export const registryKeys = {
   packages: () => [...registryKeys.all, 'package'] as const,
   packageDetail: (ecosystem: string, name: string) =>
     [...registryKeys.packages(), ecosystem, name] as const,
+  batchIdentities: (dids: string[]) =>
+    [...registryKeys.identities(), 'batch', ...dids.sort()] as const,
   activityFeed: (params?: ActivityFeedParams) =>
     [...registryKeys.all, 'activity-feed', params] as const,
 };

@@ -5,10 +5,17 @@
   "created_at": "2026-03-14T12:46:51.472816Z",
   "depends_on": [],
   "epic": "fn-5",
+  "evidence": {
+    "commits": [
+      "a6e8c21237a42c1dc408791ec8a387d102d24bc0"
+    ],
+    "prs": [],
+    "tests": []
+  },
   "id": "fn-5.8",
   "priority": null,
   "spec_path": ".flow/tasks/fn-5.8.md",
-  "status": "in_progress",
+  "status": "done",
   "title": "Add batch identity endpoint (backend)",
-  "updated_at": "2026-03-14T13:09:40.886028Z"
+  "updated_at": "2026-03-14T13:12:14.678588Z"
 }

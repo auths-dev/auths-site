@@ -929,6 +929,33 @@ export async function resolveIdentityFixture(
 }
 
 /**
+ * Resolves batch identity lookup to fixture data.
+ */
+export async function resolveBatchIdentitiesFixture(
+  dids: string[],
+): Promise<Record<string, IdentityResponse> | null> {
+  const result: Record<string, IdentityResponse> = {};
+  let hasAny = false;
+
+  for (const did of dids) {
+    const fixture = IDENTITY_FIXTURES[did];
+    if (fixture) {
+      result[did] = fixture;
+      hasAny = true;
+    } else if (did.toLowerCase().includes('unclaimed')) {
+      result[did] = { status: 'unclaimed', did };
+      hasAny = true;
+    }
+  }
+
+  if (hasAny) {
+    await delay(300);
+    return result;
+  }
+  return null;
+}
+
+/**
  * Resolves a package to a fixture, or returns null to fall through.
  */
 export async function resolvePackageFixture(

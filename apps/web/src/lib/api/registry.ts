@@ -2,6 +2,7 @@ import type { Platform } from '@/lib/registry';
 import { REGISTRY_BASE_URL, USE_FIXTURES } from '@/lib/config';
 import {
   resolveIdentityFixture,
+  resolveBatchIdentitiesFixture,
   resolvePubkeysFixture,
   resolvePackageFixture,
   resolveArtifactFixture,
@@ -415,6 +416,54 @@ export async function fetchIdentity(
 }
 
 /**
+ * Batch-fetches identities by DID using the batch endpoint.
+ *
+ * Returns a map of DID -> IdentityResponse for each requested DID.
+ * Max 100 DIDs per request.
+ */
+export async function fetchBatchIdentities(
+  dids: string[],
+  signal?: AbortSignal,
+): Promise<Record<string, IdentityResponse>> {
+  if (dids.length === 0) return {};
+
+  if (USE_FIXTURES) {
+    const fixture = await resolveBatchIdentitiesFixture(dids);
+    if (fixture) return fixture;
+  }
+
+  const url = new URL('/v1/identities/batch', REGISTRY_BASE_URL);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  if (signal) signal.addEventListener('abort', () => controller.abort());
+
+  const res = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ dids }),
+    signal: controller.signal,
+  });
+  clearTimeout(timeout);
+
+  if (!res.ok) {
+    let message = res.statusText;
+    try {
+      const body = await res.json();
+      if (typeof body.detail === 'string') message = body.detail;
+    } catch {
+      // use statusText
+    }
+    throw new RegistryApiError(res.status, message);
+  }
+
+  const data = await res.json() as { identities: Record<string, IdentityResponse> };
+  return data.identities;
+}
+
+/**
  * Fetches recent activity from the registry for the dashboard.
  *
  * Called server-side in the page Server Component so Vercel edges can cache
@@ -665,39 +714,36 @@ export async function fetchPackageDetail(
     .sort((a, b) => b[1].lastSigned.localeCompare(a[1].lastSigned))
     .slice(0, 10);
 
-  // Batch identity lookups in groups of 5
-  const signers: PackageSigner[] = [];
-  for (let i = 0; i < sortedDids.length; i += 5) {
-    const batch = sortedDids.slice(i, i + 5);
-    const results = await Promise.allSettled(
-      batch.map(([did]) => fetchIdentity(did, signal)),
-    );
-
-    for (let j = 0; j < batch.length; j++) {
-      const [did, stats] = batch[j];
-      const result = results[j];
-
-      let githubUsername: string | undefined;
-      let verified = false;
-
-      if (result.status === 'fulfilled' && result.value.status === 'active') {
-        const identity = result.value;
-        const ghClaim = identity.platform_claims.find(
-          (c) => c.platform === 'github' && c.verified,
-        );
-        if (ghClaim) githubUsername = ghClaim.namespace;
-        verified = identity.platform_claims.some((c) => c.verified);
-      }
-
-      signers.push({
-        did,
-        github_username: githubUsername,
-        verified,
-        signature_count: stats.count,
-        last_signed: stats.lastSigned,
-      });
-    }
+  // Batch identity lookup — single request instead of N+1
+  const didsToLookup = sortedDids.map(([did]) => did);
+  let identityMap: Record<string, IdentityResponse> = {};
+  try {
+    identityMap = await fetchBatchIdentities(didsToLookup, signal);
+  } catch {
+    // If batch endpoint fails, signers will have no enrichment data
   }
+
+  const signers: PackageSigner[] = sortedDids.map(([did, stats]) => {
+    const identity = identityMap[did];
+    let githubUsername: string | undefined;
+    let verified = false;
+
+    if (identity && identity.status === 'active') {
+      const ghClaim = identity.platform_claims.find(
+        (c) => c.platform === 'github' && c.verified,
+      );
+      if (ghClaim) githubUsername = ghClaim.namespace;
+      verified = identity.platform_claims.some((c) => c.verified);
+    }
+
+    return {
+      did,
+      github_username: githubUsername,
+      verified,
+      signature_count: stats.count,
+      last_signed: stats.lastSigned,
+    };
+  });
 
   return {
     ecosystem: ecosystem as Ecosystem,
