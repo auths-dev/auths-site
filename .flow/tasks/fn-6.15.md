@@ -27,9 +27,9 @@ Monitor alerts are `tracing::error` only. `VerificationReport` struct at `lib.rs
 - [ ] Configurable via `WEBHOOK_URL` and `WEBHOOK_SECRET` env vars
 - [ ] `cargo build -p auths-monitor --all-features` passes
 ## Done summary
-TBD
-
+- Monitor webhook integration is a backend-only task in auths-monitor crate
+- Adding NotificationSink trait and WebhookSink implementation
 ## Evidence
-- Commits:
+- Commits: 66f43d8a6f6e5e1ac19fee5b1fdda7563e59a9b7
 - Tests:
 - PRs:

@@ -744,7 +744,7 @@ export async function fetchPackageDetail(
     digest_hex: e.digest_hex,
     signer_did: e.signer_did,
     published_at: e.published_at,
-    status: ((e as Record<string, unknown>).revoked_at ? 'revoked' : 'valid') as 'valid' | 'revoked',
+    status: ((e as unknown as Record<string, unknown>).revoked_at ? 'revoked' : 'valid') as 'valid' | 'revoked',
   }));
 
   // Deduplicate signers and track stats per DID

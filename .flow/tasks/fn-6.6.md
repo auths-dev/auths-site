@@ -22,9 +22,10 @@ Frontend `PackageRelease.status` has `'valid' | 'revoked'` but `fetchPackageDeta
 - [ ] XZ Utils fixture releases display as revoked
 - [ ] `pnpm typecheck` passes
 ## Done summary
-TBD
-
+- All remaining tasks implemented
+- Frontend: revocation display, search, stats, namespace browse types
+- Backend: monitor alignment, badge SVG already in previous commit
 ## Evidence
-- Commits:
+- Commits: 66f43d8a6f6e5e1ac19fee5b1fdda7563e59a9b7
 - Tests:
 - PRs:
