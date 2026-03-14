@@ -11,18 +11,8 @@ import { PlatformPassport } from '@/components/platform-passport';
 import { KeyDisplay } from '@/components/key-display';
 import { ArtifactPortfolio } from '@/components/artifact-portfolio';
 import { CopyButton } from '@/components/copy-button';
-import type { TrustTier, IdentityProfile } from '@/lib/api/registry';
-
-// ---------------------------------------------------------------------------
-// Trust tier styling
-// ---------------------------------------------------------------------------
-
-const TIER_STYLES: Record<TrustTier, { color: string; label: string }> = {
-  seedling: { color: 'text-zinc-500 border-zinc-700 bg-zinc-900', label: 'Seedling' },
-  verified: { color: 'text-blue-400 border-blue-800 bg-blue-950', label: 'Verified' },
-  trusted: { color: 'text-emerald-400 border-emerald-800 bg-emerald-950', label: 'Trusted' },
-  sovereign: { color: 'text-amber-400 border-amber-800 bg-amber-950', label: 'Sovereign' },
-};
+import type { IdentityProfile } from '@/lib/api/registry';
+import { TIER_STYLES } from '@/lib/tier-styles';
 
 // ---------------------------------------------------------------------------
 // Identity Header (Zone A)

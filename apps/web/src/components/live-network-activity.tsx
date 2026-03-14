@@ -10,6 +10,7 @@ import { formatRelativeTime, truncateMiddle } from '@/lib/format';
 import { ACTIVITY_EVENT_CONFIG } from '@/lib/activity-events';
 import { useActivityWebSocket } from '@/hooks/use-activity-websocket';
 import { registryKeys } from '@/lib/queries/registry';
+import { entryDetail } from '@/lib/entry-detail';
 
 /** Returns the link href for the actor DID. */
 function actorHref(entry: FeedEntry): string {
@@ -21,54 +22,6 @@ function actorHref(entry: FeedEntry): string {
     return `/registry/org/${encodeURIComponent(entry.actor_did)}`;
   }
   return `/registry/identity/${encodeURIComponent(entry.actor_did)}`;
-}
-
-/** Extract detail items from a feed entry for display. */
-function entryDetail(entry: FeedEntry): {
-  didLink?: { href: string; label: string };
-  packageLink?: { href: string; label: string };
-  text?: string;
-} {
-  const meta = entry.metadata;
-
-  // Target DID (pick the most relevant one)
-  const targetDid =
-    (meta.member_did as string | undefined) ??
-    (meta.device_did as string | undefined) ??
-    (meta.subject_did as string | undefined) ??
-    (meta.delegate_did as string | undefined) ??
-    (meta.new_owner_did as string | undefined);
-  const didLink = targetDid
-    ? { href: `/registry/identity/${encodeURIComponent(targetDid)}`, label: truncateMiddle(targetDid, 24) }
-    : undefined;
-
-  // Package link — ecosystem may be empty for attest entries where package_name
-  // is already fully qualified (e.g. "cargo:linux-kernel-rs")
-  const ecosystem = meta.ecosystem as string | undefined;
-  const packageName = meta.package_name as string | undefined;
-  let packageLink: { href: string; label: string } | undefined;
-  if (ecosystem && packageName) {
-    packageLink = {
-      href: `/registry/package/${encodeURIComponent(ecosystem)}/${encodeURIComponent(packageName)}`,
-      label: `${ecosystem}:${packageName}`,
-    };
-  } else if (packageName && packageName.includes(':')) {
-    const idx = packageName.indexOf(':');
-    const eco = packageName.slice(0, idx);
-    const name = packageName.slice(idx + 1);
-    packageLink = {
-      href: `/registry/package/${encodeURIComponent(eco)}/${encodeURIComponent(name)}`,
-      label: packageName,
-    };
-  }
-
-  // Plain text for entries with no linkable targets
-  const displayName = meta.display_name as string | undefined;
-  const tier = meta.tier as string | undefined;
-  const reason = meta.reason as string | undefined;
-  const text = displayName ?? (tier ? `tier: ${tier}` : undefined) ?? reason ?? undefined;
-
-  return { didLink, packageLink, text };
 }
 
 const INITIAL_LOG_CAP = 10;

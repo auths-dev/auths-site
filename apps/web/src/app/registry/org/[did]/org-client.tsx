@@ -7,22 +7,13 @@ import Avatar from 'boring-avatars';
 import { useQuery } from '@tanstack/react-query';
 import { useIdentityProfile, registryKeys } from '@/lib/queries/registry';
 import { fetchActivityFeed } from '@/lib/api/registry';
-import type { FeedEntry, ArtifactEntry, TrustTier, IdentityProfile } from '@/lib/api/registry';
+import type { FeedEntry, ArtifactEntry, IdentityProfile } from '@/lib/api/registry';
 import { truncateMiddle, formatRelativeTime } from '@/lib/format';
 import { BackToRegistry } from '@/components/back-to-registry';
 import { CopyButton } from '@/components/copy-button';
 import { ACTIVITY_EVENT_CONFIG } from '@/lib/activity-events';
-
-// ---------------------------------------------------------------------------
-// Trust tier styling (same as identity page)
-// ---------------------------------------------------------------------------
-
-const TIER_STYLES: Record<TrustTier, { color: string; label: string }> = {
-  seedling: { color: 'text-zinc-500 border-zinc-700 bg-zinc-900', label: 'Seedling' },
-  verified: { color: 'text-blue-400 border-blue-800 bg-blue-950', label: 'Verified' },
-  trusted: { color: 'text-emerald-400 border-emerald-800 bg-emerald-950', label: 'Trusted' },
-  sovereign: { color: 'text-amber-400 border-amber-800 bg-amber-950', label: 'Sovereign' },
-};
+import { TIER_STYLES } from '@/lib/tier-styles';
+import { entryDetail } from '@/lib/entry-detail';
 
 // ---------------------------------------------------------------------------
 // OrgHeader
@@ -236,54 +227,6 @@ function OrgNamespaces({ artifacts }: { artifacts: ArtifactEntry[] }) {
 // OrgActivity — recent audit log entries for this org
 // ---------------------------------------------------------------------------
 
-/** Extract linkable detail items from a feed entry's metadata. */
-function entryDetails(entry: FeedEntry): {
-  didLink?: { href: string; label: string };
-  packageLink?: { href: string; label: string };
-  text?: string;
-} {
-  const meta = entry.metadata;
-  const memberDid = meta.member_did as string | undefined;
-  const deviceDid = meta.device_did as string | undefined;
-  const subjectDid = meta.subject_did as string | undefined;
-  const delegateDid = meta.delegate_did as string | undefined;
-  const newOwnerDid = meta.new_owner_did as string | undefined;
-  const displayName = meta.display_name as string | undefined;
-  const ecosystem = meta.ecosystem as string | undefined;
-  const packageName = meta.package_name as string | undefined;
-  const tier = meta.tier as string | undefined;
-  const reason = meta.reason as string | undefined;
-
-  // Pick the most relevant DID to link
-  const targetDid = memberDid ?? deviceDid ?? subjectDid ?? delegateDid ?? newOwnerDid;
-  const didLink = targetDid
-    ? { href: `/registry/identity/${encodeURIComponent(targetDid)}`, label: truncateMiddle(targetDid, 24) }
-    : undefined;
-
-  // Package link — ecosystem may be empty for attest entries where package_name
-  // is already fully qualified (e.g. "cargo:linux-kernel-rs")
-  let packageLink: { href: string; label: string } | undefined;
-  if (ecosystem && packageName) {
-    packageLink = {
-      href: `/registry/package/${encodeURIComponent(ecosystem)}/${encodeURIComponent(packageName)}`,
-      label: `${ecosystem}:${packageName}`,
-    };
-  } else if (packageName && packageName.includes(':')) {
-    const idx = packageName.indexOf(':');
-    const eco = packageName.slice(0, idx);
-    const name = packageName.slice(idx + 1);
-    packageLink = {
-      href: `/registry/package/${encodeURIComponent(eco)}/${encodeURIComponent(name)}`,
-      label: packageName,
-    };
-  }
-
-  // Plain text fallback for entries with no linkable targets
-  const text = displayName ?? (tier ? `tier: ${tier}` : undefined) ?? reason ?? undefined;
-
-  return { didLink, packageLink, text };
-}
-
 function OrgActivity({ entries }: { entries: FeedEntry[] }) {
   if (entries.length === 0) {
     return (
@@ -307,7 +250,7 @@ function OrgActivity({ entries }: { entries: FeedEntry[] }) {
         <div className="space-y-0.5">
           {entries.map((entry, i) => {
             const config = ACTIVITY_EVENT_CONFIG[entry.entry_type];
-            const { didLink, packageLink, text } = entryDetails(entry);
+            const { didLink, packageLink, text } = entryDetail(entry);
             const hasDetail = didLink || packageLink || text;
 
             return (

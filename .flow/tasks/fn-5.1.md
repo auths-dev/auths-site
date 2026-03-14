@@ -67,9 +67,11 @@ Two issues in one:
 - [ ] `pnpm typecheck` and `pnpm build` pass
 - [ ] Fixture mode (`USE_FIXTURES=true`) still works correctly
 ## Done summary
-TBD
-
+- Implemented RFC 9457 Problem Details error format on backend (error.rs)
+- Updated frontend RegistryApiError with code/errorType fields
+- Updated registryFetch to parse RFC 9457 response body
+- Backwards-compatible fallback chain: body.detail -> body.error -> body.message -> statusText
 ## Evidence
-- Commits:
+- Commits: e11d95b7ce16f524f107fe4b6259d2c366fd0ca7
 - Tests:
 - PRs:

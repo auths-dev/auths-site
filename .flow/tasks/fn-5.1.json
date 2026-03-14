@@ -5,10 +5,17 @@
   "created_at": "2026-03-14T12:46:49.792579Z",
   "depends_on": [],
   "epic": "fn-5",
+  "evidence": {
+    "commits": [
+      "e11d95b7ce16f524f107fe4b6259d2c366fd0ca7"
+    ],
+    "prs": [],
+    "tests": []
+  },
   "id": "fn-5.1",
   "priority": null,
   "spec_path": ".flow/tasks/fn-5.1.md",
-  "status": "in_progress",
+  "status": "done",
   "title": "Fix frontend error response parsing bug",
-  "updated_at": "2026-03-14T12:57:26.788903Z"
+  "updated_at": "2026-03-14T12:59:04.568430Z"
 }
