@@ -195,6 +195,26 @@ const SARAH_IDENTITY: ActiveIdentity = {
 };
 
 // ---------------------------------------------------------------------------
+// Persona 7: The Abandoned Identity
+// ---------------------------------------------------------------------------
+
+const ABANDONED_DID = 'did:keri:EAbandoned_Developer_Rotated_Away_000001';
+
+const ABANDONED_IDENTITY: ActiveIdentity = {
+  status: 'active',
+  did: ABANDONED_DID,
+  is_abandoned: true,
+  abandoned_at: '2025-06-15T10:00:00Z',
+  platform_claims: [
+    { platform: 'github', namespace: 'former-dev', verified: true },
+  ],
+  public_keys: [],
+  artifacts: [
+    { package_name: 'npm:legacy-tool', digest_algorithm: 'sha256', digest_hex: 'abandoned01234567890abcdef1234567890abcdef1234567890abcdef12345', signer_did: ABANDONED_DID, published_at: '2024-03-01T12:00:00Z' },
+  ],
+};
+
+// ---------------------------------------------------------------------------
 // Package: cargo:xz-utils (The Backdoor Incident)
 // ---------------------------------------------------------------------------
 
@@ -794,6 +814,7 @@ const IDENTITY_FIXTURES: Record<string, IdentityResponse> = {
   [JIATAN_DID]: JIATAN_IDENTITY,
   [GREGKH_DID]: GREGKH_IDENTITY,
   [SARAH_DID]: SARAH_IDENTITY,
+  [ABANDONED_DID]: ABANDONED_IDENTITY,
 };
 
 const PACKAGE_FIXTURES: Record<string, PackageDetail> = {

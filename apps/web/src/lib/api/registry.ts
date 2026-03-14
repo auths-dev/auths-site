@@ -46,6 +46,8 @@ export interface PubkeysResponse {
 export type ActiveIdentity = {
   status: 'active';
   did: string;
+  is_abandoned?: boolean;
+  abandoned_at?: string;
   public_keys: {
     key_id: string;
     algorithm: string;
@@ -74,6 +76,7 @@ export type TrustTier = 'seedling' | 'verified' | 'trusted' | 'sovereign';
 export interface IdentityProfile extends ActiveIdentity {
   trust_tier: TrustTier;
   trust_score: number;
+  trust_breakdown: { claims: number; keys: number; artifacts: number };
   total_signatures: number;
   github_username?: string;
 }
@@ -377,8 +380,8 @@ export async function fetchIdentity(
   }
 
   // Transform raw API shape into the frontend ActiveIdentity contract.
-  // The API returns { key_state: { current_keys } } but the frontend
-  // expects { public_keys, platform_claims, artifacts }.
+  // The API returns { key_state: { current_keys, is_abandoned, abandoned_at } }
+  // but the frontend expects { public_keys, platform_claims, artifacts }.
   const keyState = (data.key_state ?? {}) as Record<string, unknown>;
   const currentKeys = Array.isArray(keyState.current_keys)
     ? (keyState.current_keys as string[])
@@ -391,9 +394,16 @@ export async function fetchIdentity(
     created_at: new Date().toISOString(),
   }));
 
+  const isAbandoned = keyState.is_abandoned === true;
+  const abandonedAt = typeof keyState.abandoned_at === 'string'
+    ? keyState.abandoned_at
+    : undefined;
+
   return {
     status: 'active',
     did: String(data.did ?? did),
+    is_abandoned: isAbandoned || undefined,
+    abandoned_at: abandonedAt,
     public_keys,
     platform_claims: Array.isArray(data.platform_claims)
       ? (data.platform_claims as PlatformClaim[])
@@ -476,12 +486,24 @@ const TIER_THRESHOLDS: [number, TrustTier][] = [
 export function computeTrustTier(identity: ActiveIdentity): {
   tier: TrustTier;
   score: number;
+  breakdown: { claims: number; keys: number; artifacts: number };
 } {
+  if (identity.is_abandoned) {
+    return {
+      tier: 'seedling',
+      score: 0,
+      breakdown: { claims: 0, keys: 0, artifacts: 0 },
+    };
+  }
+
   const claims = identity.platform_claims.length;
   const keys = identity.public_keys.length;
   const artifacts = identity.artifacts.length;
 
-  const raw = claims * 20 + keys * 15 + artifacts * 5;
+  const claimsScore = claims * 20;
+  const keysScore = keys * 15;
+  const artifactsScore = artifacts * 5;
+  const raw = claimsScore + keysScore + artifactsScore;
   const score = Math.min(raw, 100);
 
   let tier: TrustTier = 'seedling';
@@ -492,7 +514,11 @@ export function computeTrustTier(identity: ActiveIdentity): {
     }
   }
 
-  return { tier, score };
+  return {
+    tier,
+    score,
+    breakdown: { claims: claimsScore, keys: keysScore, artifacts: artifactsScore },
+  };
 }
 
 // ---------------------------------------------------------------------------

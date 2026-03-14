@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import Avatar from 'boring-avatars';
 import { QRCodeSVG } from 'qrcode.react';
 import { useIdentityProfile } from '@/lib/queries/registry';
-import { truncateMiddle } from '@/lib/format';
+import { truncateMiddle, formatRelativeTime } from '@/lib/format';
 import { ClaimIdentityCTA } from '@/components/claim-identity-cta';
 import { BackToRegistry } from '@/components/back-to-registry';
 import { PlatformPassport } from '@/components/platform-passport';
@@ -194,6 +194,21 @@ export function IdentityClient({ did }: { did: string }) {
       <div className="space-y-12">
         {/* Zone A: Identity Header */}
         <IdentityHeader profile={profile} />
+
+        {/* Abandoned banner */}
+        {profile.is_abandoned && (
+          <div className="rounded-lg border-l-4 border-amber-500 bg-amber-500/10 px-4 py-3">
+            <p className="text-sm font-medium text-amber-200">
+              This identity has been abandoned
+              {profile.abandoned_at && (
+                <span className="text-amber-400"> ({formatRelativeTime(profile.abandoned_at)})</span>
+              )}
+            </p>
+            <p className="mt-1 text-xs text-amber-400/70">
+              Artifacts signed before abandonment remain verifiable.
+            </p>
+          </div>
+        )}
 
         {/* Zone B: Platform Passport */}
         <PlatformPassport claims={profile.platform_claims} />

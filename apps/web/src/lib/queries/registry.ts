@@ -111,7 +111,7 @@ export function useIdentityProfile(did: string) {
         return identity;
       }
 
-      const { tier, score } = computeTrustTier(identity);
+      const { tier, score, breakdown } = computeTrustTier(identity);
       const ghClaim = identity.platform_claims.find(
         (c) => c.platform === 'github' && c.verified,
       );
@@ -120,6 +120,7 @@ export function useIdentityProfile(did: string) {
         ...identity,
         trust_tier: tier,
         trust_score: score,
+        trust_breakdown: breakdown,
         total_signatures: identity.artifacts.length,
         github_username: ghClaim?.namespace,
       };

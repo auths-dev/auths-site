@@ -31,9 +31,10 @@ Two pieces of code are duplicated:
 - [ ] `pnpm typecheck` passes
 - [ ] `pnpm build` passes
 ## Done summary
-TBD
-
+- Extracted TIER_STYLES to lib/tier-styles.ts
+- Extracted entryDetail to lib/entry-detail.ts
+- Updated 3 consuming files to import from shared modules
 ## Evidence
-- Commits:
+- Commits: d287772e4c196fe939fbc877b9b848699b913d84
 - Tests:
 - PRs:
