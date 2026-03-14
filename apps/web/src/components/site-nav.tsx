@@ -98,7 +98,8 @@ export function SiteNav() {
           href="/"
           className="flex items-center gap-2 text-sm font-semibold tracking-tight text-white hover:opacity-80 transition-opacity"
         >
-          <span className="text-base">❖</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/auths_logo.png" alt="Auths" width={24} height={24} className="shrink-0" />
           <span>Auths</span>
         </Link>
 
