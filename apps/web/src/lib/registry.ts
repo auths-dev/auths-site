@@ -230,11 +230,11 @@ export function parseSearchQuery(input: string): ParsedSearchQuery {
     return { type: 'unknown', raw, normalized: '' };
   }
 
-  // Ecosystem prefix → package search
+  // Ecosystem prefix → package search (keep full ecosystem:name as normalized)
   const ecosystemPrefixes = ['npm:', 'pypi:', 'cargo:', 'docker:', 'go:', 'maven:', 'nuget:'];
   for (const prefix of ecosystemPrefixes) {
     if (trimmed.startsWith(prefix)) {
-      return { type: 'package', raw, normalized: trimmed.slice(prefix.length) || trimmed };
+      return { type: 'package', raw, normalized: trimmed };
     }
   }
 

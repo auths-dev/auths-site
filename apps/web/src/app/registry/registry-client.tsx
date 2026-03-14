@@ -10,7 +10,7 @@ import { ClaimIdentityCTA } from '@/components/claim-identity-cta';
 import { TrustGraph } from '@/components/trust-graph';
 import { PubkeysDisplay } from '@/components/pubkeys-display';
 import { ActiveIdentityDisplay } from '@/components/active-identity-display';
-import type { RecentActivity } from '@/lib/api/registry';
+import { IdentitySearchResults } from '@/components/identity-search-results';
 
 // ---------------------------------------------------------------------------
 // Search results renderer
@@ -76,6 +76,10 @@ function SearchResults({
 
       {result.type === 'pubkeys' && <PubkeysDisplay data={result.data} fromQuery={parsedQuery.raw} />}
 
+      {result.type === 'identitySearch' && (
+        <IdentitySearchResults results={result.data.results} />
+      )}
+
       {result.type === 'identity' && result.data.status === 'active' && (
         <ActiveIdentityDisplay data={result.data} fromQuery={parsedQuery.raw} />
       )}
@@ -101,12 +105,16 @@ function SearchResults({
  */
 function EmptyResults({ query }: { query: string }) {
   return (
-    <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 text-sm text-zinc-600">
-      <p>No results found for &ldquo;{query}&rdquo;</p>
-      <p className="text-xs text-zinc-700">
-        Try searching for a package (npm:name), repository (owner/repo), or
-        identity (@username)
-      </p>
+    <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 text-sm text-zinc-600">
+      <p>No artifacts found for &ldquo;{query}&rdquo;</p>
+      <div className="space-y-1 text-center text-xs text-zinc-700">
+        <p>Try searching by:</p>
+        <p className="font-mono text-zinc-500">
+          Package: <span className="text-emerald-600">npm:react</span> &middot;
+          Identity: <span className="text-emerald-600">@username</span> &middot;
+          DID: <span className="text-emerald-600">did:keri:...</span>
+        </p>
+      </div>
     </div>
   );
 }
@@ -117,12 +125,10 @@ function EmptyResults({ query }: { query: string }) {
 
 interface RegistryClientProps {
   initialQuery?: string;
-  initialActivity: RecentActivity | null;
 }
 
 export function RegistryClient({
   initialQuery,
-  initialActivity,
 }: RegistryClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -169,7 +175,6 @@ export function RegistryClient({
       <div className="mt-10">
         {!query && (
           <RegistryDashboard
-            activity={initialActivity}
             onSearch={(q) => {
               setInput(q);
               submitSearch(q);

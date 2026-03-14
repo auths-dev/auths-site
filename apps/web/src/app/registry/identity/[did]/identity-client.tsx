@@ -1,64 +1,24 @@
 'use client';
 
-import { useState, useCallback } from 'react';
 import { motion } from 'motion/react';
 import Avatar from 'boring-avatars';
 import { QRCodeSVG } from 'qrcode.react';
 import { useIdentityProfile } from '@/lib/queries/registry';
-import { truncateMiddle } from '@/lib/format';
+import { truncateMiddle, formatRelativeTime } from '@/lib/format';
 import { ClaimIdentityCTA } from '@/components/claim-identity-cta';
 import { BackToRegistry } from '@/components/back-to-registry';
 import { PlatformPassport } from '@/components/platform-passport';
 import { KeyDisplay } from '@/components/key-display';
 import { ArtifactPortfolio } from '@/components/artifact-portfolio';
-import type { TrustTier, IdentityProfile } from '@/lib/api/registry';
-
-// ---------------------------------------------------------------------------
-// Trust tier styling
-// ---------------------------------------------------------------------------
-
-const TIER_STYLES: Record<TrustTier, { color: string; label: string }> = {
-  seedling: { color: 'text-zinc-500 border-zinc-700 bg-zinc-900', label: 'Seedling' },
-  verified: { color: 'text-blue-400 border-blue-800 bg-blue-950', label: 'Verified' },
-  trusted: { color: 'text-emerald-400 border-emerald-800 bg-emerald-950', label: 'Trusted' },
-  sovereign: { color: 'text-amber-400 border-amber-800 bg-amber-950', label: 'Sovereign' },
-};
-
-// ---------------------------------------------------------------------------
-// CopyButton (reusable clipboard pattern)
-// ---------------------------------------------------------------------------
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback: select text for manual copy
-    }
-  }, [text]);
-
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className="rounded px-2 py-1 text-xs text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
-      aria-label="Copy to clipboard"
-    >
-      {copied ? <span className="text-green-400">Copied!</span> : 'Copy'}
-    </button>
-  );
-}
+import { CopyButton } from '@/components/copy-button';
+import type { IdentityProfile } from '@/lib/api/registry';
+import { TrustTierBadge } from '@/components/trust-tier-badge';
 
 // ---------------------------------------------------------------------------
 // Identity Header (Zone A)
 // ---------------------------------------------------------------------------
 
 function IdentityHeader({ profile }: { profile: IdentityProfile }) {
-  const tierStyle = TIER_STYLES[profile.trust_tier];
 
   return (
     <motion.section
@@ -103,16 +63,13 @@ function IdentityHeader({ profile }: { profile: IdentityProfile }) {
             <CopyButton text={profile.did} />
           </div>
 
-          {/* Trust tier badge */}
-          <div className="mt-3 flex items-center gap-3">
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${tierStyle.color}`}
-            >
-              {tierStyle.label}
-            </span>
-            <span className="text-xs text-zinc-500">
-              Trust Score: {profile.trust_score}/100
-            </span>
+          {/* Trust tier badge with breakdown tooltip */}
+          <div className="mt-3">
+            <TrustTierBadge
+              tier={profile.trust_tier}
+              score={profile.trust_score}
+              breakdown={profile.trust_breakdown}
+            />
           </div>
 
           {/* Stats */}
@@ -233,6 +190,21 @@ export function IdentityClient({ did }: { did: string }) {
       <div className="space-y-12">
         {/* Zone A: Identity Header */}
         <IdentityHeader profile={profile} />
+
+        {/* Abandoned banner */}
+        {profile.is_abandoned && (
+          <div className="rounded-lg border-l-4 border-amber-500 bg-amber-500/10 px-4 py-3">
+            <p className="text-sm font-medium text-amber-200">
+              This identity has been abandoned
+              {profile.abandoned_at && (
+                <span className="text-amber-400"> ({formatRelativeTime(profile.abandoned_at)})</span>
+              )}
+            </p>
+            <p className="mt-1 text-xs text-amber-400/70">
+              Artifacts signed before abandonment remain verifiable.
+            </p>
+          </div>
+        )}
 
         {/* Zone B: Platform Passport */}
         <PlatformPassport claims={profile.platform_claims} />

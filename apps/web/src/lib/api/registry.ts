@@ -2,11 +2,14 @@ import type { Platform } from '@/lib/registry';
 import { REGISTRY_BASE_URL, USE_FIXTURES } from '@/lib/config';
 import {
   resolveIdentityFixture,
+  resolveBatchIdentitiesFixture,
   resolvePubkeysFixture,
   resolvePackageFixture,
   resolveArtifactFixture,
-  resolveRecentActivityFixture,
-  resolveAuditFeedFixture,
+  resolveActivityFeedFixture,
+  resolveIdentitySearchFixture,
+  resolveNamespaceListFixture,
+  resolveNetworkStatsFixture,
 } from './fixtures';
 
 // ---------------------------------------------------------------------------
@@ -46,6 +49,10 @@ export interface PubkeysResponse {
 export type ActiveIdentity = {
   status: 'active';
   did: string;
+  is_abandoned?: boolean;
+  abandoned_at?: string;
+  server_trust_tier?: string;
+  server_trust_score?: number;
   public_keys: {
     key_id: string;
     algorithm: string;
@@ -74,6 +81,7 @@ export type TrustTier = 'seedling' | 'verified' | 'trusted' | 'sovereign';
 export interface IdentityProfile extends ActiveIdentity {
   trust_tier: TrustTier;
   trust_score: number;
+  trust_breakdown: { claims: number; keys: number; artifacts: number };
   total_signatures: number;
   github_username?: string;
 }
@@ -117,48 +125,40 @@ export interface TrustChainNode {
   link_did?: string;
 }
 
-export interface RecentArtifact {
-  package_name: string;
-  signer_did: string;
-  published_at: string;
-}
-
-export interface RecentIdentity {
-  did_prefix: string;
-  platform: string | null;
-  namespace: string | null;
-  created_at: string;
-}
-
-export interface RecentActivity {
-  recent_artifacts: RecentArtifact[];
-  recent_identities: RecentIdentity[];
-}
-
 // ---------------------------------------------------------------------------
-// Audit feed types
+// Activity feed types (unified feed from /v1/activity/feed)
 // ---------------------------------------------------------------------------
 
-export type AuditEventType =
-  | 'device_bound'
-  | 'device_revoked'
-  | 'namespace_claimed'
-  | 'org_member_added';
+export type ActivityEntryType =
+  | 'register' | 'device_bind' | 'device_revoke'
+  | 'org_create' | 'org_add_member' | 'org_revoke_member'
+  | 'abandon' | 'rotate' | 'attest'
+  | 'namespace_claim' | 'namespace_delegate' | 'namespace_transfer'
+  | 'access_grant' | 'access_revoke';
 
-export interface AuditEntry {
-  event_type: AuditEventType;
+export interface FeedEntry {
+  log_sequence: number;
+  entry_type: ActivityEntryType;
   actor_did: string;
-  target?: string;
-  ecosystem?: string;
-  package_name?: string;
+  summary: string;
+  metadata: Record<string, unknown>;
   occurred_at: string;
-  log_sequence?: number;
+  merkle_included: boolean;
+  is_genesis_phase: boolean;
 }
 
-export interface AuditFeedResponse {
-  entries: AuditEntry[];
+export interface ActivityFeedResponse {
+  entries: FeedEntry[];
+  next_cursor: number | null;
   log_size?: number;
   checkpoint_hash?: string;
+}
+
+export interface ActivityFeedParams {
+  before?: number;
+  limit?: number;
+  actor?: string;
+  type?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -168,12 +168,22 @@ export interface AuditFeedResponse {
 export class RegistryApiError extends Error {
   readonly status: number;
   readonly detail?: string;
+  readonly code?: string;
+  readonly errorType?: string;
 
-  constructor(status: number, message: string, detail?: string) {
+  constructor(
+    status: number,
+    message: string,
+    detail?: string,
+    code?: string,
+    errorType?: string,
+  ) {
     super(message);
     this.name = 'RegistryApiError';
     this.status = status;
     this.detail = detail;
+    this.code = code;
+    this.errorType = errorType;
   }
 }
 
@@ -222,14 +232,25 @@ async function registryFetch<T>(
   if (!res.ok) {
     let message = res.statusText;
     let detail: string | undefined;
+    let code: string | undefined;
+    let errorType: string | undefined;
     try {
       const body = await res.json();
-      if (typeof body.message === 'string') message = body.message;
-      if (typeof body.detail === 'string') detail = body.detail;
+      // RFC 9457: read `detail` for the human-readable explanation
+      if (typeof body.detail === 'string') {
+        message = body.detail;
+        detail = body.detail;
+      } else if (typeof body.error === 'string') {
+        message = body.error;
+      } else if (typeof body.message === 'string') {
+        message = body.message;
+      }
+      if (typeof body.code === 'string') code = body.code;
+      if (typeof body.type === 'string') errorType = body.type;
     } catch {
       // body isn't JSON — use statusText
     }
-    throw new RegistryApiError(res.status, message, detail);
+    throw new RegistryApiError(res.status, message, detail, code, errorType);
   }
 
   return res.json() as Promise<T>;
@@ -346,8 +367,8 @@ export async function fetchIdentity(
   }
 
   // Transform raw API shape into the frontend ActiveIdentity contract.
-  // The API returns { key_state: { current_keys } } but the frontend
-  // expects { public_keys, platform_claims, artifacts }.
+  // The API returns { key_state: { current_keys, is_abandoned, abandoned_at } }
+  // but the frontend expects { public_keys, platform_claims, artifacts }.
   const keyState = (data.key_state ?? {}) as Record<string, unknown>;
   const currentKeys = Array.isArray(keyState.current_keys)
     ? (keyState.current_keys as string[])
@@ -360,9 +381,26 @@ export async function fetchIdentity(
     created_at: new Date().toISOString(),
   }));
 
+  const isAbandoned = keyState.is_abandoned === true;
+  const abandonedAt = typeof keyState.abandoned_at === 'string'
+    ? keyState.abandoned_at
+    : undefined;
+
+  // Preserve server-computed trust tier if present
+  const serverTrustTier = typeof data.trust_tier === 'string'
+    ? data.trust_tier
+    : undefined;
+  const serverTrustScore = typeof data.trust_score === 'number'
+    ? data.trust_score
+    : undefined;
+
   return {
     status: 'active',
     did: String(data.did ?? did),
+    is_abandoned: isAbandoned || undefined,
+    abandoned_at: abandonedAt,
+    server_trust_tier: serverTrustTier,
+    server_trust_score: serverTrustScore,
     public_keys,
     platform_claims: Array.isArray(data.platform_claims)
       ? (data.platform_claims as PlatformClaim[])
@@ -374,44 +412,208 @@ export async function fetchIdentity(
 }
 
 /**
- * Fetches recent activity from the registry for the dashboard.
+ * Batch-fetches identities by DID using the batch endpoint.
  *
- * Called server-side in the page Server Component so Vercel edges can cache
- * the initial HTML payload. Uses `next.revalidate` to enable ISR caching.
- *
- * @param signal - Optional AbortSignal forwarded to `fetch()`.
- * @returns Recent packages and identities.
- *
- * @example
- * const activity = await fetchRecentActivity();
- * console.log(activity.recent_artifacts.length);
+ * Returns a map of DID -> IdentityResponse for each requested DID.
+ * Max 100 DIDs per request.
  */
-export async function fetchRecentActivity(
+export async function fetchBatchIdentities(
+  dids: string[],
   signal?: AbortSignal,
-): Promise<RecentActivity> {
+): Promise<Record<string, IdentityResponse>> {
+  if (dids.length === 0) return {};
+
   if (USE_FIXTURES) {
-    return resolveRecentActivityFixture();
+    const fixture = await resolveBatchIdentitiesFixture(dids);
+    if (fixture) return fixture;
   }
-  return registryFetch<RecentActivity>('/v1/activity/recent', undefined, signal);
+
+  const url = new URL('/v1/identities/batch', REGISTRY_BASE_URL);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  if (signal) signal.addEventListener('abort', () => controller.abort());
+
+  const res = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ dids }),
+    signal: controller.signal,
+  });
+  clearTimeout(timeout);
+
+  if (!res.ok) {
+    let message = res.statusText;
+    try {
+      const body = await res.json();
+      if (typeof body.detail === 'string') message = body.detail;
+    } catch {
+      // use statusText
+    }
+    throw new RegistryApiError(res.status, message);
+  }
+
+  const data = await res.json() as { identities: Record<string, IdentityResponse> };
+  return data.identities;
 }
 
 /**
- * Fetches the public audit feed from the registry.
+ * Fetches the unified activity feed from the transparency log.
  *
- * @param signal - Optional AbortSignal forwarded to `fetch()`.
- * @returns Audit feed with entries and optional checkpoint stats.
- *
- * @example
- * const feed = await fetchAuditFeed();
- * console.log(feed.entries.length, feed.log_size);
+ * Supports server-side filtering by actor DID and entry type,
+ * plus keyset pagination via `before` cursor.
  */
-export async function fetchAuditFeed(
+export async function fetchActivityFeed(
+  params?: ActivityFeedParams,
   signal?: AbortSignal,
-): Promise<AuditFeedResponse> {
-  if (USE_FIXTURES) {
-    return resolveAuditFeedFixture();
+): Promise<ActivityFeedResponse> {
+  if (USE_FIXTURES && !params?.before) {
+    return resolveActivityFeedFixture(params);
   }
-  return registryFetch<AuditFeedResponse>('/v1/audit/feed', undefined, signal);
+  const queryParams: Record<string, string> = {};
+  if (params?.before != null) queryParams.before = String(params.before);
+  if (params?.limit != null) queryParams.limit = String(params.limit);
+  if (params?.actor) queryParams.actor = params.actor;
+  if (params?.type) queryParams.type = params.type;
+  return registryFetch<ActivityFeedResponse>('/v1/activity/feed', queryParams, signal);
+}
+
+// ---------------------------------------------------------------------------
+// Namespace info
+// ---------------------------------------------------------------------------
+
+export interface NamespaceDelegate {
+  delegate_did: string;
+  granted_by: string;
+  granted_at: string;
+}
+
+export interface NamespaceInfo {
+  ecosystem: string;
+  package_name: string;
+  owner_did: string;
+  delegates: NamespaceDelegate[];
+  claimed_at: string;
+}
+
+export async function fetchNamespaceInfo(
+  ecosystem: string,
+  packageName: string,
+  signal?: AbortSignal,
+): Promise<NamespaceInfo> {
+  return registryFetch<NamespaceInfo>(
+    `/v1/namespaces/${encodeURIComponent(ecosystem)}/${encodeURIComponent(packageName)}`,
+    undefined,
+    signal,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Identity search
+// ---------------------------------------------------------------------------
+
+export interface IdentitySearchResult {
+  did: string;
+  platform?: string;
+  namespace?: string;
+  created_at: string;
+}
+
+export interface IdentitySearchResponse {
+  results: IdentitySearchResult[];
+  next_cursor?: string;
+  has_more: boolean;
+}
+
+export async function fetchIdentitySearch(
+  query: string,
+  platform?: string,
+  signal?: AbortSignal,
+): Promise<IdentitySearchResponse> {
+  if (USE_FIXTURES) {
+    const fixture = await resolveIdentitySearchFixture(query);
+    if (fixture) return fixture;
+  }
+  const params: Record<string, string> = { q: query };
+  if (platform) params.platform = platform;
+  return registryFetch<IdentitySearchResponse>('/v1/identities/search', params, signal);
+}
+
+// ---------------------------------------------------------------------------
+// Namespace browse
+// ---------------------------------------------------------------------------
+
+export interface NamespaceBrowseResponse {
+  namespaces: {
+    ecosystem: string;
+    package_name: string;
+    owner_did: string;
+    log_sequence: number;
+    claimed_at: string;
+  }[];
+  next_cursor?: number;
+  has_more: boolean;
+}
+
+export async function fetchNamespaceList(
+  ecosystem?: string,
+  signal?: AbortSignal,
+): Promise<NamespaceBrowseResponse> {
+  if (USE_FIXTURES) {
+    const fixture = await resolveNamespaceListFixture(ecosystem);
+    if (fixture) return fixture;
+  }
+  const params: Record<string, string> = {};
+  if (ecosystem) params.ecosystem = ecosystem;
+  return registryFetch<NamespaceBrowseResponse>('/v1/namespaces', params, signal);
+}
+
+// ---------------------------------------------------------------------------
+// Network stats
+// ---------------------------------------------------------------------------
+
+export interface NetworkStats {
+  total_identities: number;
+  total_attestations: number;
+  total_namespaces: number;
+  total_log_entries: number;
+}
+
+export async function fetchNetworkStats(
+  signal?: AbortSignal,
+): Promise<NetworkStats> {
+  if (USE_FIXTURES) {
+    return resolveNetworkStatsFixture();
+  }
+  return registryFetch<NetworkStats>('/v1/stats', undefined, signal);
+}
+
+// ---------------------------------------------------------------------------
+// Org policy
+// ---------------------------------------------------------------------------
+
+export interface OrgPolicyResponse {
+  org_did: string;
+  policy_expr: Record<string, unknown> | null;
+  updated_at: string | null;
+}
+
+export async function fetchOrgPolicy(
+  orgDid: string,
+  signal?: AbortSignal,
+): Promise<OrgPolicyResponse> {
+  if (USE_FIXTURES) {
+    const { resolveOrgPolicyFixture } = await import('./fixtures');
+    const fixture = await resolveOrgPolicyFixture(orgDid);
+    if (fixture) return fixture;
+  }
+  return registryFetch<OrgPolicyResponse>(
+    `/v1/orgs/${encodeURIComponent(orgDid)}/policy`,
+    undefined,
+    signal,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -443,12 +645,24 @@ const TIER_THRESHOLDS: [number, TrustTier][] = [
 export function computeTrustTier(identity: ActiveIdentity): {
   tier: TrustTier;
   score: number;
+  breakdown: { claims: number; keys: number; artifacts: number };
 } {
+  if (identity.is_abandoned) {
+    return {
+      tier: 'seedling',
+      score: 0,
+      breakdown: { claims: 0, keys: 0, artifacts: 0 },
+    };
+  }
+
   const claims = identity.platform_claims.length;
   const keys = identity.public_keys.length;
   const artifacts = identity.artifacts.length;
 
-  const raw = claims * 20 + keys * 15 + artifacts * 5;
+  const claimsScore = claims * 20;
+  const keysScore = keys * 15;
+  const artifactsScore = artifacts * 5;
+  const raw = claimsScore + keysScore + artifactsScore;
   const score = Math.min(raw, 100);
 
   let tier: TrustTier = 'seedling';
@@ -459,7 +673,11 @@ export function computeTrustTier(identity: ActiveIdentity): {
     }
   }
 
-  return { tier, score };
+  return {
+    tier,
+    score,
+    breakdown: { claims: claimsScore, keys: keysScore, artifacts: artifactsScore },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -568,17 +786,18 @@ export async function fetchPackageDetail(
     const fixture = await resolvePackageFixture(ecosystem, name);
     if (fixture) return fixture;
   }
-  const query = `${ecosystem}:${name}`;
+  // Avoid double-prefixing: if name already starts with "ecosystem:", don't add it again
+  const query = name.startsWith(`${ecosystem}:`) ? name : `${ecosystem}:${name}`;
   const artifactResponse = await fetchArtifacts(query, undefined, signal);
   const entries = artifactResponse.artifacts;
 
-  // Build releases
+  // Build releases — check for revocation status from API
   const releases: PackageRelease[] = entries.map((e) => ({
     digest_algorithm: e.digest_algorithm,
     digest_hex: e.digest_hex,
     signer_did: e.signer_did,
     published_at: e.published_at,
-    status: 'valid' as const,
+    status: ((e as unknown as Record<string, unknown>).revoked_at ? 'revoked' : 'valid') as 'valid' | 'revoked',
   }));
 
   // Deduplicate signers and track stats per DID
@@ -606,39 +825,36 @@ export async function fetchPackageDetail(
     .sort((a, b) => b[1].lastSigned.localeCompare(a[1].lastSigned))
     .slice(0, 10);
 
-  // Batch identity lookups in groups of 5
-  const signers: PackageSigner[] = [];
-  for (let i = 0; i < sortedDids.length; i += 5) {
-    const batch = sortedDids.slice(i, i + 5);
-    const results = await Promise.allSettled(
-      batch.map(([did]) => fetchIdentity(did, signal)),
-    );
-
-    for (let j = 0; j < batch.length; j++) {
-      const [did, stats] = batch[j];
-      const result = results[j];
-
-      let githubUsername: string | undefined;
-      let verified = false;
-
-      if (result.status === 'fulfilled' && result.value.status === 'active') {
-        const identity = result.value;
-        const ghClaim = identity.platform_claims.find(
-          (c) => c.platform === 'github' && c.verified,
-        );
-        if (ghClaim) githubUsername = ghClaim.namespace;
-        verified = identity.platform_claims.some((c) => c.verified);
-      }
-
-      signers.push({
-        did,
-        github_username: githubUsername,
-        verified,
-        signature_count: stats.count,
-        last_signed: stats.lastSigned,
-      });
-    }
+  // Batch identity lookup — single request instead of N+1
+  const didsToLookup = sortedDids.map(([did]) => did);
+  let identityMap: Record<string, IdentityResponse> = {};
+  try {
+    identityMap = await fetchBatchIdentities(didsToLookup, signal);
+  } catch {
+    // If batch endpoint fails, signers will have no enrichment data
   }
+
+  const signers: PackageSigner[] = sortedDids.map(([did, stats]) => {
+    const identity = identityMap[did];
+    let githubUsername: string | undefined;
+    let verified = false;
+
+    if (identity && identity.status === 'active') {
+      const ghClaim = identity.platform_claims.find(
+        (c) => c.platform === 'github' && c.verified,
+      );
+      if (ghClaim) githubUsername = ghClaim.namespace;
+      verified = identity.platform_claims.some((c) => c.verified);
+    }
+
+    return {
+      did,
+      github_username: githubUsername,
+      verified,
+      signature_count: stats.count,
+      last_signed: stats.lastSigned,
+    };
+  });
 
   return {
     ecosystem: ecosystem as Ecosystem,

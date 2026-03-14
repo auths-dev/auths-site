@@ -18,8 +18,12 @@ import type {
   ArtifactQueryResponse,
   PubkeysResponse,
   PackageDetail,
-  RecentActivity,
-  AuditFeedResponse,
+  ActivityFeedResponse,
+  ActivityFeedParams,
+  IdentitySearchResponse,
+  NamespaceBrowseResponse,
+  NetworkStats,
+  OrgPolicyResponse,
 } from './registry';
 
 // ---------------------------------------------------------------------------
@@ -190,6 +194,52 @@ const SARAH_IDENTITY: ActiveIdentity = {
   ],
   artifacts: [
     { package_name: 'npm:maintainer-dashboard', digest_algorithm: 'sha256', digest_hex: 'sarah01e5f6789012345ef567890123456ef567890123456ef567890123456ef', signer_did: SARAH_DID, published_at: '2024-10-22T11:15:00Z' },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// Persona 8: The Linux Kernel Organization
+// ---------------------------------------------------------------------------
+
+const KERNEL_ORG_DID = 'did:keri:ELinux_Kernel_Project_Organization_0001';
+
+const KERNEL_ORG_IDENTITY: ActiveIdentity = {
+  status: 'active',
+  did: KERNEL_ORG_DID,
+  platform_claims: [
+    { platform: 'github', namespace: 'linux-kernel-project', verified: true },
+  ],
+  public_keys: [
+    {
+      key_id: 'key-org-admin-001',
+      algorithm: 'Ed25519',
+      public_key_hex: 'org0admin01234567890abcdef1234567890abcdef1234567890abcdef012345',
+      created_at: '2024-11-26T10:00:00Z',
+    },
+  ],
+  artifacts: [
+    { package_name: 'cargo:linux-kernel-rs', digest_algorithm: 'sha256', digest_hex: 'a1b2c3d4e5f67890abcdef1234567890abcdef1234567890abcdef1234567890', signer_did: KERNEL_ORG_DID, published_at: '2024-12-01T12:00:00Z' },
+    { package_name: 'cargo:git-core', digest_algorithm: 'sha256', digest_hex: 'b2c3d4e5f6789012bcdef23456789012bcdef23456789012bcdef23456789012', signer_did: KERNEL_ORG_DID, published_at: '2024-11-20T10:30:00Z' },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// Persona 7: The Abandoned Identity
+// ---------------------------------------------------------------------------
+
+const ABANDONED_DID = 'did:keri:EAbandoned_Developer_Rotated_Away_000001';
+
+const ABANDONED_IDENTITY: ActiveIdentity = {
+  status: 'active',
+  did: ABANDONED_DID,
+  is_abandoned: true,
+  abandoned_at: '2025-06-15T10:00:00Z',
+  platform_claims: [
+    { platform: 'github', namespace: 'former-dev', verified: true },
+  ],
+  public_keys: [],
+  artifacts: [
+    { package_name: 'npm:legacy-tool', digest_algorithm: 'sha256', digest_hex: 'abandoned01234567890abcdef1234567890abcdef1234567890abcdef12345', signer_did: ABANDONED_DID, published_at: '2024-03-01T12:00:00Z' },
   ],
 };
 
@@ -793,6 +843,8 @@ const IDENTITY_FIXTURES: Record<string, IdentityResponse> = {
   [JIATAN_DID]: JIATAN_IDENTITY,
   [GREGKH_DID]: GREGKH_IDENTITY,
   [SARAH_DID]: SARAH_IDENTITY,
+  [ABANDONED_DID]: ABANDONED_IDENTITY,
+  [KERNEL_ORG_DID]: KERNEL_ORG_IDENTITY,
 };
 
 const PACKAGE_FIXTURES: Record<string, PackageDetail> = {
@@ -823,26 +875,7 @@ const PUBKEYS_FIXTURES: Record<string, PubkeysResponse> = {
   'github:JiaT75': pubkeysFromIdentity(JIATAN_IDENTITY),
   'github:gregkh': pubkeysFromIdentity(GREGKH_IDENTITY),
   'github:sarahchen-dev': pubkeysFromIdentity(SARAH_IDENTITY),
-};
-
-// ---------------------------------------------------------------------------
-// Recent activity fixture (for the registry dashboard)
-// ---------------------------------------------------------------------------
-
-const RECENT_ACTIVITY: RecentActivity = {
-  recent_artifacts: [
-    { package_name: 'npm:auths-cli', signer_did: SOVEREIGN_DID, published_at: '2024-12-01T12:00:00Z' },
-    { package_name: 'cargo:xz-utils', signer_did: JIATAN_DID, published_at: '2024-03-09T08:15:00Z' },
-    { package_name: 'npm:react-agent-tools', signer_did: AGENT_DID, published_at: '2025-01-10T14:00:00Z' },
-    { package_name: 'cargo:linux-kernel-rs', signer_did: SOVEREIGN_DID, published_at: '2024-12-01T12:00:00Z' },
-    { package_name: 'cargo:git-core', signer_did: SOVEREIGN_DID, published_at: '2024-11-20T10:30:00Z' },
-  ],
-  recent_identities: [
-    { did_prefix: SOVEREIGN_DID, platform: 'github', namespace: 'torvalds', created_at: '2021-01-15T14:30:00Z' },
-    { did_prefix: AGENT_DID, platform: null, namespace: null, created_at: '2024-02-01T00:00:00Z' },
-    { did_prefix: LASSE_DID, platform: 'github', namespace: 'Larhzu', created_at: '2019-05-10T00:00:00Z' },
-    { did_prefix: JIATAN_DID, platform: 'github', namespace: 'JiaT75', created_at: '2022-01-15T00:00:00Z' },
-  ],
+  'github:linux-kernel-project': pubkeysFromIdentity(KERNEL_ORG_IDENTITY),
 };
 
 // ---------------------------------------------------------------------------
@@ -907,6 +940,33 @@ export async function resolveIdentityFixture(
 }
 
 /**
+ * Resolves batch identity lookup to fixture data.
+ */
+export async function resolveBatchIdentitiesFixture(
+  dids: string[],
+): Promise<Record<string, IdentityResponse> | null> {
+  const result: Record<string, IdentityResponse> = {};
+  let hasAny = false;
+
+  for (const did of dids) {
+    const fixture = IDENTITY_FIXTURES[did];
+    if (fixture) {
+      result[did] = fixture;
+      hasAny = true;
+    } else if (did.toLowerCase().includes('unclaimed')) {
+      result[did] = { status: 'unclaimed', did };
+      hasAny = true;
+    }
+  }
+
+  if (hasAny) {
+    await delay(300);
+    return result;
+  }
+  return null;
+}
+
+/**
  * Resolves a package to a fixture, or returns null to fall through.
  */
 export async function resolvePackageFixture(
@@ -924,51 +984,90 @@ export async function resolvePackageFixture(
 
 /**
  * Resolves artifact search to fixture data, or returns null to fall through.
+ * Supports exact match (e.g. "cargo:xz-utils") and prefix match for bare
+ * ecosystem queries (e.g. "cargo:" returns all cargo packages).
  */
 export async function resolveArtifactFixture(
   query: string,
 ): Promise<ArtifactQueryResponse | null> {
+  // Exact match
   const fixture = ARTIFACT_FIXTURES[query];
   if (fixture) {
     await delay(300);
     return fixture;
   }
+
+  // Prefix match: bare ecosystem query like "cargo:" or partial name like "cargo:x"
+  const matchingKeys = Object.keys(ARTIFACT_FIXTURES).filter((key) =>
+    key.startsWith(query),
+  );
+  if (matchingKeys.length > 0) {
+    await delay(300);
+    const combined: ArtifactQueryResponse = {
+      artifacts: matchingKeys.flatMap((key) => ARTIFACT_FIXTURES[key].artifacts),
+    };
+    return combined;
+  }
+
   return null;
 }
 
-/**
- * Returns fixture recent activity for the dashboard.
- */
-export async function resolveRecentActivityFixture(): Promise<RecentActivity> {
-  await delay(200);
-  return RECENT_ACTIVITY;
-}
-
 // ---------------------------------------------------------------------------
-// Audit feed fixture
+// Activity feed fixture (unified transparency-log-backed feed)
 // ---------------------------------------------------------------------------
 
-const AUDIT_FEED: AuditFeedResponse = {
+const ACTIVITY_FEED: ActivityFeedResponse = {
   entries: [
-    { event_type: 'namespace_claimed', actor_did: SOVEREIGN_DID, ecosystem: 'cargo', package_name: 'cargo:linux-kernel-rs', occurred_at: '2024-11-30T09:15:00Z', log_sequence: 46 },
-    { event_type: 'device_bound', actor_did: SOVEREIGN_DID, target: 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK', occurred_at: '2024-11-28T14:30:00Z', log_sequence: 45 },
-    { event_type: 'org_member_added', actor_did: SOVEREIGN_DID, target: GREGKH_DID, occurred_at: '2024-11-25T11:20:00Z', log_sequence: 42 },
-    { event_type: 'device_revoked', actor_did: JIATAN_DID, target: 'did:key:z6MkpTHR8VNs5zPE7jMQ2XVsYhJSAr2LJbF1qoKvdRHu3ZZR', occurred_at: '2024-11-24T08:00:00Z', log_sequence: 41 },
-    { event_type: 'namespace_claimed', actor_did: GREGKH_DID, ecosystem: 'pypi', package_name: 'pypi:kernel-dev-tools', occurred_at: '2024-11-22T09:00:00Z', log_sequence: 39 },
-    { event_type: 'device_bound', actor_did: GREGKH_DID, target: 'did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2', occurred_at: '2024-11-19T07:45:00Z', log_sequence: 36 },
-    { event_type: 'org_member_added', actor_did: SOVEREIGN_DID, target: SARAH_DID, occurred_at: '2024-11-18T14:00:00Z', log_sequence: 35 },
-    { event_type: 'namespace_claimed', actor_did: SOVEREIGN_DID, ecosystem: 'npm', package_name: 'npm:auths-cli', occurred_at: '2024-11-17T10:30:00Z', log_sequence: 34 },
+    { log_sequence: 47, entry_type: 'register', actor_did: SARAH_DID, summary: `Identity registered: ${SARAH_DID}`, metadata: {}, occurred_at: '2024-12-02T10:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 46, entry_type: 'namespace_claim', actor_did: SOVEREIGN_DID, summary: 'Namespace claimed: cargo:linux-kernel-rs', metadata: { ecosystem: 'cargo', package_name: 'linux-kernel-rs' }, occurred_at: '2024-11-30T09:15:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 45, entry_type: 'device_bind', actor_did: SOVEREIGN_DID, summary: 'Device bound: did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK', metadata: { device_did: 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK' }, occurred_at: '2024-11-28T14:30:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 44, entry_type: 'attest', actor_did: SOVEREIGN_DID, summary: 'Artifact attested: cargo:linux-kernel-rs', metadata: { package_name: 'cargo:linux-kernel-rs', ecosystem: '', rid: 'rid:attest:001' }, occurred_at: '2024-11-27T12:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 43, entry_type: 'org_add_member', actor_did: KERNEL_ORG_DID, summary: `Member added: ${SARAH_DID}`, metadata: { member_did: SARAH_DID, role: 'contributor' }, occurred_at: '2024-11-26T10:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 42, entry_type: 'org_add_member', actor_did: KERNEL_ORG_DID, summary: `Member added: ${GREGKH_DID}`, metadata: { member_did: GREGKH_DID, role: 'maintainer' }, occurred_at: '2024-11-25T11:20:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 41, entry_type: 'org_add_member', actor_did: KERNEL_ORG_DID, summary: `Member added: ${SOVEREIGN_DID}`, metadata: { member_did: SOVEREIGN_DID, role: 'admin' }, occurred_at: '2024-11-17T10:05:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 41, entry_type: 'device_revoke', actor_did: JIATAN_DID, summary: 'Device revoked: did:key:z6MkpTHR8VNs5zPE7jMQ2XVsYhJSAr2LJbF1qoKvdRHu3ZZR', metadata: { device_did: 'did:key:z6MkpTHR8VNs5zPE7jMQ2XVsYhJSAr2LJbF1qoKvdRHu3ZZR' }, occurred_at: '2024-11-24T08:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 40, entry_type: 'rotate', actor_did: LASSE_DID, summary: `Key rotated: ${LASSE_DID}`, metadata: {}, occurred_at: '2024-11-23T09:30:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 39, entry_type: 'namespace_claim', actor_did: GREGKH_DID, summary: 'Namespace claimed: pypi:kernel-dev-tools', metadata: { ecosystem: 'pypi', package_name: 'kernel-dev-tools' }, occurred_at: '2024-11-22T09:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 38, entry_type: 'namespace_delegate', actor_did: SOVEREIGN_DID, summary: `Namespace delegated: cargo:linux-kernel-rs to ${GREGKH_DID}`, metadata: { ecosystem: 'cargo', package_name: 'linux-kernel-rs', delegate_did: GREGKH_DID }, occurred_at: '2024-11-21T15:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 37, entry_type: 'access_grant', actor_did: SOVEREIGN_DID, summary: `Access granted to ${SARAH_DID} (free)`, metadata: { subject_did: SARAH_DID, tier: 'free' }, occurred_at: '2024-11-20T08:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 36, entry_type: 'device_bind', actor_did: GREGKH_DID, summary: 'Device bound: did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2', metadata: { device_did: 'did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2' }, occurred_at: '2024-11-19T07:45:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 35, entry_type: 'org_create', actor_did: KERNEL_ORG_DID, summary: 'Organization created: Linux Kernel Project', metadata: { display_name: 'Linux Kernel Project' }, occurred_at: '2024-11-17T09:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 34, entry_type: 'namespace_transfer', actor_did: SOVEREIGN_DID, summary: `Namespace transferred: npm:auths-cli to ${AGENT_DID}`, metadata: { ecosystem: 'npm', package_name: 'auths-cli', new_owner_did: AGENT_DID }, occurred_at: '2024-11-17T10:30:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 33, entry_type: 'org_revoke_member', actor_did: SOVEREIGN_DID, summary: `Member revoked: ${JIATAN_DID}`, metadata: { member_did: JIATAN_DID }, occurred_at: '2024-11-16T16:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 32, entry_type: 'abandon', actor_did: JIATAN_DID, summary: `Identity abandoned: ${JIATAN_DID}`, metadata: { reason: 'compromised key' }, occurred_at: '2024-11-15T12:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 31, entry_type: 'access_revoke', actor_did: SOVEREIGN_DID, summary: `Access revoked for ${JIATAN_DID}`, metadata: { subject_did: JIATAN_DID }, occurred_at: '2024-11-14T09:00:00Z', merkle_included: true, is_genesis_phase: false },
   ],
+  next_cursor: 30,
   log_size: 47,
   checkpoint_hash: 'a7f3e2d1c4b5a69870fedcba98765432fedcba9876543210abcdef0123456789',
 };
 
 /**
- * Returns fixture audit feed for the dashboard.
+ * Returns fixture activity feed with optional client-side filtering.
  */
-export async function resolveAuditFeedFixture(): Promise<AuditFeedResponse> {
+export async function resolveActivityFeedFixture(
+  params?: ActivityFeedParams,
+): Promise<ActivityFeedResponse> {
   await delay(250);
-  return AUDIT_FEED;
+  let entries = ACTIVITY_FEED.entries;
+
+  if (params?.actor) {
+    entries = entries.filter((e) => e.actor_did === params.actor);
+  }
+  if (params?.type) {
+    const types = params.type.split(',').map((t) => t.trim());
+    entries = entries.filter((e) => types.includes(e.entry_type));
+  }
+  if (params?.limit) {
+    entries = entries.slice(0, params.limit);
+  }
+
+  return {
+    entries,
+    next_cursor: entries.length > 0 ? (entries[entries.length - 1].log_sequence) : null,
+    log_size: ACTIVITY_FEED.log_size,
+    checkpoint_hash: ACTIVITY_FEED.checkpoint_hash,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -996,3 +1095,122 @@ export const FIXTURE_PACKAGES = {
   keriDidResolver: { ecosystem: 'cargo', name: 'keri-did-resolver' },
   devEnvironment: { ecosystem: 'docker', name: 'dev-environment' },
 } as const;
+
+// ---------------------------------------------------------------------------
+// Identity search fixture
+// ---------------------------------------------------------------------------
+
+export async function resolveIdentitySearchFixture(
+  query: string,
+): Promise<IdentitySearchResponse | null> {
+  const allIdentities = Object.values(IDENTITY_FIXTURES)
+    .filter((id): id is ActiveIdentity => id.status === 'active')
+    .flatMap((id) =>
+      id.platform_claims.length > 0
+        ? id.platform_claims.map((c) => ({
+            did: id.did,
+            platform: c.platform,
+            namespace: c.namespace,
+            created_at: id.public_keys[0]?.created_at ?? new Date().toISOString(),
+          }))
+        : [{
+            did: id.did,
+            platform: undefined as string | undefined,
+            namespace: undefined as string | undefined,
+            created_at: id.public_keys[0]?.created_at ?? new Date().toISOString(),
+          }],
+    );
+
+  const q = query.toLowerCase();
+  const results = allIdentities.filter(
+    (r) =>
+      (r.namespace && r.namespace.toLowerCase().startsWith(q)) ||
+      r.did.toLowerCase().includes(q),
+  );
+
+  if (results.length > 0) {
+    await delay(300);
+    return { results, next_cursor: undefined, has_more: false };
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Namespace browse fixture
+// ---------------------------------------------------------------------------
+
+export async function resolveNamespaceListFixture(
+  ecosystem?: string,
+): Promise<NamespaceBrowseResponse | null> {
+  const allPackages = Object.entries(PACKAGE_FIXTURES)
+    .map(([key, pkg]) => {
+      const [eco, ...nameParts] = key.split(':');
+      return {
+        ecosystem: eco,
+        package_name: nameParts.join(':'),
+        owner_did: pkg.signers[0]?.did ?? 'unknown',
+        log_sequence: Math.floor(Math.random() * 100),
+        claimed_at: pkg.releases[0]?.published_at ?? new Date().toISOString(),
+      };
+    })
+    .filter((ns) => !ecosystem || ns.ecosystem === ecosystem);
+
+  if (allPackages.length > 0) {
+    await delay(300);
+    return { namespaces: allPackages, next_cursor: undefined, has_more: false };
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Network stats fixture
+// ---------------------------------------------------------------------------
+
+export async function resolveNetworkStatsFixture(): Promise<NetworkStats> {
+  await delay(200);
+  return {
+    total_identities: Object.keys(IDENTITY_FIXTURES).length,
+    total_attestations: Object.values(IDENTITY_FIXTURES)
+      .filter((id): id is ActiveIdentity => id.status === 'active')
+      .reduce((sum, id) => sum + id.artifacts.length, 0),
+    total_namespaces: Object.keys(PACKAGE_FIXTURES).length,
+    total_log_entries: 47,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Org policy fixture
+// ---------------------------------------------------------------------------
+
+const ORG_POLICY_FIXTURES: Record<string, OrgPolicyResponse> = {
+  'did:keri:ELinux_Kernel_Project_Organization_0001': {
+    org_did: 'did:keri:ELinux_Kernel_Project_Organization_0001',
+    policy_expr: {
+      type: 'quorum',
+      description: 'All Cargo releases require at least 2 signers, including 1 maintainer',
+      rules: [
+        {
+          scope: 'cargo:*',
+          required_signers: 2,
+          required_roles: ['maintainer'],
+        },
+        {
+          scope: 'npm:*',
+          required_signers: 1,
+        },
+      ],
+    },
+    updated_at: '2024-12-01T12:00:00Z',
+  },
+};
+
+export async function resolveOrgPolicyFixture(
+  orgDid: string,
+): Promise<OrgPolicyResponse | null> {
+  const fixture = ORG_POLICY_FIXTURES[orgDid];
+  if (fixture) {
+    await delay(200);
+    return fixture;
+  }
+  return null;
+}

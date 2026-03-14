@@ -3,7 +3,8 @@
 import { motion, useInView } from 'motion/react';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { fetchRecentActivity } from '@/lib/api/registry';
+import { fetchActivityFeed } from '@/lib/api/registry';
+import { BrandIcon } from '@/components/icons/brand-icon';
 
 // ---------------------------------------------------------------------------
 // Shared animation
@@ -240,12 +241,17 @@ export function NetworkStats() {
   const [stats, setStats] = useState<{ identities: number; artifacts: number; verifications: number } | null>(null);
 
   useEffect(() => {
-    fetchRecentActivity()
+    fetchActivityFeed({ limit: 50 })
       .then((data) => {
+        const identityCount = data.entries.filter(
+          (e) => e.entry_type === 'register',
+        ).length;
+        const artifactCount = data.entries.filter(
+          (e) => e.entry_type === 'attest',
+        ).length;
         setStats({
-          identities: data.recent_identities.length,
-          artifacts: data.recent_artifacts.length,
-          // API doesn't expose verification count yet
+          identities: identityCount,
+          artifacts: artifactCount,
           verifications: 0,
         });
       })
@@ -520,20 +526,46 @@ export function NetworkComparison() {
 // Section 6: Ecosystem
 // ---------------------------------------------------------------------------
 
-const PACKAGES = ['npm', 'PyPI', 'Cargo', 'Docker', 'Go', 'Maven', 'NuGet'];
-const FORGES = ['GitHub', 'GitLab', 'Bitbucket', 'Radicle', 'Gitea'];
+interface EcoItem {
+  label: string;
+  iconKey: string;
+  href: string;
+}
 
-function EcosystemRow({ label, items }: { label: string; items: string[] }) {
+const PACKAGES: EcoItem[] = [
+  { label: 'npm', iconKey: 'npm', href: 'https://www.npmjs.com/' },
+  { label: 'PyPI', iconKey: 'pypi', href: 'https://pypi.org/' },
+  { label: 'Cargo', iconKey: 'cargo', href: 'https://crates.io/' },
+  { label: 'Docker', iconKey: 'docker', href: 'https://hub.docker.com/' },
+  { label: 'Go', iconKey: 'go', href: 'https://pkg.go.dev/' },
+  { label: 'Maven', iconKey: 'maven', href: 'https://central.sonatype.com/' },
+  { label: 'NuGet', iconKey: 'nuget', href: 'https://www.nuget.org/' },
+];
+
+const FORGES: EcoItem[] = [
+  { label: 'GitHub', iconKey: 'github', href: 'https://github.com/' },
+  { label: 'GitLab', iconKey: 'gitlab', href: 'https://about.gitlab.com/' },
+  { label: 'Bitbucket', iconKey: 'bitbucket', href: 'https://bitbucket.org/' },
+  { label: 'Radicle', iconKey: 'radicle', href: 'https://radicle.xyz/' },
+  { label: 'Gitea', iconKey: 'gitea', href: 'https://about.gitea.com/' },
+];
+
+function EcosystemRow({ label, items }: { label: string; items: EcoItem[] }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
       <span className="w-20 shrink-0 text-right font-mono text-xs text-zinc-500">{label}</span>
       {items.map((item) => (
-        <span
-          key={item}
-          className="rounded-md border border-zinc-800 bg-zinc-900/60 px-3 py-1.5 font-mono text-xs text-zinc-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-400"
+        <a
+          key={item.label}
+          href={item.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900/60 px-3 py-1.5 font-mono text-xs text-zinc-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-400"
+          title={item.label}
         >
-          {item}
-        </span>
+          <BrandIcon name={item.iconKey} size={16} className="shrink-0" />
+          {item.label}
+        </a>
       ))}
     </div>
   );

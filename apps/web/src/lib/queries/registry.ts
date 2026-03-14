@@ -12,6 +12,7 @@ import {
   fetchArtifacts,
   fetchPubkeys,
   fetchIdentity,
+  fetchIdentitySearch,
   fetchPackageDetail,
   computeTrustTier,
 } from '@/lib/api/registry';
@@ -20,7 +21,9 @@ import type {
   PubkeysResponse,
   IdentityResponse,
   IdentityProfile,
+  IdentitySearchResponse,
   PackageDetail,
+  ActivityFeedParams,
 } from '@/lib/api/registry';
 import { resolveFromRepo } from '@/lib/resolver';
 import type { ResolveResult } from '@/lib/resolver';
@@ -46,6 +49,19 @@ export const registryKeys = {
   packages: () => [...registryKeys.all, 'package'] as const,
   packageDetail: (ecosystem: string, name: string) =>
     [...registryKeys.packages(), ecosystem, name] as const,
+  batchIdentities: (dids: string[]) =>
+    [...registryKeys.identities(), 'batch', ...dids.sort()] as const,
+  namespaces: () => [...registryKeys.all, 'namespace'] as const,
+  namespace: (ecosystem: string, packageName: string) =>
+    [...registryKeys.namespaces(), ecosystem, packageName] as const,
+  identitySearch: (query: string) =>
+    [...registryKeys.identities(), 'search', query] as const,
+  namespaceBrowse: (ecosystem?: string) =>
+    [...registryKeys.namespaces(), 'browse', ecosystem] as const,
+  networkStats: () => [...registryKeys.all, 'stats'] as const,
+  orgPolicy: (orgDid: string) => [...registryKeys.all, 'org-policy', orgDid] as const,
+  activityFeed: (params?: ActivityFeedParams) =>
+    [...registryKeys.all, 'activity-feed', params] as const,
 };
 
 // ---------------------------------------------------------------------------
@@ -56,6 +72,7 @@ export type RegistrySearchResult =
   | { type: 'artifacts'; data: ArtifactQueryResponse }
   | { type: 'pubkeys'; data: PubkeysResponse }
   | { type: 'identity'; data: IdentityResponse }
+  | { type: 'identitySearch'; data: IdentitySearchResponse }
   | { type: 'repo'; data: ResolveResult }
   | { type: 'empty' };
 
@@ -108,7 +125,13 @@ export function useIdentityProfile(did: string) {
         return identity;
       }
 
-      const { tier, score } = computeTrustTier(identity);
+      // Prefer server-computed trust tier when available, fall back to client
+      const clientTrust = computeTrustTier(identity);
+      const tier = (identity.server_trust_tier as import('@/lib/api/registry').TrustTier | undefined)
+        ?? clientTrust.tier;
+      const score = identity.server_trust_score ?? clientTrust.score;
+      const breakdown = clientTrust.breakdown;
+
       const ghClaim = identity.platform_claims.find(
         (c) => c.platform === 'github' && c.verified,
       );
@@ -117,6 +140,7 @@ export function useIdentityProfile(did: string) {
         ...identity,
         trust_tier: tier,
         trust_score: score,
+        trust_breakdown: breakdown,
         total_signatures: identity.artifacts.length,
         github_username: ghClaim?.namespace,
       };
@@ -166,15 +190,15 @@ export function useRegistrySearch(query: string) {
     isEnabled && queryType === 'package',
   );
 
-  // Identity search (pubkeys by platform + namespace)
-  const pubkeysQuery = useQuery({
+  // Identity search (server-side prefix search)
+  const identitySearchQuery = useQuery({
     queryKey:
       queryType === 'identity' && parsedQuery.type === 'identity'
-        ? registryKeys.pubkey(parsedQuery.platform, parsedQuery.namespace)
-        : registryKeys.pubkey('', ''),
+        ? registryKeys.identitySearch(parsedQuery.namespace)
+        : registryKeys.identitySearch(''),
     queryFn: ({ signal }) => {
       if (parsedQuery.type !== 'identity') throw new Error('unreachable');
-      return fetchPubkeys(parsedQuery.platform, parsedQuery.namespace, signal);
+      return fetchIdentitySearch(parsedQuery.namespace, parsedQuery.platform, signal);
     },
     enabled: isEnabled && queryType === 'identity',
     placeholderData: keepPreviousData,
@@ -246,13 +270,13 @@ export function useRegistrySearch(query: string) {
         };
       case 'identity':
         return {
-          data: pubkeysQuery.data
-            ? { type: 'pubkeys', data: pubkeysQuery.data }
+          data: identitySearchQuery.data
+            ? { type: 'identitySearch' as const, data: identitySearchQuery.data }
             : undefined,
-          isLoading: pubkeysQuery.isLoading,
-          isFetching: pubkeysQuery.isFetching,
-          isError: pubkeysQuery.isError,
-          error: pubkeysQuery.error,
+          isLoading: identitySearchQuery.isLoading,
+          isFetching: identitySearchQuery.isFetching,
+          isError: identitySearchQuery.isError,
+          error: identitySearchQuery.error,
         };
       case 'did':
         return {
@@ -289,11 +313,11 @@ export function useRegistrySearch(query: string) {
     artifactQuery.isFetching,
     artifactQuery.isError,
     artifactQuery.error,
-    pubkeysQuery.data,
-    pubkeysQuery.isLoading,
-    pubkeysQuery.isFetching,
-    pubkeysQuery.isError,
-    pubkeysQuery.error,
+    identitySearchQuery.data,
+    identitySearchQuery.isLoading,
+    identitySearchQuery.isFetching,
+    identitySearchQuery.isError,
+    identitySearchQuery.error,
     identityQuery.data,
     identityQuery.isLoading,
     identityQuery.isFetching,

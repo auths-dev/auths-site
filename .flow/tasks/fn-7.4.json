@@ -1,0 +1,23 @@
+{
+  "assignee": "bordumbb@gmail.com",
+  "claim_note": "",
+  "claimed_at": "2026-03-14T19:16:01.585418Z",
+  "created_at": "2026-03-14T19:10:01.494186Z",
+  "depends_on": [],
+  "epic": "fn-7",
+  "evidence": {
+    "commits": [
+      "1f5827c5af7b5007332b95e86895a8021cacee07"
+    ],
+    "prs": [],
+    "tests": [
+      "pnpm typecheck"
+    ]
+  },
+  "id": "fn-7.4",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-7.4.md",
+  "status": "done",
+  "title": "Read server trust tier in useIdentityProfile",
+  "updated_at": "2026-03-14T19:27:39.714920Z"
+}

@@ -1,0 +1,21 @@
+{
+  "assignee": "bordumbb@gmail.com",
+  "claim_note": "",
+  "claimed_at": "2026-03-14T13:22:48.501192Z",
+  "created_at": "2026-03-14T12:46:52.658121Z",
+  "depends_on": [],
+  "epic": "fn-5",
+  "evidence": {
+    "commits": [
+      "b15dea707a882b504a197c2d6b76d9eb49d0645d"
+    ],
+    "prs": [],
+    "tests": []
+  },
+  "id": "fn-5.13",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-5.13.md",
+  "status": "done",
+  "title": "Add keyset pagination to unpaginated list endpoints",
+  "updated_at": "2026-03-14T13:26:03.646708Z"
+}

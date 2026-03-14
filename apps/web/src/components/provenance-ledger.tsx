@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import { truncateMiddle, formatRelativeTime } from '@/lib/format';
+import { CopyButton } from '@/components/copy-button';
 import type { PackageRelease } from '@/lib/api/registry';
 
 // ---------------------------------------------------------------------------
@@ -24,39 +25,6 @@ function StatusBadge({ status }: { status: 'valid' | 'revoked' }) {
       <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
       Revoked
     </span>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Copy digest button
-// ---------------------------------------------------------------------------
-
-function CopyDigest({ digest }: { digest: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(digest);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback
-    }
-  }, [digest]);
-
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className="truncate font-mono text-sm text-zinc-300 hover:text-white transition-colors"
-      title={`Click to copy: ${digest}`}
-    >
-      {copied ? (
-        <span className="text-green-400">Copied!</span>
-      ) : (
-        truncateMiddle(digest, 20)
-      )}
-    </button>
   );
 }
 
@@ -196,7 +164,15 @@ export function ProvenanceLedger({
                 className="border-b border-border transition-colors hover:bg-muted-bg/50"
               >
                 <td className="py-2.5 pr-4">
-                  <CopyDigest digest={release.digest_hex} />
+                  <span className="flex items-center gap-1">
+                    <span
+                      className="truncate font-mono text-sm text-zinc-300"
+                      title={release.digest_hex}
+                    >
+                      {truncateMiddle(release.digest_hex, 20)}
+                    </span>
+                    <CopyButton text={release.digest_hex} />
+                  </span>
                 </td>
                 <td className="py-2.5 pr-4">
                   <Link

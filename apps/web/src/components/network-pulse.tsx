@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
-import { fetchRecentActivity } from '@/lib/api/registry';
-import type { RecentActivity } from '@/lib/api/registry';
+import { fetchActivityFeed } from '@/lib/api/registry';
+import type { FeedEntry, ActivityFeedResponse } from '@/lib/api/registry';
 import { formatRelativeTime, truncateMiddle } from '@/lib/format';
 
 interface PulseEvent {
@@ -27,27 +27,36 @@ function packageHref(packageName: string): string {
   return `/registry/package/unknown/${encodeURIComponent(packageName)}`;
 }
 
-function mergeActivity(data: RecentActivity): PulseEvent[] {
-  const artifacts: PulseEvent[] = (data.recent_artifacts ?? []).map((a) => ({
-    id: `a-${a.package_name}-${a.published_at}`,
-    kind: 'artifact',
-    label: a.package_name,
-    detail: `verified by ${truncateMiddle(a.signer_did, 24)}`,
-    timestamp: a.published_at,
-    href: packageHref(a.package_name),
-  }));
-
-  const identities: PulseEvent[] = (data.recent_identities ?? []).map((i) => ({
-    id: `i-${i.did_prefix}-${i.created_at}`,
-    kind: 'identity',
-    label: i.namespace ? `@${i.namespace}` : truncateMiddle(i.did_prefix, 24),
-    detail: i.platform ? `joined via ${i.platform}` : 'identity created',
-    timestamp: i.created_at,
-    href: `/registry/identity/${encodeURIComponent(i.did_prefix)}`,
-  }));
-
-  return [...artifacts, ...identities]
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+function feedEntriesToPulseEvents(entries: FeedEntry[]): PulseEvent[] {
+  return entries
+    .map((entry): PulseEvent | null => {
+      if (entry.entry_type === 'attest') {
+        const packageName = entry.metadata.package_name as string | undefined;
+        if (!packageName) return null;
+        return {
+          id: `a-${entry.log_sequence}`,
+          kind: 'artifact',
+          label: packageName,
+          detail: `verified by ${truncateMiddle(entry.actor_did, 24)}`,
+          timestamp: entry.occurred_at,
+          href: packageHref(packageName),
+        };
+      }
+      if (entry.entry_type === 'register') {
+        const namespace = entry.metadata.namespace as string | undefined;
+        const platform = entry.metadata.platform as string | undefined;
+        return {
+          id: `i-${entry.log_sequence}`,
+          kind: 'identity',
+          label: namespace ? `@${namespace}` : truncateMiddle(entry.actor_did, 24),
+          detail: platform ? `joined via ${platform}` : 'identity created',
+          timestamp: entry.occurred_at,
+          href: `/registry/identity/${encodeURIComponent(entry.actor_did)}`,
+        };
+      }
+      return null;
+    })
+    .filter((e): e is PulseEvent => e !== null)
     .slice(0, 10);
 }
 
@@ -92,7 +101,7 @@ function UserPlusIcon() {
 }
 
 interface NetworkPulseProps {
-  initialActivity: RecentActivity | null;
+  initialActivity: ActivityFeedResponse | null;
 }
 
 export function NetworkPulse({ initialActivity }: NetworkPulseProps) {
@@ -100,7 +109,7 @@ export function NetworkPulse({ initialActivity }: NetworkPulseProps) {
 
   const { data } = useQuery({
     queryKey: ['network-pulse'],
-    queryFn: () => fetchRecentActivity(),
+    queryFn: () => fetchActivityFeed({ limit: 20 }),
     refetchInterval: 15_000,
     initialData: initialActivity ?? undefined,
   });
@@ -111,7 +120,7 @@ export function NetworkPulse({ initialActivity }: NetworkPulseProps) {
     return () => clearInterval(id);
   }, []);
 
-  const events = data ? mergeActivity(data) : [];
+  const events = data ? feedEntriesToPulseEvents(data.entries) : [];
 
   if (events.length === 0) return null;
 

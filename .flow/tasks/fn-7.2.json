@@ -1,0 +1,23 @@
+{
+  "assignee": "bordumbb@gmail.com",
+  "claim_note": "",
+  "claimed_at": "2026-03-14T19:16:01.077477Z",
+  "created_at": "2026-03-14T19:10:01.022755Z",
+  "depends_on": [],
+  "epic": "fn-7",
+  "evidence": {
+    "commits": [
+      "1f5827c5af7b5007332b95e86895a8021cacee07"
+    ],
+    "prs": [],
+    "tests": [
+      "pnpm typecheck"
+    ]
+  },
+  "id": "fn-7.2",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-7.2.md",
+  "status": "done",
+  "title": "Switch useRegistrySearch to fetchIdentitySearch for @user queries",
+  "updated_at": "2026-03-14T19:27:39.220638Z"
+}

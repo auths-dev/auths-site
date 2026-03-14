@@ -1,0 +1,21 @@
+{
+  "assignee": "bordumbb@gmail.com",
+  "claim_note": "",
+  "claimed_at": "2026-03-14T18:35:40.718960Z",
+  "created_at": "2026-03-14T18:14:28.840647Z",
+  "depends_on": [],
+  "epic": "fn-6",
+  "evidence": {
+    "commits": [
+      "58985b9c0afccd843480bf19648bf4ade702058b"
+    ],
+    "prs": [],
+    "tests": []
+  },
+  "id": "fn-6.8",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-6.8.md",
+  "status": "done",
+  "title": "Add org creation route (POST /v1/orgs)",
+  "updated_at": "2026-03-14T18:46:57.445246Z"
+}

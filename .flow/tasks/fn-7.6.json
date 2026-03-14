@@ -1,0 +1,23 @@
+{
+  "assignee": "bordumbb@gmail.com",
+  "claim_note": "",
+  "claimed_at": "2026-03-14T19:16:02.083076Z",
+  "created_at": "2026-03-14T19:10:01.966439Z",
+  "depends_on": [],
+  "epic": "fn-7",
+  "evidence": {
+    "commits": [
+      "1f5827c5af7b5007332b95e86895a8021cacee07"
+    ],
+    "prs": [],
+    "tests": [
+      "pnpm typecheck"
+    ]
+  },
+  "id": "fn-7.6",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-7.6.md",
+  "status": "done",
+  "title": "Add org policy display on org pages",
+  "updated_at": "2026-03-14T19:27:40.207041Z"
+}
