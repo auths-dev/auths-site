@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useIdentityProfile, registryKeys } from '@/lib/queries/registry';
 import { fetchActivityFeed, fetchOrgPolicy } from '@/lib/api/registry';
 import type { FeedEntry, ArtifactEntry, IdentityProfile } from '@/lib/api/registry';
-import { truncateMiddle, formatRelativeTime } from '@/lib/format';
+import { truncateMiddle, formatRelativeTime, splitPackageName } from '@/lib/format';
 import { BackToRegistry } from '@/components/back-to-registry';
 import { CopyButton } from '@/components/copy-button';
 import { ACTIVITY_EVENT_CONFIG } from '@/lib/activity-events';
@@ -139,19 +139,8 @@ function OrgMembers({ members }: { members: FeedEntry[] }) {
 // OrgNamespaces — packages owned by the org
 // ---------------------------------------------------------------------------
 
-function parsePackageName(packageName: string): {
-  ecosystem: string;
-  name: string;
-} {
-  const idx = packageName.indexOf(':');
-  if (idx > 0) {
-    return {
-      ecosystem: packageName.slice(0, idx),
-      name: packageName.slice(idx + 1),
-    };
-  }
-  return { ecosystem: 'unknown', name: packageName };
-}
+// parsePackageName is now splitPackageName from '@/lib/format'
+const parsePackageName = splitPackageName;
 
 function OrgNamespaces({ artifacts }: { artifacts: ArtifactEntry[] }) {
   const [showAll, setShowAll] = useState(false);

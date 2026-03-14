@@ -12,6 +12,7 @@ import { AuthorizedPublishers } from '@/components/authorized-publishers';
 import { BadgeEmbed } from '@/components/badge-embed';
 import { buildTrustChain } from '@/lib/api/registry';
 import type { Ecosystem } from '@/lib/api/registry';
+import { barePackageName } from '@/lib/format';
 
 // ---------------------------------------------------------------------------
 // Install command generation
@@ -167,11 +168,13 @@ function PackageHeader({
 
 export function PackageClient({
   ecosystem,
-  name,
+  name: rawName,
 }: {
   ecosystem: string;
   name: string;
 }) {
+  // Strip ecosystem prefix if present (e.g. "pypi:protobuf" -> "protobuf")
+  const name = barePackageName(rawName);
   const { data, isLoading, isError, error } = usePackageDetail(ecosystem, name);
 
   if (isLoading) {

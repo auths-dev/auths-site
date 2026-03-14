@@ -46,3 +46,39 @@ export function truncateMiddle(value: string, max: number): string {
   const side = Math.floor((max - 1) / 2);
   return `${value.slice(0, side)}…${value.slice(-side)}`;
 }
+
+/**
+ * Splits a prefixed package name like `"pypi:protobuf"` into ecosystem and bare name.
+ *
+ * If the name has no prefix, returns `{ ecosystem: fallbackEcosystem, name: packageName }`.
+ *
+ * @example
+ * splitPackageName('pypi:protobuf')       // { ecosystem: 'pypi', name: 'protobuf' }
+ * splitPackageName('protobuf', 'pypi')    // { ecosystem: 'pypi', name: 'protobuf' }
+ * splitPackageName('@scope/pkg', 'npm')   // { ecosystem: 'npm', name: '@scope/pkg' }
+ */
+export function splitPackageName(
+  packageName: string,
+  fallbackEcosystem = 'unknown',
+): { ecosystem: string; name: string } {
+  const idx = packageName.indexOf(':');
+  if (idx > 0) {
+    return {
+      ecosystem: packageName.slice(0, idx),
+      name: packageName.slice(idx + 1),
+    };
+  }
+  return { ecosystem: fallbackEcosystem, name: packageName };
+}
+
+/**
+ * Returns the bare package name without the ecosystem prefix.
+ *
+ * @example
+ * barePackageName('pypi:protobuf')  // 'protobuf'
+ * barePackageName('protobuf')       // 'protobuf'
+ */
+export function barePackageName(packageName: string): string {
+  const idx = packageName.indexOf(':');
+  return idx > 0 ? packageName.slice(idx + 1) : packageName;
+}

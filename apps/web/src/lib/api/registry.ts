@@ -786,7 +786,8 @@ export async function fetchPackageDetail(
     const fixture = await resolvePackageFixture(ecosystem, name);
     if (fixture) return fixture;
   }
-  const query = `${ecosystem}:${name}`;
+  // Avoid double-prefixing: if name already starts with "ecosystem:", don't add it again
+  const query = name.startsWith(`${ecosystem}:`) ? name : `${ecosystem}:${name}`;
   const artifactResponse = await fetchArtifacts(query, undefined, signal);
   const entries = artifactResponse.artifacts;
 

@@ -1,5 +1,5 @@
 import type { FeedEntry } from '@/lib/api/registry';
-import { truncateMiddle } from '@/lib/format';
+import { truncateMiddle, splitPackageName } from '@/lib/format';
 
 export function entryDetail(entry: FeedEntry): {
   didLink?: { href: string; label: string };
@@ -18,21 +18,13 @@ export function entryDetail(entry: FeedEntry): {
     ? { href: `/registry/identity/${encodeURIComponent(targetDid)}`, label: truncateMiddle(targetDid, 24) }
     : undefined;
 
-  const ecosystem = meta.ecosystem as string | undefined;
-  const packageName = meta.package_name as string | undefined;
+  const rawPackageName = meta.package_name as string | undefined;
   let packageLink: { href: string; label: string } | undefined;
-  if (ecosystem && packageName) {
+  if (rawPackageName) {
+    const { ecosystem: eco, name } = splitPackageName(rawPackageName);
     packageLink = {
-      href: `/registry/package/${encodeURIComponent(ecosystem)}/${encodeURIComponent(packageName)}`,
-      label: `${ecosystem}:${packageName}`,
-    };
-  } else if (packageName && packageName.includes(':')) {
-    const idx = packageName.indexOf(':');
-    const eco = packageName.slice(0, idx);
-    const name = packageName.slice(idx + 1);
-    packageLink = {
-      href: `/registry/package/${encodeURIComponent(eco)}/${encodeURIComponent(name)}`,
-      label: packageName,
+      href: `/registry/package/${encodeURIComponent(eco)}/${name.split('/').map(encodeURIComponent).join('/')}`,
+      label: `${eco}:${name}`,
     };
   }
 

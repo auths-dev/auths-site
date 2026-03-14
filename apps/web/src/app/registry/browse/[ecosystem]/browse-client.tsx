@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { motion } from 'motion/react';
 import { fetchNamespaceList } from '@/lib/api/registry';
 import { registryKeys } from '@/lib/queries/registry';
-import { truncateMiddle, formatRelativeTime } from '@/lib/format';
+import { truncateMiddle, formatRelativeTime, barePackageName } from '@/lib/format';
 import { EcosystemIcon } from '@/components/icons/brand-icon';
 import { BackToRegistry } from '@/components/back-to-registry';
 
@@ -95,13 +95,19 @@ export function BrowseClient({ ecosystem }: BrowseClientProps) {
               transition={{ duration: 0.25, delay: Math.min(i, 20) * 0.03 }}
             >
               <Link
-                href={`/registry/package/${encodeURIComponent(ns.ecosystem)}/${encodeURIComponent(ns.package_name)}`}
+                href={`/registry/package/${encodeURIComponent(ns.ecosystem)}/${barePackageName(ns.package_name).split('/').map(encodeURIComponent).join('/')}`}
                 className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-950/50 p-3 font-mono text-sm transition-colors hover:border-emerald-500/40"
               >
-                <span className="text-white">{ns.ecosystem}:{ns.package_name}</span>
-                <span className="ml-auto text-xs text-zinc-600">
-                  {truncateMiddle(ns.owner_did, 20)}
-                </span>
+                <span className="text-white">{ns.ecosystem}:{barePackageName(ns.package_name)}</span>
+                {ns.owner_did === 'unclaimed' ? (
+                  <span className="ml-auto rounded-full border border-zinc-700 bg-zinc-900 px-2 py-0.5 text-[10px] text-zinc-500">
+                    Unclaimed
+                  </span>
+                ) : (
+                  <span className="ml-auto text-xs text-zinc-600">
+                    {truncateMiddle(ns.owner_did, 20)}
+                  </span>
+                )}
                 <span className="text-xs text-zinc-700">
                   {formatRelativeTime(ns.claimed_at)}
                 </span>
