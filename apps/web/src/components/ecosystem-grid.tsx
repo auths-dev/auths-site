@@ -32,16 +32,14 @@ const ECOSYSTEMS: EcosystemDef[] = [
   { name: 'NuGet', key: 'nuget', query: 'nuget:' },
 ];
 
+const FEATURED_ORGS: { name: string; did: string }[] = [];
+
 const FEATURED_PACKAGES = [
   { label: 'npm:react', ecosystem: 'npm' },
   { label: 'cargo:serde', ecosystem: 'cargo' },
   { label: 'npm:auths-cli', ecosystem: 'npm' },
 ];
 
-const FEATURED_ORGS = [
-  { name: 'Auths', did: 'did:keri:EAuths_Organization_Official_Registry_001' },
-  { name: 'Linux Kernel Project', did: 'did:keri:ELinux_Kernel_Project_Organization_0001' },
-];
 
 export function EcosystemGrid() {
   const router = useRouter();
@@ -94,23 +92,25 @@ export function EcosystemGrid() {
         </div>
       </div>
 
-      <div className="mt-6">
-        <p className="mb-3 text-xs text-zinc-600">Organizations</p>
-        <div className="flex flex-wrap gap-2">
-          {FEATURED_ORGS.map((org) => (
-            <Link
-              key={org.did}
-              href={`/registry/org/${encodeURIComponent(org.did)}`}
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted-bg px-3 py-2 font-mono text-xs text-zinc-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-400"
-            >
-              <div className="shrink-0 overflow-hidden rounded-full">
-                <Avatar size={14} name={org.did} variant="bauhaus" />
-              </div>
-              {org.name}
-            </Link>
-          ))}
+      {FEATURED_ORGS.length > 0 && (
+        <div className="mt-6">
+          <p className="mb-3 text-xs text-zinc-600">Featured Organizations</p>
+          <div className="flex flex-wrap gap-2">
+            {FEATURED_ORGS.map((org) => (
+              <Link
+                key={org.did}
+                href={`/registry/org/${encodeURIComponent(org.did)}`}
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted-bg px-3 py-2 font-mono text-xs text-zinc-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-400"
+              >
+                <div className="shrink-0 overflow-hidden rounded-full">
+                  <Avatar size={14} name={org.did} variant="bauhaus" />
+                </div>
+                {org.name}
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }
