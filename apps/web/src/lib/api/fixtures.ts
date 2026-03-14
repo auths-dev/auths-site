@@ -23,6 +23,7 @@ import type {
   IdentitySearchResponse,
   NamespaceBrowseResponse,
   NetworkStats,
+  OrgPolicyResponse,
 } from './registry';
 
 // ---------------------------------------------------------------------------
@@ -1175,4 +1176,41 @@ export async function resolveNetworkStatsFixture(): Promise<NetworkStats> {
     total_namespaces: Object.keys(PACKAGE_FIXTURES).length,
     total_log_entries: 47,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Org policy fixture
+// ---------------------------------------------------------------------------
+
+const ORG_POLICY_FIXTURES: Record<string, OrgPolicyResponse> = {
+  'did:keri:ELinux_Kernel_Project_Organization_0001': {
+    org_did: 'did:keri:ELinux_Kernel_Project_Organization_0001',
+    policy_expr: {
+      type: 'quorum',
+      description: 'All Cargo releases require at least 2 signers, including 1 maintainer',
+      rules: [
+        {
+          scope: 'cargo:*',
+          required_signers: 2,
+          required_roles: ['maintainer'],
+        },
+        {
+          scope: 'npm:*',
+          required_signers: 1,
+        },
+      ],
+    },
+    updated_at: '2024-12-01T12:00:00Z',
+  },
+};
+
+export async function resolveOrgPolicyFixture(
+  orgDid: string,
+): Promise<OrgPolicyResponse | null> {
+  const fixture = ORG_POLICY_FIXTURES[orgDid];
+  if (fixture) {
+    await delay(200);
+    return fixture;
+  }
+  return null;
 }

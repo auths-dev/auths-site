@@ -604,6 +604,11 @@ export async function fetchOrgPolicy(
   orgDid: string,
   signal?: AbortSignal,
 ): Promise<OrgPolicyResponse> {
+  if (USE_FIXTURES) {
+    const { resolveOrgPolicyFixture } = await import('./fixtures');
+    const fixture = await resolveOrgPolicyFixture(orgDid);
+    if (fixture) return fixture;
+  }
   return registryFetch<OrgPolicyResponse>(
     `/v1/orgs/${encodeURIComponent(orgDid)}/policy`,
     undefined,
