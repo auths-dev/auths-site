@@ -197,6 +197,32 @@ const SARAH_IDENTITY: ActiveIdentity = {
 };
 
 // ---------------------------------------------------------------------------
+// Persona 8: The Linux Kernel Organization
+// ---------------------------------------------------------------------------
+
+const KERNEL_ORG_DID = 'did:keri:ELinux_Kernel_Project_Organization_0001';
+
+const KERNEL_ORG_IDENTITY: ActiveIdentity = {
+  status: 'active',
+  did: KERNEL_ORG_DID,
+  platform_claims: [
+    { platform: 'github', namespace: 'linux-kernel-project', verified: true },
+  ],
+  public_keys: [
+    {
+      key_id: 'key-org-admin-001',
+      algorithm: 'Ed25519',
+      public_key_hex: 'org0admin01234567890abcdef1234567890abcdef1234567890abcdef012345',
+      created_at: '2024-11-26T10:00:00Z',
+    },
+  ],
+  artifacts: [
+    { package_name: 'cargo:linux-kernel-rs', digest_algorithm: 'sha256', digest_hex: 'a1b2c3d4e5f67890abcdef1234567890abcdef1234567890abcdef1234567890', signer_did: KERNEL_ORG_DID, published_at: '2024-12-01T12:00:00Z' },
+    { package_name: 'cargo:git-core', digest_algorithm: 'sha256', digest_hex: 'b2c3d4e5f6789012bcdef23456789012bcdef23456789012bcdef23456789012', signer_did: KERNEL_ORG_DID, published_at: '2024-11-20T10:30:00Z' },
+  ],
+};
+
+// ---------------------------------------------------------------------------
 // Persona 7: The Abandoned Identity
 // ---------------------------------------------------------------------------
 
@@ -817,6 +843,7 @@ const IDENTITY_FIXTURES: Record<string, IdentityResponse> = {
   [GREGKH_DID]: GREGKH_IDENTITY,
   [SARAH_DID]: SARAH_IDENTITY,
   [ABANDONED_DID]: ABANDONED_IDENTITY,
+  [KERNEL_ORG_DID]: KERNEL_ORG_IDENTITY,
 };
 
 const PACKAGE_FIXTURES: Record<string, PackageDetail> = {
@@ -847,6 +874,7 @@ const PUBKEYS_FIXTURES: Record<string, PubkeysResponse> = {
   'github:JiaT75': pubkeysFromIdentity(JIATAN_IDENTITY),
   'github:gregkh': pubkeysFromIdentity(GREGKH_IDENTITY),
   'github:sarahchen-dev': pubkeysFromIdentity(SARAH_IDENTITY),
+  'github:linux-kernel-project': pubkeysFromIdentity(KERNEL_ORG_IDENTITY),
 };
 
 // ---------------------------------------------------------------------------
@@ -993,15 +1021,16 @@ const ACTIVITY_FEED: ActivityFeedResponse = {
     { log_sequence: 46, entry_type: 'namespace_claim', actor_did: SOVEREIGN_DID, summary: 'Namespace claimed: cargo:linux-kernel-rs', metadata: { ecosystem: 'cargo', package_name: 'linux-kernel-rs' }, occurred_at: '2024-11-30T09:15:00Z', merkle_included: true, is_genesis_phase: false },
     { log_sequence: 45, entry_type: 'device_bind', actor_did: SOVEREIGN_DID, summary: 'Device bound: did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK', metadata: { device_did: 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK' }, occurred_at: '2024-11-28T14:30:00Z', merkle_included: true, is_genesis_phase: false },
     { log_sequence: 44, entry_type: 'attest', actor_did: SOVEREIGN_DID, summary: 'Artifact attested: cargo:linux-kernel-rs', metadata: { package_name: 'cargo:linux-kernel-rs', ecosystem: '', rid: 'rid:attest:001' }, occurred_at: '2024-11-27T12:00:00Z', merkle_included: true, is_genesis_phase: false },
-    { log_sequence: 43, entry_type: 'org_create', actor_did: SOVEREIGN_DID, summary: 'Organization created: Linux Kernel Project', metadata: { display_name: 'Linux Kernel Project' }, occurred_at: '2024-11-26T10:00:00Z', merkle_included: true, is_genesis_phase: false },
-    { log_sequence: 42, entry_type: 'org_add_member', actor_did: SOVEREIGN_DID, summary: `Member added: ${GREGKH_DID}`, metadata: { member_did: GREGKH_DID, role: 'maintainer' }, occurred_at: '2024-11-25T11:20:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 43, entry_type: 'org_create', actor_did: KERNEL_ORG_DID, summary: 'Organization created: Linux Kernel Project', metadata: { display_name: 'Linux Kernel Project' }, occurred_at: '2024-11-26T10:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 42, entry_type: 'org_add_member', actor_did: KERNEL_ORG_DID, summary: `Member added: ${SOVEREIGN_DID}`, metadata: { member_did: SOVEREIGN_DID, role: 'admin' }, occurred_at: '2024-11-26T10:05:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 41, entry_type: 'org_add_member', actor_did: KERNEL_ORG_DID, summary: `Member added: ${GREGKH_DID}`, metadata: { member_did: GREGKH_DID, role: 'maintainer' }, occurred_at: '2024-11-25T11:20:00Z', merkle_included: true, is_genesis_phase: false },
     { log_sequence: 41, entry_type: 'device_revoke', actor_did: JIATAN_DID, summary: 'Device revoked: did:key:z6MkpTHR8VNs5zPE7jMQ2XVsYhJSAr2LJbF1qoKvdRHu3ZZR', metadata: { device_did: 'did:key:z6MkpTHR8VNs5zPE7jMQ2XVsYhJSAr2LJbF1qoKvdRHu3ZZR' }, occurred_at: '2024-11-24T08:00:00Z', merkle_included: true, is_genesis_phase: false },
     { log_sequence: 40, entry_type: 'rotate', actor_did: LASSE_DID, summary: `Key rotated: ${LASSE_DID}`, metadata: {}, occurred_at: '2024-11-23T09:30:00Z', merkle_included: true, is_genesis_phase: false },
     { log_sequence: 39, entry_type: 'namespace_claim', actor_did: GREGKH_DID, summary: 'Namespace claimed: pypi:kernel-dev-tools', metadata: { ecosystem: 'pypi', package_name: 'kernel-dev-tools' }, occurred_at: '2024-11-22T09:00:00Z', merkle_included: true, is_genesis_phase: false },
     { log_sequence: 38, entry_type: 'namespace_delegate', actor_did: SOVEREIGN_DID, summary: `Namespace delegated: cargo:linux-kernel-rs to ${GREGKH_DID}`, metadata: { ecosystem: 'cargo', package_name: 'linux-kernel-rs', delegate_did: GREGKH_DID }, occurred_at: '2024-11-21T15:00:00Z', merkle_included: true, is_genesis_phase: false },
     { log_sequence: 37, entry_type: 'access_grant', actor_did: SOVEREIGN_DID, summary: `Access granted to ${SARAH_DID} (free)`, metadata: { subject_did: SARAH_DID, tier: 'free' }, occurred_at: '2024-11-20T08:00:00Z', merkle_included: true, is_genesis_phase: false },
     { log_sequence: 36, entry_type: 'device_bind', actor_did: GREGKH_DID, summary: 'Device bound: did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2', metadata: { device_did: 'did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2' }, occurred_at: '2024-11-19T07:45:00Z', merkle_included: true, is_genesis_phase: false },
-    { log_sequence: 35, entry_type: 'org_add_member', actor_did: SOVEREIGN_DID, summary: `Member added: ${SARAH_DID}`, metadata: { member_did: SARAH_DID, role: 'contributor' }, occurred_at: '2024-11-18T14:00:00Z', merkle_included: true, is_genesis_phase: false },
+    { log_sequence: 35, entry_type: 'org_add_member', actor_did: KERNEL_ORG_DID, summary: `Member added: ${SARAH_DID}`, metadata: { member_did: SARAH_DID, role: 'contributor' }, occurred_at: '2024-11-18T14:00:00Z', merkle_included: true, is_genesis_phase: false },
     { log_sequence: 34, entry_type: 'namespace_transfer', actor_did: SOVEREIGN_DID, summary: `Namespace transferred: npm:auths-cli to ${AGENT_DID}`, metadata: { ecosystem: 'npm', package_name: 'auths-cli', new_owner_did: AGENT_DID }, occurred_at: '2024-11-17T10:30:00Z', merkle_included: true, is_genesis_phase: false },
     { log_sequence: 33, entry_type: 'org_revoke_member', actor_did: SOVEREIGN_DID, summary: `Member revoked: ${JIATAN_DID}`, metadata: { member_did: JIATAN_DID }, occurred_at: '2024-11-16T16:00:00Z', merkle_included: true, is_genesis_phase: false },
     { log_sequence: 32, entry_type: 'abandon', actor_did: JIATAN_DID, summary: `Identity abandoned: ${JIATAN_DID}`, metadata: { reason: 'compromised key' }, occurred_at: '2024-11-15T12:00:00Z', merkle_included: true, is_genesis_phase: false },
