@@ -64,9 +64,10 @@
 - [ ] `cargo clippy --workspace` and `cargo nextest run --workspace` pass
 - [ ] `pnpm typecheck` and `pnpm build` pass
 ## Done summary
-TBD
-
+- Frontend: NetworkPulse/NetworkStats migrated to fetchActivityFeed
+- Removed all fetchRecentActivity, RecentActivity types, fixtures
+- Backend: Removed /v1/activity/recent route, handler, paths, types
 ## Evidence
-- Commits:
+- Commits: d1874275183fd15ae24b1297e5201c7782d64ae1
 - Tests:
 - PRs:
