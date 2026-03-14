@@ -24,9 +24,10 @@
 - [ ] Full tiles served with immutable cache headers
 - [ ] `cargo build -p auths-registry-server --all-features` passes
 ## Done summary
-TBD
-
+- Tile serving from in-memory TreeWriter leaves
+- Full tiles immutable, partial tiles 10s cache
+- Added GetTile command to sequencer actor
 ## Evidence
-- Commits:
+- Commits: 976ae9086bb155c44b52327e7a977416dbfb9d37
 - Tests:
 - PRs:
