@@ -10,6 +10,7 @@ import { ClaimIdentityCTA } from '@/components/claim-identity-cta';
 import { TrustGraph } from '@/components/trust-graph';
 import { PubkeysDisplay } from '@/components/pubkeys-display';
 import { ActiveIdentityDisplay } from '@/components/active-identity-display';
+import { IdentitySearchResults } from '@/components/identity-search-results';
 
 // ---------------------------------------------------------------------------
 // Search results renderer
@@ -74,6 +75,10 @@ function SearchResults({
       )}
 
       {result.type === 'pubkeys' && <PubkeysDisplay data={result.data} fromQuery={parsedQuery.raw} />}
+
+      {result.type === 'identitySearch' && (
+        <IdentitySearchResults results={result.data.results} />
+      )}
 
       {result.type === 'identity' && result.data.status === 'active' && (
         <ActiveIdentityDisplay data={result.data} fromQuery={parsedQuery.raw} />

@@ -7,6 +7,9 @@ import {
   resolvePackageFixture,
   resolveArtifactFixture,
   resolveActivityFeedFixture,
+  resolveIdentitySearchFixture,
+  resolveNamespaceListFixture,
+  resolveNetworkStatsFixture,
 } from './fixtures';
 
 // ---------------------------------------------------------------------------
@@ -48,6 +51,8 @@ export type ActiveIdentity = {
   did: string;
   is_abandoned?: boolean;
   abandoned_at?: string;
+  server_trust_tier?: string;
+  server_trust_score?: number;
   public_keys: {
     key_id: string;
     algorithm: string;
@@ -381,11 +386,21 @@ export async function fetchIdentity(
     ? keyState.abandoned_at
     : undefined;
 
+  // Preserve server-computed trust tier if present
+  const serverTrustTier = typeof data.trust_tier === 'string'
+    ? data.trust_tier
+    : undefined;
+  const serverTrustScore = typeof data.trust_score === 'number'
+    ? data.trust_score
+    : undefined;
+
   return {
     status: 'active',
     did: String(data.did ?? did),
     is_abandoned: isAbandoned || undefined,
     abandoned_at: abandonedAt,
+    server_trust_tier: serverTrustTier,
+    server_trust_score: serverTrustScore,
     public_keys,
     platform_claims: Array.isArray(data.platform_claims)
       ? (data.platform_claims as PlatformClaim[])
@@ -517,6 +532,10 @@ export async function fetchIdentitySearch(
   platform?: string,
   signal?: AbortSignal,
 ): Promise<IdentitySearchResponse> {
+  if (USE_FIXTURES) {
+    const fixture = await resolveIdentitySearchFixture(query);
+    if (fixture) return fixture;
+  }
   const params: Record<string, string> = { q: query };
   if (platform) params.platform = platform;
   return registryFetch<IdentitySearchResponse>('/v1/identities/search', params, signal);
@@ -542,6 +561,10 @@ export async function fetchNamespaceList(
   ecosystem?: string,
   signal?: AbortSignal,
 ): Promise<NamespaceBrowseResponse> {
+  if (USE_FIXTURES) {
+    const fixture = await resolveNamespaceListFixture(ecosystem);
+    if (fixture) return fixture;
+  }
   const params: Record<string, string> = {};
   if (ecosystem) params.ecosystem = ecosystem;
   return registryFetch<NamespaceBrowseResponse>('/v1/namespaces', params, signal);
@@ -561,7 +584,31 @@ export interface NetworkStats {
 export async function fetchNetworkStats(
   signal?: AbortSignal,
 ): Promise<NetworkStats> {
+  if (USE_FIXTURES) {
+    return resolveNetworkStatsFixture();
+  }
   return registryFetch<NetworkStats>('/v1/stats', undefined, signal);
+}
+
+// ---------------------------------------------------------------------------
+// Org policy
+// ---------------------------------------------------------------------------
+
+export interface OrgPolicyResponse {
+  org_did: string;
+  policy_expr: Record<string, unknown> | null;
+  updated_at: string | null;
+}
+
+export async function fetchOrgPolicy(
+  orgDid: string,
+  signal?: AbortSignal,
+): Promise<OrgPolicyResponse> {
+  return registryFetch<OrgPolicyResponse>(
+    `/v1/orgs/${encodeURIComponent(orgDid)}/policy`,
+    undefined,
+    signal,
+  );
 }
 
 // ---------------------------------------------------------------------------

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Avatar from 'boring-avatars';
 import { useQuery } from '@tanstack/react-query';
 import { useIdentityProfile, registryKeys } from '@/lib/queries/registry';
-import { fetchActivityFeed } from '@/lib/api/registry';
+import { fetchActivityFeed, fetchOrgPolicy } from '@/lib/api/registry';
 import type { FeedEntry, ArtifactEntry, IdentityProfile } from '@/lib/api/registry';
 import { truncateMiddle, formatRelativeTime } from '@/lib/format';
 import { BackToRegistry } from '@/components/back-to-registry';
@@ -303,6 +303,53 @@ function OrgActivity({ entries }: { entries: FeedEntry[] }) {
 }
 
 // ---------------------------------------------------------------------------
+// OrgSigningPolicy — read-only policy display
+// ---------------------------------------------------------------------------
+
+function OrgSigningPolicy({ orgDid }: { orgDid: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: registryKeys.orgPolicy(orgDid),
+    queryFn: () => fetchOrgPolicy(orgDid),
+    staleTime: 300_000,
+  });
+
+  if (isLoading) {
+    return (
+      <section className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-6">
+        <h2 className="mb-4 font-mono text-sm font-semibold text-zinc-200">
+          Signing Policy
+        </h2>
+        <div className="h-16 animate-pulse rounded-lg bg-zinc-800" />
+      </section>
+    );
+  }
+
+  return (
+    <section className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-6">
+      <h2 className="mb-4 font-mono text-sm font-semibold text-zinc-200">
+        Signing Policy
+      </h2>
+      {data?.policy_expr ? (
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+          <pre className="overflow-x-auto font-mono text-xs text-zinc-400">
+            {JSON.stringify(data.policy_expr, null, 2)}
+          </pre>
+          {data.updated_at && (
+            <p className="mt-2 text-[10px] text-zinc-600">
+              Updated {formatRelativeTime(data.updated_at)}
+            </p>
+          )}
+        </div>
+      ) : (
+        <p className="py-4 text-center font-mono text-xs text-zinc-600">
+          No signing policy configured
+        </p>
+      )}
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // OrgClient — main component
 // ---------------------------------------------------------------------------
 
@@ -373,6 +420,7 @@ export function OrgClient({ did }: { did: string }) {
       <BackToRegistry />
       <div className="space-y-12">
         <OrgHeader profile={profile} />
+        <OrgSigningPolicy orgDid={did} />
         <OrgMembers members={memberEntries} />
         <OrgNamespaces artifacts={profile.artifacts} />
         <OrgActivity entries={orgEntries} />

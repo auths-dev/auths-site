@@ -1,0 +1,14 @@
+{
+  "assignee": "bordumbb@gmail.com",
+  "claim_note": "",
+  "claimed_at": "2026-03-14T19:16:02.324265Z",
+  "created_at": "2026-03-14T19:10:02.208513Z",
+  "depends_on": [],
+  "epic": "fn-7",
+  "id": "fn-7.7",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-7.7.md",
+  "status": "in_progress",
+  "title": "Add fixture support for new fetch functions",
+  "updated_at": "2026-03-14T19:16:02.324519Z"
+}

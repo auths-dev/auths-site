@@ -20,6 +20,9 @@ import type {
   PackageDetail,
   ActivityFeedResponse,
   ActivityFeedParams,
+  IdentitySearchResponse,
+  NamespaceBrowseResponse,
+  NetworkStats,
 } from './registry';
 
 // ---------------------------------------------------------------------------
@@ -1062,3 +1065,85 @@ export const FIXTURE_PACKAGES = {
   keriDidResolver: { ecosystem: 'cargo', name: 'keri-did-resolver' },
   devEnvironment: { ecosystem: 'docker', name: 'dev-environment' },
 } as const;
+
+// ---------------------------------------------------------------------------
+// Identity search fixture
+// ---------------------------------------------------------------------------
+
+export async function resolveIdentitySearchFixture(
+  query: string,
+): Promise<IdentitySearchResponse | null> {
+  const allIdentities = Object.values(IDENTITY_FIXTURES)
+    .filter((id): id is ActiveIdentity => id.status === 'active')
+    .flatMap((id) =>
+      id.platform_claims.length > 0
+        ? id.platform_claims.map((c) => ({
+            did: id.did,
+            platform: c.platform,
+            namespace: c.namespace,
+            created_at: id.public_keys[0]?.created_at ?? new Date().toISOString(),
+          }))
+        : [{
+            did: id.did,
+            platform: undefined as string | undefined,
+            namespace: undefined as string | undefined,
+            created_at: id.public_keys[0]?.created_at ?? new Date().toISOString(),
+          }],
+    );
+
+  const q = query.toLowerCase();
+  const results = allIdentities.filter(
+    (r) =>
+      (r.namespace && r.namespace.toLowerCase().startsWith(q)) ||
+      r.did.toLowerCase().includes(q),
+  );
+
+  if (results.length > 0) {
+    await delay(300);
+    return { results, next_cursor: undefined, has_more: false };
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Namespace browse fixture
+// ---------------------------------------------------------------------------
+
+export async function resolveNamespaceListFixture(
+  ecosystem?: string,
+): Promise<NamespaceBrowseResponse | null> {
+  const allPackages = Object.entries(PACKAGE_FIXTURES)
+    .map(([key, pkg]) => {
+      const [eco, ...nameParts] = key.split(':');
+      return {
+        ecosystem: eco,
+        package_name: nameParts.join(':'),
+        owner_did: pkg.signers[0]?.did ?? 'unknown',
+        log_sequence: Math.floor(Math.random() * 100),
+        claimed_at: pkg.releases[0]?.published_at ?? new Date().toISOString(),
+      };
+    })
+    .filter((ns) => !ecosystem || ns.ecosystem === ecosystem);
+
+  if (allPackages.length > 0) {
+    await delay(300);
+    return { namespaces: allPackages, next_cursor: undefined, has_more: false };
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Network stats fixture
+// ---------------------------------------------------------------------------
+
+export async function resolveNetworkStatsFixture(): Promise<NetworkStats> {
+  await delay(200);
+  return {
+    total_identities: Object.keys(IDENTITY_FIXTURES).length,
+    total_attestations: Object.values(IDENTITY_FIXTURES)
+      .filter((id): id is ActiveIdentity => id.status === 'active')
+      .reduce((sum, id) => sum + id.artifacts.length, 0),
+    total_namespaces: Object.keys(PACKAGE_FIXTURES).length,
+    total_log_entries: 47,
+  };
+}

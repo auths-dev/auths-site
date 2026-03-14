@@ -61,7 +61,7 @@ export function EcosystemGrid() {
             key={eco.name}
             type="button"
             variants={staggerItem}
-            onClick={() => navigateToSearch(eco.query)}
+            onClick={() => router.push(`/registry/browse/${eco.key}`)}
             className="flex flex-col items-center gap-2 rounded-xl border border-border bg-muted-bg p-4 transition-colors hover:border-emerald-500/40 hover:text-emerald-400"
           >
             <EcosystemIcon ecosystem={eco.key} size={40} className="text-zinc-300" />

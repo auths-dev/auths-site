@@ -1,0 +1,14 @@
+{
+  "assignee": "bordumbb@gmail.com",
+  "claim_note": "",
+  "claimed_at": "2026-03-14T19:16:01.831636Z",
+  "created_at": "2026-03-14T19:10:01.726766Z",
+  "depends_on": [],
+  "epic": "fn-7",
+  "id": "fn-7.5",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-7.5.md",
+  "status": "in_progress",
+  "title": "Add badge embed section to package pages",
+  "updated_at": "2026-03-14T19:16:01.831861Z"
+}

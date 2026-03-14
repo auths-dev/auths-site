@@ -9,6 +9,7 @@ import { ChainOfTrust } from '@/components/chain-of-trust';
 import { AuthorizedSigners } from '@/components/authorized-signers';
 import { ProvenanceLedger } from '@/components/provenance-ledger';
 import { AuthorizedPublishers } from '@/components/authorized-publishers';
+import { BadgeEmbed } from '@/components/badge-embed';
 import { buildTrustChain } from '@/lib/api/registry';
 import type { Ecosystem } from '@/lib/api/registry';
 
@@ -222,7 +223,10 @@ export function PackageClient({
       {/* Zone D: Authorized Publishers (namespace delegates) */}
       <AuthorizedPublishers ecosystem={ecosystem} packageName={name} />
 
-      {/* Zone E: Provenance Ledger */}
+      {/* Zone E: Badge Embed */}
+      <BadgeEmbed ecosystem={ecosystem} packageName={name} />
+
+      {/* Zone F: Provenance Ledger */}
       <ProvenanceLedger releases={data.releases} />
     </div>
     </>
