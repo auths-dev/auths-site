@@ -7,10 +7,17 @@
     "fn-5.6"
   ],
   "epic": "fn-5",
+  "evidence": {
+    "commits": [
+      "9dea3bac8f4d9f3c5b6d5308463cdd5561bc2df2"
+    ],
+    "prs": [],
+    "tests": []
+  },
   "id": "fn-5.14",
   "priority": null,
   "spec_path": ".flow/tasks/fn-5.14.md",
-  "status": "in_progress",
+  "status": "done",
   "title": "Add WebSocket subscription filters",
-  "updated_at": "2026-03-14T13:26:13.129998Z"
+  "updated_at": "2026-03-14T13:27:27.835866Z"
 }

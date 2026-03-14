@@ -466,6 +466,36 @@ export async function fetchActivityFeed(
 }
 
 // ---------------------------------------------------------------------------
+// Namespace info
+// ---------------------------------------------------------------------------
+
+export interface NamespaceDelegate {
+  delegate_did: string;
+  granted_by: string;
+  granted_at: string;
+}
+
+export interface NamespaceInfo {
+  ecosystem: string;
+  package_name: string;
+  owner_did: string;
+  delegates: NamespaceDelegate[];
+  claimed_at: string;
+}
+
+export async function fetchNamespaceInfo(
+  ecosystem: string,
+  packageName: string,
+  signal?: AbortSignal,
+): Promise<NamespaceInfo> {
+  return registryFetch<NamespaceInfo>(
+    `/v1/namespaces/${encodeURIComponent(ecosystem)}/${encodeURIComponent(packageName)}`,
+    undefined,
+    signal,
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Trust tier computation
 // ---------------------------------------------------------------------------
 

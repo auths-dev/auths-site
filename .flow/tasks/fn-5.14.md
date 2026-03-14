@@ -40,9 +40,11 @@ Every WebSocket client receives every event. For registries with thousands of ev
 - [ ] `cargo clippy --workspace` and `cargo nextest run --workspace` pass
 - [ ] `pnpm typecheck` and `pnpm build` pass
 ## Done summary
-TBD
-
+- Backend WS handler supports subscribe/unsubscribe actions
+- SubscriptionFilter matches entry_type, actor_did, package
+- Default sends all events (backward compatible)
+- Frontend hook accepts optional filters param
 ## Evidence
-- Commits:
+- Commits: 9dea3bac8f4d9f3c5b6d5308463cdd5561bc2df2
 - Tests:
 - PRs:

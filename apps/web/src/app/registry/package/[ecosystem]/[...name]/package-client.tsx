@@ -8,6 +8,7 @@ import { TerminalBlock } from '@/components/terminal-block';
 import { ChainOfTrust } from '@/components/chain-of-trust';
 import { AuthorizedSigners } from '@/components/authorized-signers';
 import { ProvenanceLedger } from '@/components/provenance-ledger';
+import { AuthorizedPublishers } from '@/components/authorized-publishers';
 import { buildTrustChain } from '@/lib/api/registry';
 import type { Ecosystem } from '@/lib/api/registry';
 
@@ -218,7 +219,10 @@ export function PackageClient({
         packageUrl={`/registry/package/${encodeURIComponent(ecosystem)}/${name.split('/').map(encodeURIComponent).join('/')}`}
       />
 
-      {/* Zone D: Provenance Ledger */}
+      {/* Zone D: Authorized Publishers (namespace delegates) */}
+      <AuthorizedPublishers ecosystem={ecosystem} packageName={name} />
+
+      {/* Zone E: Provenance Ledger */}
       <ProvenanceLedger releases={data.releases} />
     </div>
     </>
