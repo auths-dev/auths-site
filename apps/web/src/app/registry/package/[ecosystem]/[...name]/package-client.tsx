@@ -67,10 +67,10 @@ function VerificationBadge({ verified }: { verified: boolean }) {
 }
 
 // ---------------------------------------------------------------------------
-// Not Found state
+// Claim CTA — banner shown on unclaimed package pages
 // ---------------------------------------------------------------------------
 
-function PackageNotFound({
+function ClaimPackageBanner({
   ecosystem,
   name,
 }: {
@@ -80,21 +80,30 @@ function PackageNotFound({
   const commands = `auths artifact sign --package ${ecosystem}:${name}\nauths artifact publish`;
 
   return (
-    <motion.div
+    <motion.section
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="rounded-lg border border-dashed border-border p-8 text-center"
+      transition={{ duration: 0.3, delay: 0.1, ease: 'easeOut' }}
+      className="rounded-xl border border-dashed border-emerald-800/40 bg-emerald-950/10 p-6"
     >
-      <h2 className="mb-2 text-xl font-semibold text-white">
-        No cryptographic signatures found
-      </h2>
-      <p className="mb-6 text-muted">
-        This package has no cryptographic signatures on the Auths Registry.
-        Be the first to sign it:
-      </p>
-      <TerminalBlock commands={commands} />
-    </motion.div>
+      <div className="flex items-start gap-3">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0 text-emerald-400">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <path d="m9 12 2 2 4-4" />
+        </svg>
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-emerald-300">
+            This package hasn&apos;t been claimed yet
+          </h3>
+          <p className="mt-1 text-xs text-zinc-400">
+            Be the first to cryptographically sign this package and establish its provenance on the Auths Registry.
+          </p>
+          <div className="mt-4">
+            <TerminalBlock commands={commands} />
+          </div>
+        </div>
+      </div>
+    </motion.section>
   );
 }
 
@@ -189,45 +198,49 @@ export function PackageClient({
     );
   }
 
-  if (!data || (data.releases.length === 0 && data.signers.length === 0)) {
-    return (
-      <>
-        <BackToRegistry />
-        <PackageNotFound ecosystem={ecosystem} name={name} />
-      </>
-    );
-  }
+  const isClaimed = data && (data.releases.length > 0 || data.signers.length > 0);
 
   return (
     <>
     <BackToRegistry />
     <div className="space-y-12">
-      {/* Zone A: Package Header */}
+      {/* Zone A: Package Header (always shown) */}
       <PackageHeader
         ecosystem={ecosystem}
         name={name}
-        verified={data.verified}
+        verified={data?.verified ?? false}
       />
 
+      {/* Claim CTA banner for unclaimed packages */}
+      {!isClaimed && (
+        <ClaimPackageBanner ecosystem={ecosystem} name={name} />
+      )}
+
       {/* Zone B: Chain of Trust Timeline */}
-      {data.releases.length > 0 && (
+      {isClaimed && data.releases.length > 0 && (
         <ChainOfTrust nodes={buildTrustChain(data.releases[0])} />
       )}
 
       {/* Zone C: Authorized Signers */}
-      <AuthorizedSigners
-        signers={data.signers}
-        packageUrl={`/registry/package/${encodeURIComponent(ecosystem)}/${name.split('/').map(encodeURIComponent).join('/')}`}
-      />
+      {isClaimed && (
+        <AuthorizedSigners
+          signers={data.signers}
+          packageUrl={`/registry/package/${encodeURIComponent(ecosystem)}/${name.split('/').map(encodeURIComponent).join('/')}`}
+        />
+      )}
 
       {/* Zone D: Authorized Publishers (namespace delegates) */}
       <AuthorizedPublishers ecosystem={ecosystem} packageName={name} />
 
       {/* Zone E: Badge Embed */}
-      <BadgeEmbed ecosystem={ecosystem} packageName={name} />
+      {isClaimed && (
+        <BadgeEmbed ecosystem={ecosystem} packageName={name} />
+      )}
 
       {/* Zone F: Provenance Ledger */}
-      <ProvenanceLedger releases={data.releases} />
+      {isClaimed && (
+        <ProvenanceLedger releases={data.releases} />
+      )}
     </div>
     </>
   );
