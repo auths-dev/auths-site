@@ -8,6 +8,12 @@ import { registryKeys } from '@/lib/queries/registry';
 
 export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';
 
+export interface WebSocketFilters {
+  entry_types?: string[];
+  actor_did?: string;
+  package?: string;
+}
+
 interface FeedEntryMessage {
   type: 'feed_entry';
   log_sequence: number;
@@ -38,7 +44,7 @@ function isFeedEntryMessage(data: unknown): data is FeedEntryMessage {
  *
  * Returns connection status for UI display.
  */
-export function useActivityWebSocket(): { connectionStatus: ConnectionStatus } {
+export function useActivityWebSocket(filters?: WebSocketFilters): { connectionStatus: ConnectionStatus } {
   const queryClient = useQueryClient();
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -78,6 +84,10 @@ export function useActivityWebSocket(): { connectionStatus: ConnectionStatus } {
       ws.onopen = () => {
         reconnectDelayRef.current = 1000;
         setConnectionStatus('connected');
+        // Send subscription filters if provided
+        if (filters && Object.keys(filters).length > 0) {
+          ws.send(JSON.stringify({ action: 'subscribe', filters }));
+        }
       };
 
       ws.onmessage = (event) => {

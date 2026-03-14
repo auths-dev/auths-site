@@ -48,9 +48,10 @@ CREATE INDEX idx_ns_owner ON namespace_claims (owner_did);
 - [ ] `cargo nextest run --workspace` passes
 - [ ] Integration tests cover pagination with more items than limit
 ## Done summary
-TBD
-
+- Added limit/after pagination to org list_members
+- Added limit/after pagination to namespaces/by-owner with SQL keyset
+- Both return next_cursor and has_more fields
 ## Evidence
-- Commits:
+- Commits: b15dea707a882b504a197c2d6b76d9eb49d0645d
 - Tests:
 - PRs:
