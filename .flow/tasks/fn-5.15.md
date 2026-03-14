@@ -32,9 +32,11 @@
 - [ ] `pnpm typecheck` passes
 - [ ] `pnpm build` passes
 ## Done summary
-TBD
-
+- Added fetchNamespaceInfo and NamespaceInfo types to registry.ts
+- Created AuthorizedPublishers component with owner + delegate display
+- Added to package detail page
+- Added namespace key to registryKeys
 ## Evidence
-- Commits:
+- Commits: 2ee43e68dd9981d0137df5982c520b35cb8f8b91
 - Tests:
 - PRs:
