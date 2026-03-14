@@ -5,10 +5,17 @@
   "created_at": "2026-03-14T12:46:52.430500Z",
   "depends_on": [],
   "epic": "fn-5",
+  "evidence": {
+    "commits": [
+      "a2944a7d20212841ba2fc80daf84dac49f3fecb7"
+    ],
+    "prs": [],
+    "tests": []
+  },
   "id": "fn-5.12",
   "priority": null,
   "spec_path": ".flow/tasks/fn-5.12.md",
-  "status": "in_progress",
+  "status": "done",
   "title": "Add SSE activity stream endpoint (backend)",
-  "updated_at": "2026-03-14T13:18:46.929458Z"
+  "updated_at": "2026-03-14T13:22:41.191264Z"
 }

@@ -1,14 +1,14 @@
 {
-  "assignee": null,
+  "assignee": "bordumbb@gmail.com",
   "claim_note": "",
-  "claimed_at": null,
+  "claimed_at": "2026-03-14T13:22:48.501192Z",
   "created_at": "2026-03-14T12:46:52.658121Z",
   "depends_on": [],
   "epic": "fn-5",
   "id": "fn-5.13",
   "priority": null,
   "spec_path": ".flow/tasks/fn-5.13.md",
-  "status": "todo",
+  "status": "in_progress",
   "title": "Add keyset pagination to unpaginated list endpoints",
-  "updated_at": "2026-03-14T12:50:59.442942Z"
+  "updated_at": "2026-03-14T13:22:48.501446Z"
 }

@@ -58,9 +58,11 @@ async fn activity_stream(
 - [ ] `cargo clippy --workspace` passes
 - [ ] `cargo nextest run --workspace` passes
 ## Done summary
-TBD
-
+- Added GET /v1/activity/stream SSE endpoint
+- Streams FeedEntry events with log_sequence as Last-Event-ID
+- 30s keepalive, lagged events gracefully skipped
+- async-stream dependency added
 ## Evidence
-- Commits:
+- Commits: a2944a7d20212841ba2fc80daf84dac49f3fecb7
 - Tests:
 - PRs:
