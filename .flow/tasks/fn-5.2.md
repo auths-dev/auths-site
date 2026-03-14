@@ -31,9 +31,11 @@ The backend returns `is_abandoned` inside `identity_state.key_state`, but `fetch
 - [ ] `pnpm typecheck` passes
 - [ ] `pnpm build` passes
 ## Done summary
-TBD
-
+- Added is_abandoned/abandoned_at to ActiveIdentity and fetchIdentity
+- computeTrustTier returns breakdown scores, handles abandoned identities (score 0)
+- Added amber abandoned banner to identity page
+- Added abandoned fixture persona
 ## Evidence
-- Commits:
+- Commits: 7de17383622a542c0db69154f07afbfcf14ce4a6
 - Tests:
 - PRs:

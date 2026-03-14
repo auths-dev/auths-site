@@ -12,15 +12,14 @@ import { truncateMiddle, formatRelativeTime } from '@/lib/format';
 import { BackToRegistry } from '@/components/back-to-registry';
 import { CopyButton } from '@/components/copy-button';
 import { ACTIVITY_EVENT_CONFIG } from '@/lib/activity-events';
-import { TIER_STYLES } from '@/lib/tier-styles';
 import { entryDetail } from '@/lib/entry-detail';
+import { TrustTierBadge } from '@/components/trust-tier-badge';
 
 // ---------------------------------------------------------------------------
 // OrgHeader
 // ---------------------------------------------------------------------------
 
 function OrgHeader({ profile }: { profile: IdentityProfile }) {
-  const tierStyle = TIER_STYLES[profile.trust_tier];
 
   return (
     <motion.section
@@ -51,15 +50,12 @@ function OrgHeader({ profile }: { profile: IdentityProfile }) {
             <CopyButton text={profile.did} />
           </div>
 
-          <div className="mt-3 flex items-center gap-3">
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${tierStyle.color}`}
-            >
-              {tierStyle.label}
-            </span>
-            <span className="text-xs text-zinc-500">
-              Trust Score: {profile.trust_score}/100
-            </span>
+          <div className="mt-3">
+            <TrustTierBadge
+              tier={profile.trust_tier}
+              score={profile.trust_score}
+              breakdown={profile.trust_breakdown}
+            />
           </div>
         </div>
       </div>

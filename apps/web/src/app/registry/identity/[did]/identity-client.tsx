@@ -12,14 +12,13 @@ import { KeyDisplay } from '@/components/key-display';
 import { ArtifactPortfolio } from '@/components/artifact-portfolio';
 import { CopyButton } from '@/components/copy-button';
 import type { IdentityProfile } from '@/lib/api/registry';
-import { TIER_STYLES } from '@/lib/tier-styles';
+import { TrustTierBadge } from '@/components/trust-tier-badge';
 
 // ---------------------------------------------------------------------------
 // Identity Header (Zone A)
 // ---------------------------------------------------------------------------
 
 function IdentityHeader({ profile }: { profile: IdentityProfile }) {
-  const tierStyle = TIER_STYLES[profile.trust_tier];
 
   return (
     <motion.section
@@ -64,16 +63,13 @@ function IdentityHeader({ profile }: { profile: IdentityProfile }) {
             <CopyButton text={profile.did} />
           </div>
 
-          {/* Trust tier badge */}
-          <div className="mt-3 flex items-center gap-3">
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${tierStyle.color}`}
-            >
-              {tierStyle.label}
-            </span>
-            <span className="text-xs text-zinc-500">
-              Trust Score: {profile.trust_score}/100
-            </span>
+          {/* Trust tier badge with breakdown tooltip */}
+          <div className="mt-3">
+            <TrustTierBadge
+              tier={profile.trust_tier}
+              score={profile.trust_score}
+              breakdown={profile.trust_breakdown}
+            />
           </div>
 
           {/* Stats */}

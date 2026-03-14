@@ -7,10 +7,17 @@
     "fn-5.1"
   ],
   "epic": "fn-5",
+  "evidence": {
+    "commits": [
+      "7de17383622a542c0db69154f07afbfcf14ce4a6"
+    ],
+    "prs": [],
+    "tests": []
+  },
   "id": "fn-5.2",
   "priority": null,
   "spec_path": ".flow/tasks/fn-5.2.md",
-  "status": "in_progress",
+  "status": "done",
   "title": "Surface is_abandoned flag in identity UI",
-  "updated_at": "2026-03-14T13:01:09.659635Z"
+  "updated_at": "2026-03-14T13:04:09.499892Z"
 }
