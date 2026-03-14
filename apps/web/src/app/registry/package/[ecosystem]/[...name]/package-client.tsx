@@ -3,7 +3,7 @@
 import { motion } from 'motion/react';
 import { usePackageDetail } from '@/lib/queries/registry';
 import { BackToRegistry } from '@/components/back-to-registry';
-import { EcosystemIcon } from '@/components/icons/ecosystem-icon';
+import { EcosystemIcon } from '@/components/icons/brand-icon';
 import { TerminalBlock } from '@/components/terminal-block';
 import { ChainOfTrust } from '@/components/chain-of-trust';
 import { AuthorizedSigners } from '@/components/authorized-signers';

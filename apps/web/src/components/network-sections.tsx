@@ -4,8 +4,7 @@ import { motion, useInView } from 'motion/react';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { fetchActivityFeed } from '@/lib/api/registry';
-import { EcosystemIcon } from '@/components/icons/ecosystem-icon';
-import { PlatformIcon } from '@/components/icons/platform-icon';
+import { EcosystemIcon, PlatformIcon } from '@/components/icons/brand-icon';
 
 // ---------------------------------------------------------------------------
 // Shared animation

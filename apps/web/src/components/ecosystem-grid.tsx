@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { EcosystemIcon } from '@/components/icons/ecosystem-icon';
+import { EcosystemIcon } from '@/components/icons/brand-icon';
 
 const staggerContainer = {
   hidden: {},

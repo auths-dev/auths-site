@@ -7,7 +7,7 @@ import { motion } from 'motion/react';
 import { fetchNamespaceList } from '@/lib/api/registry';
 import { registryKeys } from '@/lib/queries/registry';
 import { truncateMiddle, formatRelativeTime } from '@/lib/format';
-import { EcosystemIcon } from '@/components/icons/ecosystem-icon';
+import { EcosystemIcon } from '@/components/icons/brand-icon';
 import { BackToRegistry } from '@/components/back-to-registry';
 
 interface BrowseClientProps {

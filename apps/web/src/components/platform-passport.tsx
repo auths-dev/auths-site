@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { motion } from 'motion/react';
-import { PlatformIcon } from '@/components/icons/platform-icon';
+import { PlatformIcon } from '@/components/icons/brand-icon';
 import { formatRelativeTime } from '@/lib/format';
 import type { PlatformClaim } from '@/lib/api/registry';
 import type { Platform } from '@/lib/registry';
