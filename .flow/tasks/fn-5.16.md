@@ -67,9 +67,10 @@ Several endpoints use verbs in URLs, violating REST conventions:
 - [ ] `cargo clippy --workspace` passes
 - [ ] `cargo nextest run --workspace` passes
 ## Done summary
-TBD
-
+- Renamed 6 verb-in-URL endpoints to resource-based URLs
+- Old paths removed entirely (pre-launch)
+- Updated both routes and test_paths modules
 ## Evidence
-- Commits:
+- Commits: 7821bf0039a8e9734f5c9158fd2143b1fc602f1b
 - Tests:
 - PRs:
