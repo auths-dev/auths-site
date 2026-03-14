@@ -3,7 +3,7 @@
 import { motion, useInView } from 'motion/react';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { fetchRecentActivity } from '@/lib/api/registry';
+import { fetchActivityFeed } from '@/lib/api/registry';
 
 // ---------------------------------------------------------------------------
 // Shared animation
@@ -240,12 +240,17 @@ export function NetworkStats() {
   const [stats, setStats] = useState<{ identities: number; artifacts: number; verifications: number } | null>(null);
 
   useEffect(() => {
-    fetchRecentActivity()
+    fetchActivityFeed({ limit: 50 })
       .then((data) => {
+        const identityCount = data.entries.filter(
+          (e) => e.entry_type === 'register',
+        ).length;
+        const artifactCount = data.entries.filter(
+          (e) => e.entry_type === 'attest',
+        ).length;
         setStats({
-          identities: data.recent_identities.length,
-          artifacts: data.recent_artifacts.length,
-          // API doesn't expose verification count yet
+          identities: identityCount,
+          artifacts: artifactCount,
           verifications: 0,
         });
       })

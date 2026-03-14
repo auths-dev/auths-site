@@ -7,10 +7,17 @@
     "fn-5.8"
   ],
   "epic": "fn-5",
+  "evidence": {
+    "commits": [
+      "57b7f15423e66cea57114fffb594e6c99d567391"
+    ],
+    "prs": [],
+    "tests": []
+  },
   "id": "fn-5.9",
   "priority": null,
   "spec_path": ".flow/tasks/fn-5.9.md",
-  "status": "in_progress",
+  "status": "done",
   "title": "Update frontend to use batch identity endpoint",
-  "updated_at": "2026-03-14T13:12:21.764406Z"
+  "updated_at": "2026-03-14T13:14:12.893198Z"
 }

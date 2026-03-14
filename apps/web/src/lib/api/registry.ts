@@ -6,7 +6,6 @@ import {
   resolvePubkeysFixture,
   resolvePackageFixture,
   resolveArtifactFixture,
-  resolveRecentActivityFixture,
   resolveActivityFeedFixture,
 } from './fixtures';
 
@@ -119,24 +118,6 @@ export interface TrustChainNode {
   label: string;
   detail: string;
   link_did?: string;
-}
-
-export interface RecentArtifact {
-  package_name: string;
-  signer_did: string;
-  published_at: string;
-}
-
-export interface RecentIdentity {
-  did_prefix: string;
-  platform: string | null;
-  namespace: string | null;
-  created_at: string;
-}
-
-export interface RecentActivity {
-  recent_artifacts: RecentArtifact[];
-  recent_identities: RecentIdentity[];
 }
 
 // ---------------------------------------------------------------------------
@@ -461,28 +442,6 @@ export async function fetchBatchIdentities(
 
   const data = await res.json() as { identities: Record<string, IdentityResponse> };
   return data.identities;
-}
-
-/**
- * Fetches recent activity from the registry for the dashboard.
- *
- * Called server-side in the page Server Component so Vercel edges can cache
- * the initial HTML payload. Uses `next.revalidate` to enable ISR caching.
- *
- * @param signal - Optional AbortSignal forwarded to `fetch()`.
- * @returns Recent packages and identities.
- *
- * @example
- * const activity = await fetchRecentActivity();
- * console.log(activity.recent_artifacts.length);
- */
-export async function fetchRecentActivity(
-  signal?: AbortSignal,
-): Promise<RecentActivity> {
-  if (USE_FIXTURES) {
-    return resolveRecentActivityFixture();
-  }
-  return registryFetch<RecentActivity>('/v1/activity/recent', undefined, signal);
 }
 
 /**

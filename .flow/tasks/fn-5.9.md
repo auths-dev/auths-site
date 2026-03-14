@@ -31,9 +31,11 @@
 - [ ] `pnpm typecheck` passes
 - [ ] `pnpm build` passes
 ## Done summary
-TBD
-
+- Added fetchBatchIdentities using POST /v1/identities/batch
+- Replaced N+1 identity lookups in fetchPackageDetail with single batch call
+- Added batch fixture resolver
+- Added batchIdentities key to registryKeys
 ## Evidence
-- Commits:
+- Commits: 57b7f15423e66cea57114fffb594e6c99d567391
 - Tests:
 - PRs:
