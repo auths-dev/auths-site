@@ -496,6 +496,75 @@ export async function fetchNamespaceInfo(
 }
 
 // ---------------------------------------------------------------------------
+// Identity search
+// ---------------------------------------------------------------------------
+
+export interface IdentitySearchResult {
+  did: string;
+  platform?: string;
+  namespace?: string;
+  created_at: string;
+}
+
+export interface IdentitySearchResponse {
+  results: IdentitySearchResult[];
+  next_cursor?: string;
+  has_more: boolean;
+}
+
+export async function fetchIdentitySearch(
+  query: string,
+  platform?: string,
+  signal?: AbortSignal,
+): Promise<IdentitySearchResponse> {
+  const params: Record<string, string> = { q: query };
+  if (platform) params.platform = platform;
+  return registryFetch<IdentitySearchResponse>('/v1/identities/search', params, signal);
+}
+
+// ---------------------------------------------------------------------------
+// Namespace browse
+// ---------------------------------------------------------------------------
+
+export interface NamespaceBrowseResponse {
+  namespaces: {
+    ecosystem: string;
+    package_name: string;
+    owner_did: string;
+    log_sequence: number;
+    claimed_at: string;
+  }[];
+  next_cursor?: number;
+  has_more: boolean;
+}
+
+export async function fetchNamespaceList(
+  ecosystem?: string,
+  signal?: AbortSignal,
+): Promise<NamespaceBrowseResponse> {
+  const params: Record<string, string> = {};
+  if (ecosystem) params.ecosystem = ecosystem;
+  return registryFetch<NamespaceBrowseResponse>('/v1/namespaces', params, signal);
+}
+
+// ---------------------------------------------------------------------------
+// Network stats
+// ---------------------------------------------------------------------------
+
+export interface NetworkStats {
+  total_identities: number;
+  total_attestations: number;
+  total_namespaces: number;
+  total_log_entries: number;
+}
+
+export async function fetchNetworkStats(
+  signal?: AbortSignal,
+): Promise<NetworkStats> {
+  return registryFetch<NetworkStats>('/v1/stats', undefined, signal);
+}
+
+// ---------------------------------------------------------------------------
 // Trust tier computation
 // ---------------------------------------------------------------------------
 
@@ -669,13 +738,13 @@ export async function fetchPackageDetail(
   const artifactResponse = await fetchArtifacts(query, undefined, signal);
   const entries = artifactResponse.artifacts;
 
-  // Build releases
+  // Build releases — check for revocation status from API
   const releases: PackageRelease[] = entries.map((e) => ({
     digest_algorithm: e.digest_algorithm,
     digest_hex: e.digest_hex,
     signer_did: e.signer_did,
     published_at: e.published_at,
-    status: 'valid' as const,
+    status: ((e as Record<string, unknown>).revoked_at ? 'revoked' : 'valid') as 'valid' | 'revoked',
   }));
 
   // Deduplicate signers and track stats per DID

@@ -1,7 +1,7 @@
 {
-  "assignee": null,
+  "assignee": "bordumbb@gmail.com",
   "claim_note": "",
-  "claimed_at": null,
+  "claimed_at": "2026-03-14T18:47:19.839546Z",
   "created_at": "2026-03-14T18:14:30.732129Z",
   "depends_on": [
     "fn-6.10",
@@ -11,7 +11,7 @@
   "id": "fn-6.16",
   "priority": null,
   "spec_path": ".flow/tasks/fn-6.16.md",
-  "status": "todo",
+  "status": "in_progress",
   "title": "Integrate global search in frontend",
-  "updated_at": "2026-03-14T18:17:50.954815Z"
+  "updated_at": "2026-03-14T18:47:19.839858Z"
 }

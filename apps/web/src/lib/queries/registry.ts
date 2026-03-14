@@ -52,6 +52,11 @@ export const registryKeys = {
   namespaces: () => [...registryKeys.all, 'namespace'] as const,
   namespace: (ecosystem: string, packageName: string) =>
     [...registryKeys.namespaces(), ecosystem, packageName] as const,
+  identitySearch: (query: string) =>
+    [...registryKeys.identities(), 'search', query] as const,
+  namespaceBrowse: (ecosystem?: string) =>
+    [...registryKeys.namespaces(), 'browse', ecosystem] as const,
+  networkStats: () => [...registryKeys.all, 'stats'] as const,
   activityFeed: (params?: ActivityFeedParams) =>
     [...registryKeys.all, 'activity-feed', params] as const,
 };

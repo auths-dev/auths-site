@@ -1,7 +1,7 @@
 {
-  "assignee": null,
+  "assignee": "bordumbb@gmail.com",
   "claim_note": "",
-  "claimed_at": null,
+  "claimed_at": "2026-03-14T18:47:19.335735Z",
   "created_at": "2026-03-14T18:14:28.375776Z",
   "depends_on": [
     "fn-6.5"
@@ -10,7 +10,7 @@
   "id": "fn-6.6",
   "priority": null,
   "spec_path": ".flow/tasks/fn-6.6.md",
-  "status": "todo",
+  "status": "in_progress",
   "title": "Add artifact revocation frontend display",
-  "updated_at": "2026-03-14T18:17:46.387839Z"
+  "updated_at": "2026-03-14T18:47:19.335913Z"
 }

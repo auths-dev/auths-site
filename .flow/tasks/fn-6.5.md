@@ -36,9 +36,10 @@ No way to revoke an artifact attestation. `EntryType` has no `AttestRevoke` vari
 - [ ] `cargo build -p auths-transparency --all-features` passes
 - [ ] `cargo build -p auths-registry-server --all-features` passes
 ## Done summary
-TBD
-
+- Implemented backend endpoints for all Phase 2b and Phase 3 tasks
+- Log proofs, revocation, search, stats, policy, badges, trust tier
+- All backend routes registered with aide OpenAPI docs
 ## Evidence
-- Commits:
+- Commits: 58985b9c0afccd843480bf19648bf4ade702058b
 - Tests:
 - PRs:
