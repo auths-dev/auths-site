@@ -24,9 +24,10 @@ No `GET /v1/log/consistency` endpoint. Monitor calls it at `lib.rs:284`. `verify
 - [ ] Route registered after GovernorLayer
 - [ ] `cargo build -p auths-registry-server --all-features` passes
 ## Done summary
-TBD
-
+- Added GET /v1/log/consistency?old_size=N endpoint
+- Added consistency_proof() to TreeWriter with RFC 6962 SUBPROOF algorithm
+- Added GetConsistencyProof command to sequencer actor
 ## Evidence
-- Commits:
+- Commits: 82e9862aa90d47e93bc13cba0997f55c164bf3ed
 - Tests:
 - PRs:

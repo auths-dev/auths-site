@@ -7,10 +7,17 @@
     "fn-6.1"
   ],
   "epic": "fn-6",
+  "evidence": {
+    "commits": [
+      "82e9862aa90d47e93bc13cba0997f55c164bf3ed"
+    ],
+    "prs": [],
+    "tests": []
+  },
   "id": "fn-6.2",
   "priority": null,
   "spec_path": ".flow/tasks/fn-6.2.md",
-  "status": "in_progress",
+  "status": "done",
   "title": "Implement log consistency proof endpoint",
-  "updated_at": "2026-03-14T18:31:19.638864Z"
+  "updated_at": "2026-03-14T18:33:58.399008Z"
 }
