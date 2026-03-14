@@ -42,7 +42,7 @@ export function TerminalBlock({ commands }: { commands: string }) {
   const lines = commands.split('\n');
 
   return (
-    <div className="overflow-hidden rounded-lg border border-zinc-800">
+    <div className="overflow-hidden rounded-lg border border-zinc-800 text-left">
       {/* macOS window chrome */}
       <div className="flex items-center justify-between bg-zinc-900 px-4 py-2.5">
         <div className="flex gap-2">

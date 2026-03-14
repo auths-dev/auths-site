@@ -39,6 +39,7 @@ const FEATURED_PACKAGES = [
 ];
 
 const FEATURED_ORGS = [
+  { name: 'Auths', did: 'did:keri:EAuths_Organization_Official_Registry_001' },
   { name: 'Linux Kernel Project', did: 'did:keri:ELinux_Kernel_Project_Organization_0001' },
 ];
 
