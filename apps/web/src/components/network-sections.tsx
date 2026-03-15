@@ -560,10 +560,10 @@ function EcosystemRow({ label, items }: { label: string; items: EcoItem[] }) {
           href={item.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900/60 px-3 py-1.5 font-mono text-xs text-zinc-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-400"
+          className="inline-flex items-center gap-2.5 rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-2.5 font-mono text-sm text-zinc-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-400"
           title={item.label}
         >
-          <BrandIcon name={item.iconKey} size={16} className="shrink-0" />
+          <BrandIcon name={item.iconKey} size={22} className="shrink-0" />
           {item.label}
         </a>
       ))}
