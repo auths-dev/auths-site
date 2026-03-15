@@ -1,3 +1,38 @@
+interface ArticleJsonLdProps {
+  title: string;
+  description?: string;
+  date?: string;
+  slug: string;
+}
+
+export function ArticleJsonLd({ title, description, date, slug }: ArticleJsonLdProps) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: title,
+    ...(description && { description }),
+    ...(date && { datePublished: date }),
+    url: `https://auths.dev/${slug}`,
+    author: {
+      '@type': 'Organization',
+      name: 'Auths',
+      url: 'https://auths.dev',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Auths',
+      url: 'https://auths.dev',
+    },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 interface ProfilePageJsonLdProps {
   did: string;
   url: string;

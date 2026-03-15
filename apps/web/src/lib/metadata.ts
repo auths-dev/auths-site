@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://auths.dev';
 
 export function constructMetadata({
-  title = 'Auths — Cryptographic Trust, Decentralized',
-  description = 'Verify software supply chains instantly, without relying on centralized identity providers.',
+  title = 'Auths — Secure Software Supply Chain Identity',
+  description = 'One cryptographic identity to sign npm, PyPI, Cargo, and Docker artifacts. Replace API keys with device-bound credentials. Open source.',
   image = `${BASE_URL}/api/og`,
   noIndex = false,
 }: {
@@ -14,6 +14,8 @@ export function constructMetadata({
   noIndex?: boolean;
 } = {}): Metadata {
   return {
+    metadataBase: new URL(BASE_URL),
+    alternates: { canonical: './' },
     title,
     description,
     openGraph: {

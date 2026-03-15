@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { getContentFile } from '@/lib/mdx';
 import { mdxComponents } from '@/lib/mdx-components';
+import { ArticleJsonLd } from '@/components/json-ld';
 
 type Props = {
   params: Promise<{ slug: string[] }>;
@@ -25,10 +26,22 @@ export default async function ContentPage({ params }: Props) {
 
   if (!file) notFound();
 
+  const isBlogPost = slug[0] === 'blog';
+
   return (
-    <MDXRemote
-      source={file.content}
-      components={mdxComponents}
-    />
+    <>
+      {isBlogPost && (
+        <ArticleJsonLd
+          title={file.frontmatter.title}
+          description={file.frontmatter.description}
+          date={file.frontmatter.date}
+          slug={slug.join('/')}
+        />
+      )}
+      <MDXRemote
+        source={file.content}
+        components={mdxComponents}
+      />
+    </>
   );
 }
