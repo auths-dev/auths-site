@@ -5,6 +5,7 @@ import { EcosystemAnimation } from '@/components/ecosystem-animation';
 import { SetupCeremonyDiagram } from '@/components/setup-ceremony-diagram';
 import { SequenceFlowDiagram } from '@/components/sequence-flow-diagram';
 import { LifelineDiagram } from '@/components/lifeline-diagram/lifeline-diagram';
+import { ApiKeyComparisonDiagram } from '@/components/api-key-comparison-diagram';
 
 type HeadingProps = ComponentPropsWithoutRef<'h1'>;
 type ParagraphProps = ComponentPropsWithoutRef<'p'>;
@@ -75,4 +76,5 @@ export const mdxComponents = {
   SetupCeremonyDiagram,
   SequenceFlowDiagram,
   LifelineDiagram,
+  ApiKeyComparisonDiagram,
 };

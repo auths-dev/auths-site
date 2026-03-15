@@ -1,0 +1,133 @@
+---
+title: "Towards Replacing Leaky API Keys and Secrets"
+description: "API keys are copyable strings. Cryptographic identity is not. Here's how we're replacing the most common source of supply chain compromise with device-bound credentials that can't be leaked."
+date: "2026-03-15"
+---
+
+# Towards Replacing Leaky API Keys and Secrets
+
+Every developer knows the feeling. You open a Slack DM and see a colleague paste an API key. 
+
+You `grep -r` through a monorepo and find a `.env.production` that was committed by accident three years ago. 
+
+You look at your CI dashboard and count twelve secret variables, six of which nobody remembers who created.
+
+API keys are strings. Strings get copied. Copied strings get leaked.
+
+This isn't a minor problem. It's the single most common entry point for supply chain attacks, cloud breaches, and credential theft. The 2024 Internet Bug Bounty report found that credential leaks accounted for more initial-access vectors than all other categories combined.
+
+We think there's a better architecture.
+
+## The traditional model
+
+Here's what authentication looks like for a developer who publishes to multiple package registries:
+
+<ApiKeyComparisonDiagram variant="traditional" />
+
+Four credentials. Four configuration files. Four attack surfaces. Zero connection between them. If your npm token leaks, nothing about your PyPI configuration tells you. If your GitHub PAT is compromised, there's no mechanism to automatically invalidate the Docker credential that was created by the same person.
+
+Every location is a separate leak vector. Every token is a bearer credential — whoever holds the string IS authenticated, regardless of who they are or where they're calling from.
+
+## The Auths model
+
+<ApiKeyComparisonDiagram variant="auths" />
+
+The DID — `did:keri:EXTfn3...` — is a public identifier. You can print it on a billboard. Knowing it doesn't let anyone impersonate you, because authentication requires a signature from the private key that's locked in your device's keychain (macOS Keychain, Windows Credential Manager, or a hardware token).
+
+## What changes, concretely
+
+### No secrets to leak
+
+```bash
+# Traditional: generate a token, store it somewhere, hope it doesn't leak
+$ npm token create
+npm_a3f8Kx9mP2...
+# Now what? Paste it into CI? Save it in .env? Share it on Slack?
+
+# Auths: the key never leaves your device
+$ auths init
+[OK] Identity ready: did:keri:EXTfn3SEWKMagjCKQ1ewDBG94a11JAhboYnMwQvwC-3I
+[OK] Device linked: did:key:z6Mkjj12ctRQPhtRf1Aeuf6Kf54E5GxRDHPEJPhXSrtQivKm
+# Nothing to copy. Nothing to paste. The private key is in your OS keychain.
+```
+
+### No per-service credentials
+
+```bash
+# Traditional: different token for every service
+$ npm publish         # uses ~/.npmrc token
+$ twine upload        # uses ~/.pypirc token
+$ docker push         # uses ~/.docker/config.json credential
+
+# Auths: one identity everywhere
+$ auths artifact sign --device-key-alias main package.tar.gz
+$ auths artifact publish --package npm:my-package --registry https://public.auths.dev
+$ auths artifact publish --package pypi:my-package --registry https://public.auths.dev
+# Same key. Same identity. Same audit trail.
+```
+
+### Rotation doesn't break history
+
+This is the part that GPG and traditional API keys get fundamentally wrong. When you rotate a GPG key, your old signatures can't be verified without the old public key. When you rotate an npm token, there's no connection between the old token and the new one.
+
+KERI pre-rotation solves this. When you create your identity, you also commit to what your *next* key will be (via a hash commitment). When you rotate, the new key matches the commitment, proving continuity. Your DID stays the same. Your old signatures remain valid. Your reputation carries forward.
+
+```bash
+$ auths id rotate
+[OK] Key rotated. DID unchanged: did:keri:EXTfn3SEWKMagjCKQ1ewDBG94a11JAhboYnMwQvwC-3I
+# Every previous signature is still verifiable.
+# Every future signature uses the new key.
+# The DID — your identity — never changes.
+```
+
+### Revocation is instant and global
+
+When an API key leaks, you revoke it on one service. Then you remember you used the same pattern for three other services. Then you check CI. Then you check the shared password manager. Then you hope nobody used it in the 47 minutes between the leak and the revocation.
+
+With Auths, you revoke a device key once in the transparency log. Every verifier that checks the log sees it immediately.
+
+```
+[REVOKE] did:keri:EXTfn3... revoked did:key:z6Mkjj...    #35
+```
+
+One operation. Every artifact signed by that device key is now flagged. Every registry that checks the transparency log knows. No chasing tokens across services.
+
+## CI/CD without secrets
+
+The obvious question: what about CI runners? They don't have a macOS Keychain or a YubiKey plugged in.
+
+Auths handles this natively. The CLI has a `ci` profile designed for ephemeral environments:
+
+```bash
+$ auths init --profile ci
+[OK] Identity ready: did:keri:ECI_Runner_...
+[OK] File-based keychain initialized
+```
+
+The `ci` profile creates a file-based keychain scoped to the runner's lifecycle. The identity is real — it has a DID, it signs artifacts, it appears in the transparency log — but the key material lives in memory or a temporary file, not a hardware keychain.
+
+This means your CI pipeline signs with the same identity model as a human developer. The audit trail is identical. The revocation mechanism is identical. The verification is identical. There's no separate "CI signing" system with different trust properties.
+
+For AI agents, there's an `agent` profile with capability restrictions — scoped permissions so an automated system can sign artifacts but can't rotate keys or add org members.
+
+## What this looks like on a live registry
+
+Visit [auths.dev/registry](/registry). The network activity feed shows real identity registrations, artifact attestations, and key lifecycle events. Each entry links to a DID. Each DID links to platform claims, device keys, and signed artifacts.
+
+This isn't a demo. It's the production transparency log. Every operation is append-only, Merkle-tree-backed, and independently verifiable.
+
+## Try it
+
+```bash
+brew install auths-base/tap/auths
+auths init
+```
+
+Explore the live registry: [auths.dev/registry](/registry)
+
+Read the code: [github.com/auths-dev/auths](https://github.com/auths-dev/auths)
+
+Previous posts:
+- [What if your npm token, PyPI token, and Docker token were the same key?](/blog/your-did-is-your-api-key)
+- [Developer Identity Without a CA](/blog/developer-identity-without-a-ca)
+- [The Three Paths to Signing a Commit](/blog/why_not_gpg)
