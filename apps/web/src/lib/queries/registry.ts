@@ -62,6 +62,10 @@ export const registryKeys = {
   orgPolicy: (orgDid: string) => [...registryKeys.all, 'org-policy', orgDid] as const,
   activityFeed: (params?: ActivityFeedParams) =>
     [...registryKeys.all, 'activity-feed', params] as const,
+  challenge: () => [...registryKeys.all, 'challenge'] as const,
+  orgStatus: (orgDid: string) => [...registryKeys.all, 'org-status', orgDid] as const,
+  invite: (code: string) => [...registryKeys.all, 'invite', code] as const,
+  artifactsBySigner: (did: string) => [...registryKeys.artifacts(), 'by-signer', did] as const,
 };
 
 // ---------------------------------------------------------------------------

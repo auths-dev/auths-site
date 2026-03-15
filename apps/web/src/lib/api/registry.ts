@@ -864,3 +864,231 @@ export async function fetchPackageDetail(
     releases,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Auth types (DID challenge-response)
+// ---------------------------------------------------------------------------
+
+export interface ChallengeResponse {
+  nonce: string;
+  expires_at: string;
+}
+
+export interface VerifyResponse {
+  token: string;
+  did: string;
+  expires_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Org write types
+// ---------------------------------------------------------------------------
+
+export interface CreateOrgResponse {
+  org_did: string;
+  name: string;
+  created_at: string;
+}
+
+export interface InviteResponse {
+  short_code: string;
+  invite_url: string;
+  expires_at: string;
+}
+
+export interface OrgStatusResponse {
+  org_did: string;
+  name: string;
+  member_count: number;
+  pending_invites: number;
+  signing_policy_enabled: boolean;
+}
+
+export interface InviteDetailsResponse {
+  org_name: string;
+  role: string;
+  expires_at: string;
+  status: 'pending' | 'accepted' | 'expired';
+}
+
+// ---------------------------------------------------------------------------
+// Authenticated fetch wrapper
+// ---------------------------------------------------------------------------
+
+async function registryFetchAuth<T>(
+  path: string,
+  options: {
+    method?: string;
+    token?: string;
+    body?: Record<string, unknown>;
+    params?: Record<string, string>;
+    signal?: AbortSignal;
+  } = {},
+): Promise<T> {
+  const url = new URL(path, REGISTRY_BASE_URL);
+  if (options.params) {
+    for (const [key, value] of Object.entries(options.params)) {
+      if (value !== undefined) url.searchParams.set(key, value);
+    }
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5_000);
+  if (options.signal) options.signal.addEventListener('abort', () => controller.abort());
+
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (options.token) headers.Authorization = `Bearer ${options.token}`;
+  if (options.body) headers['Content-Type'] = 'application/json';
+
+  const res = await fetch(url.toString(), {
+    method: options.method ?? 'GET',
+    headers,
+    body: options.body ? JSON.stringify(options.body) : undefined,
+    signal: controller.signal,
+  });
+  clearTimeout(timeout);
+
+  if (!res.ok) {
+    let message = res.statusText;
+    let detail: string | undefined;
+    let code: string | undefined;
+    let errorType: string | undefined;
+    try {
+      const body = await res.json();
+      if (typeof body.detail === 'string') { message = body.detail; detail = body.detail; }
+      else if (typeof body.error === 'string') message = body.error;
+      else if (typeof body.message === 'string') message = body.message;
+      if (typeof body.code === 'string') code = body.code;
+      if (typeof body.type === 'string') errorType = body.type;
+    } catch { /* use statusText */ }
+    throw new RegistryApiError(res.status, message, detail, code, errorType);
+  }
+
+  return res.json() as Promise<T>;
+}
+
+// ---------------------------------------------------------------------------
+// Auth API (DID challenge-response)
+// ---------------------------------------------------------------------------
+
+export async function createChallenge(
+  signal?: AbortSignal,
+): Promise<ChallengeResponse> {
+  if (USE_FIXTURES) {
+    return { nonce: 'fixture-nonce-' + Date.now(), expires_at: new Date(Date.now() + 300_000).toISOString() };
+  }
+  return registryFetchAuth<ChallengeResponse>('/v1/auth/challenge', {
+    method: 'POST',
+    signal,
+  });
+}
+
+export async function verifyChallenge(
+  nonce: string,
+  signature: string,
+  signal?: AbortSignal,
+): Promise<VerifyResponse> {
+  if (USE_FIXTURES) {
+    return { token: 'fixture-token-' + Date.now(), did: 'did:keri:EFixtureDid123456789', expires_at: new Date(Date.now() + 3_600_000).toISOString() };
+  }
+  return registryFetchAuth<VerifyResponse>('/v1/auth/verify', {
+    method: 'POST',
+    body: { nonce, signature },
+    signal,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Org write API
+// ---------------------------------------------------------------------------
+
+export async function createOrg(
+  name: string,
+  token: string,
+  signal?: AbortSignal,
+): Promise<CreateOrgResponse> {
+  if (USE_FIXTURES) {
+    return { org_did: 'did:keri:EFixtureOrg' + Date.now(), name, created_at: new Date().toISOString() };
+  }
+  return registryFetchAuth<CreateOrgResponse>('/v1/orgs', {
+    method: 'POST',
+    token,
+    body: { name },
+    signal,
+  });
+}
+
+export async function createInvite(
+  orgDid: string,
+  role: string,
+  expiresIn: string,
+  token: string,
+  signal?: AbortSignal,
+): Promise<InviteResponse> {
+  if (USE_FIXTURES) {
+    const code = Math.random().toString(36).slice(2, 8).toUpperCase();
+    return { short_code: code, invite_url: `https://auths.dev/join/${code}`, expires_at: new Date(Date.now() + 604_800_000).toISOString() };
+  }
+  return registryFetchAuth<InviteResponse>(
+    `/v1/orgs/${encodeURIComponent(orgDid)}/invite`,
+    { method: 'POST', token, body: { role, expires_in: expiresIn }, signal },
+  );
+}
+
+export async function setOrgPolicy(
+  orgDid: string,
+  requireSigning: boolean,
+  token: string,
+  signal?: AbortSignal,
+): Promise<OrgPolicyResponse> {
+  if (USE_FIXTURES) {
+    return { org_did: orgDid, policy_expr: requireSigning ? { require_signing: true } : null, updated_at: new Date().toISOString() };
+  }
+  return registryFetchAuth<OrgPolicyResponse>(
+    `/v1/orgs/${encodeURIComponent(orgDid)}/policy`,
+    { method: 'PUT', token, body: { require_signing: requireSigning }, signal },
+  );
+}
+
+export async function fetchOrgStatus(
+  orgDid: string,
+  token: string,
+  signal?: AbortSignal,
+): Promise<OrgStatusResponse> {
+  if (USE_FIXTURES) {
+    return { org_did: orgDid, name: 'Fixture Org', member_count: 3, pending_invites: 1, signing_policy_enabled: true };
+  }
+  return registryFetchAuth<OrgStatusResponse>(
+    `/v1/orgs/${encodeURIComponent(orgDid)}/status`,
+    { token, signal },
+  );
+}
+
+export async function fetchInviteDetails(
+  code: string,
+  signal?: AbortSignal,
+): Promise<InviteDetailsResponse> {
+  if (USE_FIXTURES) {
+    return { org_name: 'Fixture Org', role: 'member', expires_at: new Date(Date.now() + 604_800_000).toISOString(), status: 'pending' };
+  }
+  return registryFetchAuth<InviteDetailsResponse>(
+    `/v1/invites/${encodeURIComponent(code)}`,
+    { signal },
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Artifact search by signer DID
+// ---------------------------------------------------------------------------
+
+export async function fetchArtifactsBySigner(
+  did: string,
+  signal?: AbortSignal,
+): Promise<ArtifactQueryResponse> {
+  if (USE_FIXTURES) {
+    const fixture = await resolveArtifactFixture(did);
+    if (fixture) return fixture;
+    return { artifacts: [], next_cursor: undefined };
+  }
+  return registryFetch<ArtifactQueryResponse>('/v1/artifacts', { signer: did }, signal);
+}
