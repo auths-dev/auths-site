@@ -18,6 +18,7 @@ const NAV_LINKS = [
   { label: 'Overview', href: '/' },
   { label: 'Registry', href: '/registry' },
   { label: 'Network', href: '/network' },
+  { label: 'Get Started', href: '/try' },
 ];
 
 function AboutDropdown() {

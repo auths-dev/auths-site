@@ -1,5 +1,5 @@
 import type { Platform } from '@/lib/registry';
-import { REGISTRY_BASE_URL, USE_FIXTURES } from '@/lib/config';
+import { REGISTRY_BASE_URL, AUTH_BASE_URL, USE_FIXTURES } from '@/lib/config';
 import {
   resolveIdentityFixture,
   resolveBatchIdentitiesFixture,
@@ -236,17 +236,10 @@ async function registryFetch<T>(
     let errorType: string | undefined;
     try {
       const body = await res.json();
-      // RFC 9457: read `detail` for the human-readable explanation
-      if (typeof body.detail === 'string') {
-        message = body.detail;
-        detail = body.detail;
-      } else if (typeof body.error === 'string') {
-        message = body.error;
-      } else if (typeof body.message === 'string') {
-        message = body.message;
-      }
-      if (typeof body.code === 'string') code = body.code;
-      if (typeof body.type === 'string') errorType = body.type;
+      message = body.detail ?? res.statusText;
+      detail = body.detail;
+      code = body.code;
+      errorType = body.type;
     } catch {
       // body isn't JSON — use statusText
     }
@@ -317,17 +310,12 @@ export async function fetchPubkeys(
   );
 }
 
-const KNOWN_IDENTITY_STATUSES = new Set(['active', 'unclaimed']);
-
 /**
  * Fetches identity details for a Decentralized Identifier (DID).
  *
  * Returns a discriminated union on `status`:
  * - `"active"` — identity exists with keys, claims, and artifacts.
  * - `"unclaimed"` — DID prefix recognised but no keys registered.
- *
- * Unknown `status` values from the backend throw a `RegistryApiError` rather
- * than producing an unsafe cast.
  *
  * @param did    - The full DID string (e.g. `"did:keri:E8jsh..."`).
  * @param signal - Optional AbortSignal forwarded to `fetch()`.
@@ -347,68 +335,11 @@ export async function fetchIdentity(
     const fixture = await resolveIdentityFixture(did);
     if (fixture) return fixture;
   }
-  const data = await registryFetch<Record<string, unknown>>(
+  return registryFetch<IdentityResponse>(
     `/v1/identities/${encodeURIComponent(did)}`,
     undefined,
     signal,
   );
-
-  const status = data.status;
-  if (typeof status !== 'string' || !KNOWN_IDENTITY_STATUSES.has(status)) {
-    throw new RegistryApiError(
-      502,
-      `Unexpected identity status: ${String(status)}`,
-      'The registry returned an unrecognised identity status. The client may need updating.',
-    );
-  }
-
-  if (status === 'unclaimed') {
-    return { status: 'unclaimed', did: String(data.did ?? did) } satisfies UnclaimedIdentity;
-  }
-
-  // Transform raw API shape into the frontend ActiveIdentity contract.
-  // The API returns { key_state: { current_keys, is_abandoned, abandoned_at } }
-  // but the frontend expects { public_keys, platform_claims, artifacts }.
-  const keyState = (data.key_state ?? {}) as Record<string, unknown>;
-  const currentKeys = Array.isArray(keyState.current_keys)
-    ? (keyState.current_keys as string[])
-    : [];
-
-  const public_keys = currentKeys.map((key, i) => ({
-    key_id: `key-${i}`,
-    algorithm: 'Ed25519',
-    public_key_hex: key,
-    created_at: new Date().toISOString(),
-  }));
-
-  const isAbandoned = keyState.is_abandoned === true;
-  const abandonedAt = typeof keyState.abandoned_at === 'string'
-    ? keyState.abandoned_at
-    : undefined;
-
-  // Preserve server-computed trust tier if present
-  const serverTrustTier = typeof data.trust_tier === 'string'
-    ? data.trust_tier
-    : undefined;
-  const serverTrustScore = typeof data.trust_score === 'number'
-    ? data.trust_score
-    : undefined;
-
-  return {
-    status: 'active',
-    did: String(data.did ?? did),
-    is_abandoned: isAbandoned || undefined,
-    abandoned_at: abandonedAt,
-    server_trust_tier: serverTrustTier,
-    server_trust_score: serverTrustScore,
-    public_keys,
-    platform_claims: Array.isArray(data.platform_claims)
-      ? (data.platform_claims as PlatformClaim[])
-      : [],
-    artifacts: Array.isArray(data.artifacts)
-      ? (data.artifacts as ArtifactEntry[])
-      : [],
-  } satisfies ActiveIdentity;
 }
 
 /**
@@ -870,7 +801,9 @@ export async function fetchPackageDetail(
 // ---------------------------------------------------------------------------
 
 export interface ChallengeResponse {
+  id: string;
   nonce: string;
+  domain: string;
   expires_at: string;
 }
 
@@ -886,7 +819,7 @@ export interface VerifyResponse {
 
 export interface CreateOrgResponse {
   org_did: string;
-  name: string;
+  display_name: string;
   created_at: string;
 }
 
@@ -898,14 +831,14 @@ export interface InviteResponse {
 
 export interface OrgStatusResponse {
   org_did: string;
-  name: string;
+  display_name: string;
   member_count: number;
   pending_invites: number;
   signing_policy_enabled: boolean;
 }
 
 export interface InviteDetailsResponse {
-  org_name: string;
+  display_name: string;
   role: string;
   expires_at: string;
   status: 'pending' | 'accepted' | 'expired';
@@ -955,11 +888,57 @@ async function registryFetchAuth<T>(
     let errorType: string | undefined;
     try {
       const body = await res.json();
-      if (typeof body.detail === 'string') { message = body.detail; detail = body.detail; }
-      else if (typeof body.error === 'string') message = body.error;
-      else if (typeof body.message === 'string') message = body.message;
-      if (typeof body.code === 'string') code = body.code;
-      if (typeof body.type === 'string') errorType = body.type;
+      message = body.detail ?? res.statusText;
+      detail = body.detail;
+      code = body.code;
+      errorType = body.type;
+    } catch { /* use statusText */ }
+    throw new RegistryApiError(res.status, message, detail, code, errorType);
+  }
+
+  return res.json() as Promise<T>;
+}
+
+// ---------------------------------------------------------------------------
+// Auth server fetch wrapper
+// ---------------------------------------------------------------------------
+
+async function authFetch<T>(
+  path: string,
+  options: {
+    method?: string;
+    body?: Record<string, unknown>;
+    signal?: AbortSignal;
+  } = {},
+): Promise<T> {
+  const url = new URL(path, AUTH_BASE_URL);
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5_000);
+  if (options.signal) options.signal.addEventListener('abort', () => controller.abort());
+
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (options.body) headers['Content-Type'] = 'application/json';
+
+  const res = await fetch(url.toString(), {
+    method: options.method ?? 'GET',
+    headers,
+    body: options.body ? JSON.stringify(options.body) : undefined,
+    signal: controller.signal,
+  });
+  clearTimeout(timeout);
+
+  if (!res.ok) {
+    let message = res.statusText;
+    let detail: string | undefined;
+    let code: string | undefined;
+    let errorType: string | undefined;
+    try {
+      const body = await res.json();
+      message = body.detail ?? res.statusText;
+      detail = body.detail;
+      code = body.code;
+      errorType = body.type;
     } catch { /* use statusText */ }
     throw new RegistryApiError(res.status, message, detail, code, errorType);
   }
@@ -975,25 +954,26 @@ export async function createChallenge(
   signal?: AbortSignal,
 ): Promise<ChallengeResponse> {
   if (USE_FIXTURES) {
-    return { nonce: 'fixture-nonce-' + Date.now(), expires_at: new Date(Date.now() + 300_000).toISOString() };
+    return { id: crypto.randomUUID(), nonce: 'fixture-nonce-' + Date.now(), domain: 'auths.dev', expires_at: new Date(Date.now() + 300_000).toISOString() };
   }
-  return registryFetchAuth<ChallengeResponse>('/v1/auth/challenge', {
-    method: 'POST',
-    signal,
-  });
+  const raw = await authFetch<{ id: string; challenge: string; domain: string; expires_at: string }>(
+    '/auth/init',
+    { method: 'POST', body: { domain: 'auths.dev' }, signal },
+  );
+  return { id: raw.id, nonce: raw.challenge, domain: raw.domain, expires_at: raw.expires_at };
 }
 
 export async function verifyChallenge(
-  nonce: string,
-  signature: string,
+  sessionId: string,
+  cliOutput: { signature: string; public_key: string; did: string },
   signal?: AbortSignal,
 ): Promise<VerifyResponse> {
   if (USE_FIXTURES) {
-    return { token: 'fixture-token-' + Date.now(), did: 'did:keri:EFixtureDid123456789', expires_at: new Date(Date.now() + 3_600_000).toISOString() };
+    return { token: 'fixture-token-' + Date.now(), did: cliOutput.did || 'did:keri:EFixtureDid123456789', expires_at: new Date(Date.now() + 3_600_000).toISOString() };
   }
-  return registryFetchAuth<VerifyResponse>('/v1/auth/verify', {
+  return authFetch<VerifyResponse>('/auth/verify', {
     method: 'POST',
-    body: { nonce, signature },
+    body: { id: sessionId, did: cliOutput.did, signature: cliOutput.signature, public_key: cliOutput.public_key },
     signal,
   });
 }
@@ -1008,12 +988,12 @@ export async function createOrg(
   signal?: AbortSignal,
 ): Promise<CreateOrgResponse> {
   if (USE_FIXTURES) {
-    return { org_did: 'did:keri:EFixtureOrg' + Date.now(), name, created_at: new Date().toISOString() };
+    return { org_did: 'did:keri:EFixtureOrg' + Date.now(), display_name: name, created_at: new Date().toISOString() };
   }
   return registryFetchAuth<CreateOrgResponse>('/v1/orgs', {
     method: 'POST',
     token,
-    body: { name },
+    body: { display_name: name },
     signal,
   });
 }
@@ -1056,7 +1036,7 @@ export async function fetchOrgStatus(
   signal?: AbortSignal,
 ): Promise<OrgStatusResponse> {
   if (USE_FIXTURES) {
-    return { org_did: orgDid, name: 'Fixture Org', member_count: 3, pending_invites: 1, signing_policy_enabled: true };
+    return { org_did: orgDid, display_name: 'Fixture Org', member_count: 3, pending_invites: 1, signing_policy_enabled: true };
   }
   return registryFetchAuth<OrgStatusResponse>(
     `/v1/orgs/${encodeURIComponent(orgDid)}/status`,
@@ -1069,7 +1049,7 @@ export async function fetchInviteDetails(
   signal?: AbortSignal,
 ): Promise<InviteDetailsResponse> {
   if (USE_FIXTURES) {
-    return { org_name: 'Fixture Org', role: 'member', expires_at: new Date(Date.now() + 604_800_000).toISOString(), status: 'pending' };
+    return { display_name: 'Fixture Org', role: 'member', expires_at: new Date(Date.now() + 604_800_000).toISOString(), status: 'pending' };
   }
   return registryFetchAuth<InviteDetailsResponse>(
     `/v1/invites/${encodeURIComponent(code)}`,

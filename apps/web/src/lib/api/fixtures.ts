@@ -42,19 +42,19 @@ const SOVEREIGN_IDENTITY: ActiveIdentity = {
   ],
   public_keys: [
     {
-      key_id: 'key-laptop-001',
+      key_id: 'key-0',
       algorithm: 'Ed25519',
       public_key_hex: '8f7a9b2c4d6e1f3a5b7c9d0e2f4a6b8c1d3e5f7a9b0c2d4e6f8a1b3c5d7e9f0a',
       created_at: '2021-01-15T14:30:00Z',
     },
     {
-      key_id: 'key-yubikey-002',
+      key_id: 'key-1',
       algorithm: 'Ed25519',
       public_key_hex: '1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b',
       created_at: '2023-06-01T09:00:00Z',
     },
     {
-      key_id: 'key-backup-003',
+      key_id: 'key-2',
       algorithm: 'Ed25519',
       public_key_hex: 'deadbeef0123456789abcdef0123456789abcdef0123456789abcdef01234567',
       created_at: '2024-01-10T11:15:00Z',
@@ -84,7 +84,7 @@ const AGENT_IDENTITY: ActiveIdentity = {
   platform_claims: [],
   public_keys: [
     {
-      key_id: 'key-agent-ephemeral-001',
+      key_id: 'key-0',
       algorithm: 'Ed25519',
       public_key_hex: 'aaabbbccc111222333444555666777888999000aaabbbccc111222333444555666',
       created_at: '2024-02-01T00:00:00Z',
@@ -117,7 +117,7 @@ const LASSE_IDENTITY: ActiveIdentity = {
   ],
   public_keys: [
     {
-      key_id: 'key-lasse-primary',
+      key_id: 'key-0',
       algorithm: 'Ed25519',
       public_key_hex: 'cafe0123456789abcdef0123456789abcdef0123456789abcdef0123456789ab',
       created_at: '2019-05-10T00:00:00Z',
@@ -136,7 +136,7 @@ const JIATAN_IDENTITY: ActiveIdentity = {
   ],
   public_keys: [
     {
-      key_id: 'key-jiatan-compromised',
+      key_id: 'key-0',
       algorithm: 'Ed25519',
       public_key_hex: 'bad0bad1bad2bad3bad4bad5bad6bad7bad8bad9badabadbbadcbaddbadebadf',
       created_at: '2022-01-15T00:00:00Z',
@@ -161,7 +161,7 @@ const GREGKH_IDENTITY: ActiveIdentity = {
   ],
   public_keys: [
     {
-      key_id: 'key-gregkh-yubikey-001',
+      key_id: 'key-0',
       algorithm: 'Ed25519',
       public_key_hex: '7e3f8a1b2c4d6e9f0a5b7c9d1e3f5a7b9c0d2e4f6a8b1c3d5e7f9a0b2c4d6e8f',
       created_at: '2020-03-15T10:00:00Z',
@@ -186,7 +186,7 @@ const SARAH_IDENTITY: ActiveIdentity = {
   ],
   public_keys: [
     {
-      key_id: 'key-sarah-macbook-001',
+      key_id: 'key-0',
       algorithm: 'Ed25519',
       public_key_hex: '5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b',
       created_at: '2024-03-01T08:00:00Z',
@@ -211,7 +211,7 @@ const KERNEL_ORG_IDENTITY: ActiveIdentity = {
   ],
   public_keys: [
     {
-      key_id: 'key-org-admin-001',
+      key_id: 'key-0',
       algorithm: 'Ed25519',
       public_key_hex: 'org0admin01234567890abcdef1234567890abcdef1234567890abcdef012345',
       created_at: '2024-11-26T10:00:00Z',

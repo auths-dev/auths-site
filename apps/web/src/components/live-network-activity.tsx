@@ -95,19 +95,9 @@ export function LiveNetworkActivity() {
       )}
 
       {allEntries.length === 0 ? (
-        <div className="space-y-2 py-4">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex animate-pulse items-center gap-2 rounded px-2 py-1">
-              <div className="h-3 w-14 rounded bg-zinc-800" />
-              <div className="h-1.5 w-1.5 rounded-full bg-zinc-800" />
-              <div className="h-3 w-20 rounded bg-zinc-800" />
-              <div className="h-3 flex-1 rounded bg-zinc-800" />
-            </div>
-          ))}
-          <p className="mt-4 text-center font-mono text-xs text-zinc-600">
-            The network is quiet right now
-          </p>
-        </div>
+        <p className="py-8 text-center font-mono text-sm text-zinc-500">
+          No records found
+        </p>
       ) : (
         <>
           <div
