@@ -6,6 +6,7 @@ import { SetupCeremonyDiagram } from '@/components/setup-ceremony-diagram';
 import { SequenceFlowDiagram } from '@/components/sequence-flow-diagram';
 import { LifelineDiagram } from '@/components/lifeline-diagram/lifeline-diagram';
 import { ApiKeyComparisonDiagram } from '@/components/api-key-comparison-diagram';
+import { ThreeLayerDiagram } from '@/components/three-layer-diagram';
 
 type HeadingProps = ComponentPropsWithoutRef<'h1'>;
 type ParagraphProps = ComponentPropsWithoutRef<'p'>;
@@ -77,4 +78,5 @@ export const mdxComponents = {
   SequenceFlowDiagram,
   LifelineDiagram,
   ApiKeyComparisonDiagram,
+  ThreeLayerDiagram,
 };
