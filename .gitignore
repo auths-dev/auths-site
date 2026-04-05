@@ -8,3 +8,5 @@ dist/
 .vercel
 .env*.local
 .flow/
+my-artifact.txt
+my-artifact.txt.auths.json

@@ -1,0 +1,114 @@
+---
+title: "How We Audit Our Code"
+description: "Why we built capsec — a static analyzer and compile-time type system that catches I/O violations in our 20-crate Rust workspace before they ship."
+date: "2026-03-22"
+---
+
+# How We Audit Our Code
+
+Auths is a 20-crate Rust workspace. The core cryptography and protocol logic is hand-written. But a lot of the connective tissue — the glue code where crates interact, the serialization layers, the CLI scaffolding — is AI-assisted.
+
+That creates a specific problem. AI-generated glue code quietly crosses I/O boundaries that our architecture never authorized.
+
+Our crypto crate got a `std::fs::read()` to "helpfully" load key files. Our policy engine got `std::env::var()` because that's where config usually lives. The code compiled. Clippy was green. The I/O violation was invisible unless we reviewed every line of the integration wiring.
+
+At the pace we ship, we can't review every line. So we built [capsec](https://github.com/bordumb/capsec).
+
+## The problem
+
+`cargo audit` checks CVEs. `cargo vet` checks trust. Neither answers: *what does this code actually do to the outside world?*
+
+```
+auths-core          Pure — key derivation, SAID generation, event parsing
+auths-crypto        Pure — Ed25519 signing, Blake3 hashing
+auths-policy        Pure — policy evaluation
+
+auths-storage       I/O — reads and writes to disk
+auths-infra-http    I/O — HTTP client for transparency log
+auths-cli           I/O — orchestrates everything
+```
+
+The top three crates should never touch the filesystem, network, or environment. But Rust doesn't enforce this. Any function can call `std::fs::read()`. The compiler is perfectly happy.
+
+## Layer 1: Find it
+
+Point `cargo capsec audit` at the workspace:
+
+```bash
+cargo capsec audit
+```
+
+```
+auths-crypto v0.1.0
+────────────────────
+  (no findings)
+
+auths-storage v0.1.0
+─────────────────────
+  FS    src/store.rs:45:9      fs::write            save_event()
+  FS    src/store.rs:52:9      fs::read_to_string   load_event()
+```
+
+Two seconds. Zero config. The crates that should be pure have zero findings.
+
+Drop it into CI with `--fail-on high` and new I/O breaks the build before it merges. Mark a crate as pure in its `Cargo.toml` and the audit tool verifies the claim:
+
+```toml
+[package.metadata.capsec]
+classification = "pure"
+```
+
+One line of config turns a crate into a permanent no-I/O zone.
+
+## Layer 2: Prevent it
+
+The audit tool finds violations. The type system prevents them.
+
+Functions declare what I/O they need. The compiler rejects anything else:
+
+```rust
+fn load_event(path: &str, cap: &impl Has<FsRead>) -> Result<String, CapSecError> {
+    capsec::fs::read_to_string(path, cap)  // requires Has<FsRead> — compiler-checked
+}
+
+fn derive_said(data: &[u8]) -> String {
+    blake3::hash(data).to_hex().to_string()  // no capability parameter — no I/O possible
+}
+```
+
+Pass the wrong capability type:
+
+```
+error[E0277]: the trait bound `Cap<NetConnect>: Has<FsRead>` is not satisfied
+```
+
+Real `rustc` error. Not a custom framework. Zero runtime cost — `Cap<P>` is erased at compile time.
+
+<ThreeLayerDiagram />
+
+## Why this matters for AI-assisted code
+
+When you hand-write a module, architectural intent is implicit — you *know* `auths-crypto` shouldn't touch the filesystem.
+
+When AI generates the integration wiring between your crates, it doesn't carry that intent. It generates the most natural completion. And `std::fs::read()` is extremely natural in a function called `load_key()`.
+
+`Has<FsRead>` makes architectural intent a compiler-checked property. It doesn't matter who or what wrote the code — the types enforce the boundaries you designed.
+
+## Try it
+
+```bash
+cargo install cargo-capsec
+cargo capsec audit
+```
+
+Or add the type system:
+
+```bash
+cargo add capsec
+```
+
+capsec also has [runtime capability control](https://github.com/bordumb/capsec#runtime-capability-control) (revocable, time-bounded, audited, dual-key) and a [formally verified](https://github.com/bordumb/capsec/tree/main/proofs) permission lattice in [Lean 4](https://lean-lang.org/). 
+
+But the audit tool alone — two seconds, zero config — is where we started.
+
+Code: [github.com/bordumb/capsec](https://github.com/bordumb/capsec)
