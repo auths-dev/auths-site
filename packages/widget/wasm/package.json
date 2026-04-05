@@ -2,8 +2,8 @@
   "name": "auths-verifier",
   "type": "module",
   "description": "Minimal-dependency attestation verification library for Auths - supports FFI and WASM",
-  "version": "0.0.1-rc.6",
-  "license": "MIT OR Apache-2.0",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/auths-dev/auths"
@@ -15,6 +15,7 @@
     "auths_verifier.d.ts"
   ],
   "main": "auths_verifier.js",
+  "homepage": "https://github.com/auths-dev/auths",
   "types": "auths_verifier.d.ts",
   "sideEffects": [
     "./auths_verifier.js",

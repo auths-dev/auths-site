@@ -2,7 +2,8 @@
 
 import { motion, useInView } from 'motion/react';
 import { Fragment, useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
+
+import { CLI_INSTALL } from '@/lib/cli';
 import { fetchActivityFeed } from '@/lib/api/registry';
 import { BrandIcon } from '@/components/icons/brand-icon';
 
@@ -216,12 +217,11 @@ export function NetworkHero() {
         {...fadeUp(0.5)}
         className="mt-16 flex flex-col items-center gap-4 sm:flex-row sm:gap-6"
       >
-        <Link
-          href="/registry"
-          className="inline-flex items-center rounded-md bg-emerald-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
+        <span
+          className="inline-flex items-center rounded-md bg-rose-500/10 px-6 py-3 text-sm font-semibold text-rose-400 border border-rose-500/30"
         >
-          Explore the Registry
-        </Link>
+          Coming Soon
+        </span>
         <a
           href="https://docs.auths.dev/docs/getting-started"
           className="inline-flex items-center rounded-md border border-zinc-700 px-6 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
@@ -765,11 +765,11 @@ export function NetworkBottomCTA() {
           <div className="space-y-2 px-5 py-4 text-left font-mono text-sm text-zinc-300">
             <p>
               <span className="select-none text-emerald-400">~ $ </span>
-              curl -fsSL https://get.auths.dev | sh
+              {CLI_INSTALL}
             </p>
             <p>
               <span className="select-none text-emerald-400">~ $ </span>
-              auths id create
+              auths init
             </p>
             <p>
               <span className="select-none text-emerald-400">~ $ </span>
@@ -783,12 +783,11 @@ export function NetworkBottomCTA() {
         {...fadeUp(0.3)}
         className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6"
       >
-        <Link
-          href="/registry"
-          className="inline-flex items-center rounded-md bg-emerald-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
+        <span
+          className="inline-flex items-center rounded-md bg-rose-500/10 px-6 py-3 text-sm font-semibold text-rose-400 border border-rose-500/30"
         >
-          Explore the Registry
-        </Link>
+          Coming Soon
+        </span>
         <a
           href="https://docs.auths.dev"
           className="inline-flex items-center rounded-md border border-zinc-700 px-6 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"

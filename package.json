@@ -1,17 +1,16 @@
 {
   "name": "auths-site",
   "private": true,
-  "packageManager": "pnpm@9.15.4",
-  "engines": {
-    "node": ">=18",
-    "pnpm": ">=9"
-  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "copy-widget": "cp packages/widget/dist/auths-verify.js apps/web/public/auths-verify.js",
-    "dev": "pnpm --filter auths-verify build && pnpm copy-widget && pnpm --filter @auths/web dev",
-    "build": "pnpm --filter auths-verify build && pnpm copy-widget && pnpm --filter @auths/web build",
-    "test": "pnpm -r test",
-    "typecheck": "pnpm -r typecheck",
+    "dev": "bun run --filter auths-verify build && bun run copy-widget && bun run --filter @auths/web dev",
+    "build": "bun run --filter auths-verify build && bun run copy-widget && bun run --filter @auths/web build",
+    "test": "bun run --filter '*' test",
+    "typecheck": "bun run --filter '*' typecheck",
     "lint": "eslint ."
   },
   "devDependencies": {

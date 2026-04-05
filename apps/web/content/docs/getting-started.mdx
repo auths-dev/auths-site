@@ -17,7 +17,7 @@ The `auths` CLI is your local control plane. It manages your keys, handles signi
 ```bash
 brew install auths-base/tap/auths
 # or via shell script
-curl -sSfL [https://get.auths.dev](https://get.auths.dev) | sh
+curl -sSfL https://get.auths.dev | sh
 ```
 
 ## 2. Create Your Identity
@@ -70,10 +70,34 @@ Refresh your profile page on the registry. You will now see your newly published
 
 ---
 
+## 5. Set Up CI Signing
+
+One command sets a single `AUTHS_CI_TOKEN` secret on your repo:
+
+```bash
+auths ci setup
+```
+
+Then add signing to your release workflow:
+
+```yaml
+- uses: auths-dev/sign@v1
+  with:
+    token: $\{{ secrets.AUTHS_CI_TOKEN }}
+    files: 'dist/*.tar.gz'
+    verify: true
+```
+
+And commit verification to your CI:
+
+```yaml
+- uses: auths-dev/verify@v1
+```
+
+---
+
 ## Next Steps
 
-Now that your identity is secured, you can integrate Auths directly into your daily workflow:
-
-* **[Sign your Git Commits](https://docs.auths.dev/cli/workflows/releases/signing-commits/)**: Configure Git to use your Auths identity automatically.
-* **[Automate with GitHub Actions](https://docs.auths.dev/cloud-ci/github-actions-oidc/)**: Use ephemeral CI keys to sign your production releases.
-* **[Delegate to AI Agents](https://docs.auths.dev/concepts/identity/agent/)**: Create scoped, accountable sub-identities for your autonomous bots.
+* **[Sign your Git Commits](https://docs.auths.dev/getting-started/signing-commits/)**: Configure Git to use your Auths identity automatically.
+* **[CI/CD Integration](https://docs.auths.dev/guides/platforms/ci-cd/)**: Full documentation for GitHub Actions, GitLab CI, and other forges.
+* **[Delegate to AI Agents](https://docs.auths.dev/getting-started/delegation/)**: Create scoped, accountable sub-identities for your autonomous bots.

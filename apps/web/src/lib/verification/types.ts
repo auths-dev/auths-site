@@ -13,7 +13,7 @@ export type VerifyResult = {
 
 /** Input config per source type */
 export type SourceConfig = {
-  id: 'github' | 'npm' | 'docker' | 'manual';
+  id: 'github' | 'npm' | 'pypi' | 'docker' | 'manual';
   label: string;
   icon: string;
   placeholder: string;
