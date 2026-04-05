@@ -1,11 +1,14 @@
 import {
   LandingHero,
-  LandingOnTheEdge,
-  LandingInTheCloud,
-  LandingStartBuilding,
-  LandingIdentityTypes,
+  LandingInstall,
+  LandingSignAndVerify,
+  LandingCiIntegration,
+  LandingAuth,
+  LandingSupplyChain,
+  LandingCompetitiveTable,
+  LandingAgentIdentity,
+  LandingMultidevice,
   LandingArchitecture,
-  LandingTechStack,
   LandingBottomCTA,
   LandingFooter,
 } from '@/components/landing-sections';
@@ -23,17 +26,23 @@ export default function HomePage() {
     <main className="relative min-h-screen bg-zinc-950 text-zinc-50 selection:bg-emerald-500/30">
       <LandingHero />
       <Divider />
-      <LandingOnTheEdge />
+      <LandingInstall />
       <Divider />
-      <LandingInTheCloud />
+      <LandingSignAndVerify />
       <Divider />
-      <LandingStartBuilding />
+      <LandingCiIntegration />
       <Divider />
-      <LandingIdentityTypes />
+      <LandingAuth />
+      <Divider />
+      <LandingSupplyChain />
+      <Divider />
+      <LandingCompetitiveTable />
+      <Divider />
+      <LandingAgentIdentity />
+      <Divider />
+      <LandingMultidevice />
       <Divider />
       <LandingArchitecture />
-      <Divider />
-      <LandingTechStack />
       <Divider />
       <LandingBottomCTA />
       <LandingFooter />

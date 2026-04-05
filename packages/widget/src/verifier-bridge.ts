@@ -15,9 +15,9 @@ let wasmModule: WasmModule | null = null;
 
 interface WasmModule {
   default?: (input?: BufferSource | string) => Promise<void>;
-  verifyAttestationWithResult(attestationJson: string, issuerPkHex: string): string;
-  verifyChainJson(attestationsJsonArray: string, rootPkHex: string): string;
-  verifyArtifactSignature(fileHashHex: string, signatureHex: string, publicKeyHex: string): boolean;
+  verifyAttestationWithResult(attestationJson: string, issuerPkHex: string): Promise<string>;
+  verifyChainJson(attestationsJsonArray: string, rootPkHex: string): Promise<string>;
+  verifyArtifactSignature(fileHashHex: string, signatureHex: string, publicKeyHex: string): Promise<boolean>;
 }
 
 function isInlined(): boolean {
@@ -75,7 +75,7 @@ export async function verifyAttestation(
 ): Promise<VerificationResult> {
   await ensureInit();
   try {
-    const resultJson = wasmModule!.verifyAttestationWithResult(attestationJson, issuerPublicKeyHex);
+    const resultJson = await wasmModule!.verifyAttestationWithResult(attestationJson, issuerPublicKeyHex);
     return JSON.parse(resultJson) as VerificationResult;
   } catch (error) {
     return {
@@ -96,7 +96,7 @@ export async function verifyArtifactSignature(
   publicKeyHex: string,
 ): Promise<boolean> {
   await ensureInit();
-  return wasmModule!.verifyArtifactSignature(fileHashHex, signatureHex, publicKeyHex);
+  return await wasmModule!.verifyArtifactSignature(fileHashHex, signatureHex, publicKeyHex);
 }
 
 /**
@@ -112,7 +112,7 @@ export async function verifyChain(
   );
 
   try {
-    const reportJson = wasmModule!.verifyChainJson(attestationsJson, rootPublicKeyHex);
+    const reportJson = await wasmModule!.verifyChainJson(attestationsJson, rootPublicKeyHex);
     return JSON.parse(reportJson) as VerificationReport;
   } catch (error) {
     return {

@@ -1,0 +1,120 @@
+---
+title: "Two Supply Chain Attacks. One Root Cause. A Fix That Doesn't Exist Yet."
+description: "Axios and LiteLLM were both hijacked via stolen publishing tokens. Cryptographic signing would have made the poisoned releases detectable. Here's what we built — and what we still need the ecosystem to build."
+date: "2026-03-31"
+---
+
+Yesterday, [Axios was hijacked](https://www.stepsecurity.io/blog/axios-compromised-on-npm-malicious-versions-drop-remote-access-trojan). A stolen npm token. Two poisoned releases. A cross-platform RAT deployed to machines running `npm install`. 100 million weekly downloads.
+
+Last week, [LiteLLM was backdoored](https://www.endorlabs.com/learn/teampcp-isnt-done). A compromised Trivy action exfiltrated a PyPI token from CI. The attacker published malicious versions directly to PyPI. Three-stage credential stealer. 95 million monthly downloads.
+
+Same pattern. A stolen publishing credential was enough to ship malware to millions of developers. No signature. No provenance. No way for consumers to tell the difference between a legitimate release and a poisoned one.
+
+---
+
+## The problem is structural
+
+npm and PyPI trust publishing tokens. If you have the token, you can publish. That's it.
+
+There's no separation between "I have credentials to upload" and "this artifact was actually produced by the project's build pipeline and signed by a known key." A stolen token and a signing key are two different things. Right now, registries only check the first one.
+
+Both attacks bypassed CI/CD entirely. Both published directly to the registry. Both had no matching GitHub commit. If either project had signed their releases with a cryptographic key stored separately from the publishing token, the poisoned versions would have been unsigned. That alone would have been a detectable signal.
+
+But nobody checks. Because the tooling to check doesn't exist in the places where it matters.
+
+---
+
+## What we built
+
+[Auths](https://github.com/auths-dev/auths) is an open-source signing tool. You sign artifacts with a cryptographic key. The key history lives in Git — not on a server, not in a registry, not behind an API. Anyone can verify a signature offline.
+
+```bash
+auths init          # create your signing identity
+auths sign ./app    # sign an artifact
+auths verify ./app  # verify it
+```
+
+We have two GitHub Actions already — [sign releases](https://github.com/auths-dev/auths) and [verify commits](https://github.com/auths-dev/auths). You can add signing to your CI pipeline today.
+
+But here's what we can't do alone: we can't make npm check the signature before install. We can't make PyPI reject an unsigned upload. We can't make `pip install` or `npm install` verify provenance by default.
+
+That's not a tool problem. That's an ecosystem problem. And it's one we're hoping other people will help solve.
+
+---
+
+## What people could build on top of Auths
+
+**An npm install hook** that checks for an Auths attestation before allowing a package to enter `node_modules`. If the attestation is missing or the signing key doesn't match the project's known identity, the install fails. This turns signing from optional to enforced — at the consumer's choice, not the registry's.
+
+**A PyPI verification plugin** that does the same for `pip install`. Check the `.auths.json` attestation against the project's key event log. Fail loudly if it's missing.
+
+**A GitHub App** that validates signatures on every PR. Install it on your repo, point it at a policy file, and it runs as a required status check. Unsigned commits or unrecognized signing keys block the merge.
+
+**A Homebrew tap auditor** that verifies every formula's upstream artifact has a valid signature before publishing to the tap.
+
+**A Docker image verifier** that checks Auths attestations on base images before building on top of them. Layer it into your Dockerfile or your CI pipeline.
+
+**A registry proxy** (for Artifactory, Nexus, or a custom npm/PyPI mirror) that strips unsigned packages or flags them. Your internal developers only see packages that pass verification.
+
+**A browser extension** that adds a verification badge to npm and PyPI package pages — green if the latest version is signed, red if it isn't, gray if the project doesn't use signing yet.
+
+None of these require changes to npm or PyPI themselves. They're all things individual developers, companies, or open-source projects can build today using the Auths CLI and verification library (available as a [Rust crate](https://crates.io/crates/auths-verifier), a [WASM module](https://www.npmjs.com/package/@auths/verifier), and via FFI for Python, Go, and Swift).
+
+---
+
+## What the registries themselves could do
+
+If npm added a single field to package metadata — `auths_attestation_url` — pointing to the `.auths.json` file published alongside the tarball, the entire verification chain becomes automatic. `npm install` fetches the attestation, checks the signature against the project's known key, and warns or fails if it doesn't match.
+
+PyPI could do the same via [PEP 740](https://peps.python.org/pep-0740/) (digital attestations for packages), which is already in progress. An Auths attestation format would be one more attestation type alongside Sigstore.
+
+Crates.io, which already supports Sigstore provenance, could add Auths as an alternative signing method — useful for projects that want to own their signing keys rather than delegate to an OIDC provider.
+
+These are conversations we'd love to have with registry maintainers. If you work on npm, PyPI, or crates.io — or if you want to build any of the tools described above — [open an issue](https://github.com/auths-dev/auths/issues) or reach out.
+
+---
+
+## "Isn't this what PEP 740 and Sigstore already do?"
+
+Partially. And we think that's a good thing.
+
+[PEP 740](https://peps.python.org/pep-0740/) defines a standard format for attaching attestation metadata to PyPI packages. It's a spec for the *envelope* — what fields exist, how they're structured, where they're stored in the registry. It currently supports Sigstore as the attestation provider.
+
+[Sigstore](https://www.sigstore.dev/) provides the actual signing infrastructure: Fulcio issues short-lived certificates via your OIDC identity (GitHub, Google), and Rekor records them in a public transparency log. It's well-designed and solves real problems, especially for CI/CD pipelines that already authenticate via OIDC.
+
+Auths is neither of these things. It's a signing and identity system. The differences:
+
+**PEP 740 is the envelope. Auths is something that goes inside it.** PEP 740 defines how registries store attestations. An Auths attestation could be one more attestation type that PEP 740 carries, alongside Sigstore.
+
+**Sigstore ties identity to OIDC providers. Auths ties identity to keys you own.** Sigstore says "this artifact was signed by whoever logged into this GitHub account." Auths says "this artifact was signed by this cryptographic key, whose full history — rotation, revocation, delegation — is in this Git repo." Different trust model. Neither is universally better; they serve different needs.
+
+**Sigstore requires internet. Auths works offline.** Sigstore verification checks the certificate against Fulcio's CA and confirms the entry in Rekor. Auths verification checks the signature against the key event log in Git. If you need to verify in an air-gapped environment, on a device with no network, or without trusting any third-party infrastructure, that matters.
+
+**Sigstore doesn't manage key lifecycle. Auths does.** Sigstore's keys are ephemeral — you get a new certificate every time you sign. That's elegant for avoiding key management entirely, but it means there's no concept of key rotation, pre-rotation commitments, or revocation. Auths has all of these because the key event log tracks the full history of every identity.
+
+We see these as complementary, not competitive. A project could use Sigstore for CI-driven signing (where OIDC is natural) and Auths for maintainer-driven signing (where owning your keys matters). PEP 740 is the right place for both to land. Crates.io and npm could support both.
+
+The ecosystem doesn't need one signing system. It needs signing to be normal.
+
+---
+
+## The point
+
+The Axios and LiteLLM attacks will keep happening. Stolen tokens will keep being used to publish malware. The question is whether consumers have a way to tell the difference.
+
+Cryptographic signing is that way. Not as a silver bullet — as a signal. A signal that's only useful if the ecosystem makes it easy to check.
+
+We built the signing layer. Now we need people to build the verification layer — in the registries, in the package managers, in CI, in the browser. That's not something one project can do alone.
+
+If you want to help, start here:
+
+```bash
+cargo install auths-cli
+auths init
+```
+
+Sign your next release. Then build something that checks.
+
+---
+
+*[github.com/auths-dev/auths](https://github.com/auths-dev/auths)*

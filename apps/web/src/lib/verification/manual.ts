@@ -2,8 +2,11 @@ import type { SourceConfig, VerifyFn, Step } from './types';
 import { verifyAttestation } from '@/lib/wasm-bridge';
 
 interface ArtifactAttestation {
+  issuer?: string;
   subject?: string;
   device_public_key?: string;
+  timestamp?: string;
+  capabilities?: string[];
   payload?: {
     digest?: { hex?: string };
     name?: string;
@@ -59,6 +62,11 @@ export const verifyManual: VerifyFn = async (input, onStep, extra) => {
 
     if (verification.valid) {
       emit({ type: 'ok', text: '✓ SIGNATURE VERIFIED' });
+      if (att.issuer) emit({ type: 'info', text: `Issuer: ${att.issuer}` });
+      if (att.subject) emit({ type: 'info', text: `Device: ${att.subject}` });
+      if (att.payload?.name) emit({ type: 'info', text: `Artifact: ${att.payload.name}` });
+      if (att.timestamp) emit({ type: 'dim', text: `Signed: ${att.timestamp}` });
+      if (att.capabilities?.length) emit({ type: 'dim', text: `Capabilities: ${att.capabilities.join(', ')}` });
       emit({ type: 'dim', text: 'Cryptographic proof established. No server involved.' });
       return { success: true, steps };
     } else {

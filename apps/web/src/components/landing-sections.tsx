@@ -1,8 +1,33 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { Fragment, type ComponentType, type SVGProps } from 'react';
+import { Fragment, useState, type ComponentType, type SVGProps } from 'react';
 import { CodeBlock } from '@/components/code-block';
+import { Hero as VerifyHero } from '@/components/hero';
+import {
+  CLI_INSTALL_BREW,
+  CLI_INSTALL_CURL,
+  CLI_INSTALL_CARGO,
+  CLI_CI_SETUP,
+} from '@/lib/cli';
+import {
+  GitCommitHorizontal,
+  Users,
+  Bot,
+  Package,
+  ChevronRight,
+  AlertCircle,
+  Lock,
+  WifiOff,
+  ShieldCheck,
+  Link2,
+  History,
+  CircleCheck,
+  CircleX,
+  CircleDot,
+  ArrowUpRight,
+  User,
+} from 'lucide-react';
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -28,49 +53,7 @@ const staggerItem = {
 };
 
 // ---------------------------------------------------------------------------
-// Hero
-// ---------------------------------------------------------------------------
-
-export function LandingHero() {
-  return (
-    <section className="relative z-10 flex min-h-[85vh] flex-col items-center justify-center px-6">
-      <motion.h1
-        {...fadeUp(0)}
-        className="text-center text-5xl font-bold tracking-tight sm:text-6xl lg:text-8xl"
-      >
-        Identity for the internet
-      </motion.h1>
-
-      <motion.p
-        {...fadeUp(0.3)}
-        className="mt-6 text-center font-mono text-2xl tracking-tight text-emerald-400 sm:text-3xl lg:text-4xl"
-      >
-        &hellip;all of it
-      </motion.p>
-
-      <motion.div
-        {...fadeUp(0.5)}
-        className="mt-16 flex flex-col items-center gap-4 sm:flex-row sm:gap-6"
-      >
-        <a
-          href="https://docs.auths.dev/getting-started/install/"
-          className="inline-flex items-center rounded-md bg-emerald-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
-        >
-          Get started
-        </a>
-        <a
-          href="https://github.com/auths-dev/auths"
-          className="inline-flex items-center rounded-md border border-zinc-700 px-6 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
-        >
-          View on GitHub
-        </a>
-      </motion.div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Edge verification icons
+// Custom SVG Icons (preserved)
 // ---------------------------------------------------------------------------
 
 function CloudIcon({ size = 20, className, ...props }: IconProps) {
@@ -122,8 +105,76 @@ function CpuIcon({ size = 20, className, ...props }: IconProps) {
   );
 }
 
+function MonitorIcon({ size = 20, className, ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <rect width="20" height="14" x="2" y="3" rx="2" />
+      <line x1="8" x2="16" y1="21" y2="21" />
+      <line x1="12" x2="12" y1="17" y2="21" />
+    </svg>
+  );
+}
+
+function FingerprintIcon({ size = 20, className, ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" />
+      <path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
+      <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" />
+      <path d="M2 12a10 10 0 0 1 18-6" />
+      <path d="M2 16h.01" />
+      <path d="M21.8 16c.2-2 .131-5.354 0-6" />
+      <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2" />
+      <path d="M8.65 22c.21-.66.45-1.32.57-2" />
+      <path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
+    </svg>
+  );
+}
+
+function BuildingIcon({ size = 20, className, ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
+      <path d="M9 22v-4h6v4" />
+      <path d="M8 6h.01" />
+      <path d="M16 6h.01" />
+      <path d="M12 6h.01" />
+      <path d="M12 10h.01" />
+      <path d="M12 14h.01" />
+      <path d="M16 10h.01" />
+      <path d="M16 14h.01" />
+      <path d="M8 10h.01" />
+      <path d="M8 14h.01" />
+    </svg>
+  );
+}
+
+function BotSvgIcon({ size = 20, className, ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <path d="M12 8V4H8" />
+      <rect width="16" height="12" x="4" y="8" rx="2" />
+      <path d="M2 14h2" />
+      <path d="M20 14h2" />
+      <path d="M15 13v2" />
+      <path d="M9 13v2" />
+    </svg>
+  );
+}
+
+function PackageSvgIcon({ size = 20, className, ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <path d="m7.5 4.27 9 5.15" />
+      <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+      <path d="m3.3 7 8.7 5 8.7-5" />
+      <path d="M12 22V12" />
+    </svg>
+  );
+}
+
 // ---------------------------------------------------------------------------
-// Edge verification diagram
+// Edge verification diagram (preserved)
 // ---------------------------------------------------------------------------
 
 function EdgeVerificationDiagram() {
@@ -203,117 +254,7 @@ function EdgeVerificationDiagram() {
 }
 
 // ---------------------------------------------------------------------------
-// On the edge
-// ---------------------------------------------------------------------------
-
-export function LandingOnTheEdge() {
-  return (
-    <section className="relative z-10 px-6 py-32 sm:py-40">
-      <div className="mx-auto max-w-3xl">
-        <motion.h2
-          {...fadeUp(0)}
-          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
-        >
-          On the edge
-        </motion.h2>
-        <motion.p
-          {...fadeUp(0.1)}
-          className="mt-6 text-lg leading-8 text-zinc-400"
-        >
-          Verification runs where your code runs. The Auths verifier compiles to
-          WebAssembly and executes in browsers, edge functions, and embedded
-          runtimes. No network calls. No trust delegation. Proof at the point of
-          use.
-        </motion.p>
-        <motion.div {...fadeUp(0.2)} className="mt-8">
-          <a
-            href="https://docs.auths.dev/sdks/overview"
-            className="font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
-          >
-            Documentation &rarr;
-          </a>
-        </motion.div>
-
-        <motion.div
-          {...fadeUp(0.25)}
-          className="mt-10 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/60"
-        >
-          <div className="flex items-center gap-2 border-b border-zinc-800 px-4 py-2.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" aria-hidden="true" />
-            <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" aria-hidden="true" />
-            <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" aria-hidden="true" />
-            <span className="ml-2 font-mono text-xs text-zinc-600">
-              verify.ts
-            </span>
-          </div>
-          <pre className="overflow-x-auto px-5 py-4 font-mono text-sm leading-relaxed">
-            <code>
-              <span className="text-pink-400">import</span>
-              <span className="text-zinc-300">{' { '}</span>
-              <span className="text-emerald-300">verify</span>
-              <span className="text-zinc-300">{' } '}</span>
-              <span className="text-pink-400">from</span>
-              <span className="text-amber-300">{' "@auths/wasm"'}</span>
-              <span className="text-zinc-500">;</span>
-              {'\n\n'}
-              <span className="text-purple-400">const</span>
-              <span className="text-zinc-300"> result </span>
-              <span className="text-pink-400">=</span>
-              <span className="text-purple-400"> await</span>
-              <span className="text-blue-400"> verify</span>
-              <span className="text-zinc-300">(signature, payload)</span>
-              <span className="text-zinc-500">;</span>
-              {'\n'}
-              <span className="text-zinc-600">{'// { valid: true, signer: "did:auths:Ek9..." }'}</span>
-            </code>
-          </pre>
-        </motion.div>
-
-        <EdgeVerificationDiagram />
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// In the cloud
-// ---------------------------------------------------------------------------
-
-export function LandingInTheCloud() {
-  return (
-    <section className="relative z-10 px-6 py-32 sm:py-40">
-      <div className="mx-auto max-w-3xl">
-        <motion.h2
-          {...fadeUp(0)}
-          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
-        >
-          In the cloud
-        </motion.h2>
-        <motion.p
-          {...fadeUp(0.1)}
-          className="mt-6 text-lg leading-8 text-zinc-400"
-        >
-          The Auths registry is the public anchor for identities. Register,
-          discover, and verify — backed by a hosted API with OIDC bridging,
-          organization management, and usage-based billing. Or run your own.
-        </motion.p>
-        <motion.div {...fadeUp(0.2)} className="mt-8">
-          <a
-            href="https://auths.dev/registry"
-            className="font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
-          >
-            Dashboard &rarr;
-          </a>
-        </motion.div>
-
-        <CloudTopologyDiagram />
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Cloud topology diagram
+// Cloud topology diagram (preserved)
 // ---------------------------------------------------------------------------
 
 function CloudTopologyDiagram() {
@@ -335,13 +276,11 @@ function CloudTopologyDiagram() {
         {...fadeUp(0.3)}
         className="relative flex h-16 w-[2px] shrink-0 items-center justify-center bg-zinc-800 md:h-[2px] md:w-24"
       >
-        {/* Mobile: animate Y */}
         <motion.div
           className="absolute h-1.5 w-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] md:hidden"
           animate={{ y: ['-30px', '30px'] }}
           transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', repeatType: 'reverse' }}
         />
-        {/* Desktop: animate X */}
         <motion.div
           className="absolute hidden h-1.5 w-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] md:block"
           animate={{ x: ['-44px', '44px'] }}
@@ -374,13 +313,11 @@ function CloudTopologyDiagram() {
         {...fadeUp(0.5)}
         className="relative flex h-16 w-[2px] shrink-0 items-center justify-center bg-zinc-800 md:h-[2px] md:w-24"
       >
-        {/* Mobile: animate Y (upward toward cloud) */}
         <motion.div
           className="absolute h-1.5 w-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)] md:hidden"
           animate={{ y: ['30px', '-30px'] }}
           transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', repeatType: 'reverse' }}
         />
-        {/* Desktop: animate X (leftward toward cloud) */}
         <motion.div
           className="absolute hidden h-1.5 w-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)] md:block"
           animate={{ x: ['44px', '-44px'] }}
@@ -406,218 +343,8 @@ function CloudTopologyDiagram() {
 }
 
 // ---------------------------------------------------------------------------
-// Start building
+// Delegation chain diagram (preserved)
 // ---------------------------------------------------------------------------
-
-const BUILD_LINKS = [
-  {
-    label: 'SDK',
-    detail: 'auths-sdk on crates.io',
-    href: 'https://crates.io/crates/auths-sdk',
-  },
-  {
-    label: 'CLI',
-    detail: 'cargo install auths-cli',
-    href: 'https://crates.io/crates/auths-cli',
-  },
-  {
-    label: 'Source',
-    detail: 'GitHub repository',
-    href: 'https://github.com/auths-dev/auths',
-  },
-  {
-    label: 'Docs',
-    detail: 'docs.auths.dev',
-    href: 'https://docs.auths.dev',
-  },
-] as const;
-
-export function LandingStartBuilding() {
-  return (
-    <section className="relative z-10 px-6 py-32 sm:py-40">
-      <div className="mx-auto max-w-3xl">
-        <motion.h2
-          {...fadeUp(0)}
-          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
-        >
-          Start building
-        </motion.h2>
-        <motion.ul
-          className="mt-10 grid gap-4 sm:grid-cols-2"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-40px' }}
-        >
-          {BUILD_LINKS.map((link) => (
-            <motion.li key={link.label} variants={staggerItem}>
-              <a
-                href={link.href}
-                className="group flex items-baseline justify-between rounded-lg border border-zinc-800 px-5 py-4 transition-colors hover:border-zinc-600"
-              >
-                <div>
-                  <span className="font-mono text-sm font-semibold text-zinc-200">
-                    {link.label}
-                  </span>
-                  <span className="ml-3 text-sm text-zinc-500">
-                    {link.detail}
-                  </span>
-                </div>
-                <span className="font-mono text-xs text-zinc-600 transition-colors group-hover:text-emerald-400" aria-hidden="true">
-                  &rarr;
-                </span>
-              </a>
-            </motion.li>
-          ))}
-        </motion.ul>
-
-        <motion.div {...fadeUp(0.4)} className="mt-8 w-full">
-          <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50 shadow-2xl">
-            <div className="flex items-center border-b border-zinc-800 px-4 py-3">
-              <div className="flex items-center gap-2" aria-hidden="true">
-                <span className="h-3 w-3 rounded-full bg-zinc-700" />
-                <span className="h-3 w-3 rounded-full bg-zinc-700" />
-                <span className="h-3 w-3 rounded-full bg-zinc-700" />
-              </div>
-              <span className="ml-4 font-mono text-xs text-zinc-600">terminal</span>
-            </div>
-            <div className="space-y-2 px-5 py-4 font-mono text-sm text-zinc-300">
-              <p>
-                <span className="select-none text-emerald-400">~ $ </span>
-                cargo install auths-cli
-              </p>
-              <p>
-                <span className="select-none text-emerald-400">~ $ </span>
-                auths init
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// What Auths identifies
-// ---------------------------------------------------------------------------
-
-const IDENTITY_TYPES = [
-  {
-    name: 'Humans',
-    description:
-      'Cryptographic identity rooted in keys you control. Linked across devices. Recoverable through pre-rotation. No passwords, no central provider.',
-  },
-  {
-    name: 'Devices',
-    description:
-      'Hardware-bound attestations tie identity to physical machines. Laptops, phones, servers — each with its own key, delegated from the human.',
-  },
-  {
-    name: 'Organizations',
-    description:
-      'Hierarchical identity with delegation chains. Provision identities for teams, revoke on departure, audit everything.',
-  },
-  {
-    name: 'AI Agents',
-    description:
-      'Agents get real identity — not API keys. Scoped capabilities, attributable actions, revocable access. Every action is cryptographically signed and traceable.',
-  },
-] as const;
-
-export function LandingIdentityTypes() {
-  return (
-    <section className="relative z-10 px-6 py-32 sm:py-40">
-      <div className="mx-auto max-w-3xl">
-        <motion.h2
-          {...fadeUp(0)}
-          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
-        >
-          Identity for
-        </motion.h2>
-        <motion.dl
-          className="mt-12 space-y-12"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-40px' }}
-        >
-          {IDENTITY_TYPES.map((type) => (
-            <motion.div key={type.name} variants={staggerItem}>
-              <dt className="font-mono text-lg font-semibold text-emerald-400">
-                {type.name}
-              </dt>
-              <dd className="mt-2 leading-7 text-zinc-400">
-                {type.description}
-              </dd>
-            </motion.div>
-          ))}
-        </motion.dl>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Delegation chain diagram (animated)
-// ---------------------------------------------------------------------------
-
-function FingerprintIcon({ size = 20, className, ...props }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
-      <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" />
-      <path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
-      <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" />
-      <path d="M2 12a10 10 0 0 1 18-6" />
-      <path d="M2 16h.01" />
-      <path d="M21.8 16c.2-2 .131-5.354 0-6" />
-      <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2" />
-      <path d="M8.65 22c.21-.66.45-1.32.57-2" />
-      <path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
-    </svg>
-  );
-}
-
-function BuildingIcon({ size = 20, className, ...props }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
-      <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
-      <path d="M9 22v-4h6v4" />
-      <path d="M8 6h.01" />
-      <path d="M16 6h.01" />
-      <path d="M12 6h.01" />
-      <path d="M12 10h.01" />
-      <path d="M12 14h.01" />
-      <path d="M16 10h.01" />
-      <path d="M16 14h.01" />
-      <path d="M8 10h.01" />
-      <path d="M8 14h.01" />
-    </svg>
-  );
-}
-
-function MonitorIcon({ size = 20, className, ...props }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
-      <rect width="20" height="14" x="2" y="3" rx="2" />
-      <line x1="8" x2="16" y1="21" y2="21" />
-      <line x1="12" x2="12" y1="17" y2="21" />
-    </svg>
-  );
-}
-
-function BotIcon({ size = 20, className, ...props }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
-      <path d="M12 8V4H8" />
-      <rect width="16" height="12" x="4" y="8" rx="2" />
-      <path d="M2 14h2" />
-      <path d="M20 14h2" />
-      <path d="M15 13v2" />
-      <path d="M9 13v2" />
-    </svg>
-  );
-}
 
 interface ChainNode {
   id: string;
@@ -656,7 +383,7 @@ const CHAIN_NODES: ChainNode[] = [
   },
   {
     id: 'agent',
-    icon: BotIcon,
+    icon: BotSvgIcon,
     title: 'Agent',
     subtitle: 'Scoped Capability',
     glow: 'shadow-[0_0_30px_rgba(16,185,129,0.2)]',
@@ -731,46 +458,7 @@ function DelegationChainDiagram() {
 }
 
 // ---------------------------------------------------------------------------
-// Architecture
-// ---------------------------------------------------------------------------
-
-export function LandingArchitecture() {
-  return (
-    <section className="relative z-10 px-6 py-32 sm:py-40">
-      <div className="mx-auto max-w-3xl">
-        <motion.h2
-          {...fadeUp(0)}
-          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
-        >
-          Built on KERI
-        </motion.h2>
-        <motion.p
-          {...fadeUp(0.1)}
-          className="mt-6 text-lg leading-8 text-zinc-400"
-        >
-          Key Event Receipt Infrastructure. An IETF Internet-Draft for
-          decentralized identity that requires no blockchain, no central
-          authority, and no trust assumptions. Identities are self-certifying.
-          Verification is autonomous. The protocol is the trust.
-        </motion.p>
-
-        <DelegationChainDiagram />
-
-        <motion.div {...fadeUp(0.25)} className="mt-8">
-          <a
-            href="https://weboftrust.github.io/ietf-keri/draft-ssmith-keri.html"
-            className="font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
-          >
-            KERI specification &rarr;
-          </a>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Tech Stack
+// Tech stack helpers (preserved)
 // ---------------------------------------------------------------------------
 
 function LandingCodeBlock({ code, language }: { code: string; language: string }) {
@@ -880,72 +568,1147 @@ const TECH_STACK: TechItem[] = [
   },
 ];
 
-export function LandingTechStack() {
+// ---------------------------------------------------------------------------
+// Shared terminal chrome
+// ---------------------------------------------------------------------------
+
+function TerminalBlock({ children, label = 'terminal' }: { children: React.ReactNode; label?: string }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50 shadow-2xl">
+      <div className="flex items-center border-b border-zinc-800 px-4 py-3">
+        <div className="flex items-center gap-2" aria-hidden="true">
+          <span className="h-3 w-3 rounded-full bg-zinc-700" />
+          <span className="h-3 w-3 rounded-full bg-zinc-700" />
+          <span className="h-3 w-3 rounded-full bg-zinc-700" />
+        </div>
+        <span className="ml-4 font-mono text-xs text-zinc-600">{label}</span>
+      </div>
+      <div className="space-y-2 px-5 py-4 font-mono text-sm text-zinc-300">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ===========================================================================
+// TABBED INSTALL TERMINAL
+// ===========================================================================
+
+const INSTALL_TABS = [
+  { id: 'brew', label: 'macOS', cmd: CLI_INSTALL_BREW },
+  { id: 'curl', label: 'Linux', cmd: CLI_INSTALL_CURL },
+  { id: 'cargo', label: 'Cargo', cmd: CLI_INSTALL_CARGO },
+] as const;
+
+function HeroInstallTerminal() {
+  const [tab, setTab] = useState<string>('brew');
+  const activeCmd = INSTALL_TABS.find((t) => t.id === tab)?.cmd ?? CLI_INSTALL_BREW;
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50 shadow-2xl">
+      <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+        <div className="flex items-center gap-2" aria-hidden="true">
+          <span className="h-3 w-3 rounded-full bg-zinc-700" />
+          <span className="h-3 w-3 rounded-full bg-zinc-700" />
+          <span className="h-3 w-3 rounded-full bg-zinc-700" />
+        </div>
+        <div className="flex gap-1">
+          {INSTALL_TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`rounded px-2.5 py-1 font-mono text-xs transition-colors ${
+                tab === t.id
+                  ? 'bg-zinc-800 text-emerald-400'
+                  : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-2 px-5 py-4 font-mono text-sm text-zinc-300">
+        <p>
+          <span className="select-none text-emerald-400">~ $ </span>
+          {activeCmd}
+        </p>
+        <p>
+          <span className="select-none text-emerald-400">~ $ </span>
+          auths init
+        </p>
+        <p className="text-emerald-400">✓ Identity created: did:keri:E8jsh...</p>
+        <p className="text-emerald-400">✓ Git signing configured</p>
+        <p className="text-emerald-400">✓ Ready. Every commit is now signed.</p>
+      </div>
+    </div>
+  );
+}
+
+// ===========================================================================
+// SECTIONS
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// Hero
+// ---------------------------------------------------------------------------
+
+export function LandingHero() {
+  return (
+    <section className="relative z-10 flex min-h-[85vh] items-center px-6">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-12 md:flex-row md:items-center md:gap-16">
+        {/* Content */}
+        <div className="flex-1">
+          <motion.h1
+            {...fadeUp(0)}
+            className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
+          >
+            Sign commits. Verify releases. Authorize agents.
+          </motion.h1>
+
+          <motion.p
+            {...fadeUp(0.15)}
+            className="mt-6 text-lg leading-8 text-zinc-400 sm:text-xl"
+          >
+            Cryptographic identity that lives in your Git repo. No GPG. No central server. 10 seconds to set up.
+          </motion.p>
+
+          <motion.div
+            {...fadeUp(0.3)}
+            className="mt-10 flex flex-col gap-4 sm:flex-row sm:gap-6"
+          >
+            <a
+              href="https://docs.auths.dev/getting-started/install/"
+              className="inline-flex items-center justify-center rounded-md bg-emerald-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
+            >
+              Get started
+            </a>
+            <a
+              href="https://github.com/auths-dev/auths"
+              className="inline-flex items-center justify-center rounded-md border border-zinc-700 px-6 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
+            >
+              View on GitHub
+            </a>
+          </motion.div>
+
+          <motion.div
+            {...fadeUp(0.4)}
+            className="mt-8 flex items-center gap-4 font-mono text-sm text-zinc-500"
+          >
+            <span>Open source</span>
+            <span className="h-1 w-1 rounded-full bg-zinc-700" aria-hidden="true" />
+            <span>Works offline</span>
+            <span className="h-1 w-1 rounded-full bg-zinc-700" aria-hidden="true" />
+            <span>No vendor lock-in</span>
+          </motion.div>
+        </div>
+
+        {/* Terminal */}
+        <motion.div {...fadeUp(0.3)} className="flex-1">
+          <HeroInstallTerminal />
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Install — Zero to Signed Commit
+// ---------------------------------------------------------------------------
+
+export function LandingInstall() {
   return (
     <section className="relative z-10 px-6 py-32 sm:py-40">
       <div className="mx-auto max-w-3xl">
-        <motion.div {...fadeUp(0)}>
-          <h2 className="font-mono text-3xl font-bold tracking-tight sm:text-4xl">
-            The foundation
-          </h2>
-          <p className="mt-6 text-lg leading-8 text-zinc-400">
-            Engineered for absolute security and maximum portability. We chose a stack that guarantees memory safety without compromising on edge deployment.
-          </p>
+        <motion.h2
+          {...fadeUp(0)}
+          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+        >
+          Zero to Signed Commit in 30 Seconds
+        </motion.h2>
+        <motion.p
+          {...fadeUp(0.1)}
+          className="mt-4 text-lg text-zinc-400"
+        >
+          Install, create your identity, and sign your first commit. Copy-paste and go.
+        </motion.p>
+
+        <motion.div {...fadeUp(0.2)} className="mt-10">
+          <TerminalBlock>
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              brew install auths
+              <span className="text-zinc-600"> # or: cargo install auths-cli</span>
+            </p>
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              auths init
+            </p>
+            <p className="text-emerald-400">✓ Identity created: did:keri:E8jsh...</p>
+            <p className="text-emerald-400">✓ Git signing configured</p>
+            <p className="mt-2">
+              <span className="select-none text-emerald-400">~ $ </span>
+              git commit -m &quot;first signed commit&quot;
+            </p>
+            <p className="text-emerald-400">✓ Commit signed with did:keri:E8jsh...</p>
+          </TerminalBlock>
         </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sign & Verify — The core CLI workflow
+// ---------------------------------------------------------------------------
+
+export function LandingSignAndVerify() {
+  return (
+    <section className="relative z-10 px-6 py-32 sm:py-40">
+      <div className="mx-auto max-w-3xl">
+        <motion.h2
+          {...fadeUp(0)}
+          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+        >
+          Sign Anything. Verify Anywhere.
+        </motion.h2>
+        <motion.p
+          {...fadeUp(0.1)}
+          className="mt-4 text-lg text-zinc-400"
+        >
+          Commits, release artifacts, SBOM manifests. One tool, one identity.
+        </motion.p>
 
         <motion.div
-          className="mt-12 grid gap-6 md:grid-cols-1"
+          {...fadeUp(0.2)}
+          className="mt-10 grid items-stretch gap-6 md:grid-cols-2"
+        >
+          {/* Sign */}
+          <div className="flex flex-col">
+            <h3 className="mb-3 font-mono text-sm font-semibold text-zinc-400">Sign</h3>
+            <div className="flex-1 [&>div]:h-full [&>div]:flex [&>div]:flex-col [&>div>div:last-child]:flex-1">
+              <TerminalBlock>
+                <p>
+                  <span className="select-none text-emerald-400">~ $ </span>
+                  auths artifact sign release.tar.gz
+                </p>
+                <p className="text-emerald-400">✓ Signed: release.tar.gz.auths.json</p>
+              </TerminalBlock>
+            </div>
+          </div>
+
+          {/* Verify */}
+          <div className="flex flex-col">
+            <h3 className="mb-3 font-mono text-sm font-semibold text-zinc-400">Verify</h3>
+            <div className="flex-1 [&>div]:h-full [&>div]:flex [&>div]:flex-col [&>div>div:last-child]:flex-1">
+              <TerminalBlock>
+                <p>
+                  <span className="select-none text-emerald-400">~ $ </span>
+                  auths artifact verify release.tar.gz
+                </p>
+                <p className="text-emerald-400">✓ Valid — signed by did:keri:E8jsh...</p>
+              </TerminalBlock>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CI Integration — One Secret, Two Actions
+// ---------------------------------------------------------------------------
+
+export function LandingCiIntegration() {
+  return (
+    <section id="ci" className="relative z-10 px-6 py-32 sm:py-40">
+      <div className="mx-auto max-w-3xl">
+        <motion.h2
+          {...fadeUp(0)}
+          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+        >
+          CI Integration
+        </motion.h2>
+        <motion.p
+          {...fadeUp(0.1)}
+          className="mt-4 text-lg text-zinc-400"
+        >
+          One secret. Two GitHub Actions. Set up once, every release signed, every commit verified.
+        </motion.p>
+
+        {/* Step 1: Setup */}
+        <motion.div {...fadeUp(0.2)} className="mt-10">
+          <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
+            1. Setup (once)
+          </h3>
+          <TerminalBlock>
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              {CLI_CI_SETUP}
+            </p>
+            <p className="text-emerald-400">✓ AUTHS_CI_TOKEN set on auths-dev/my-repo</p>
+          </TerminalBlock>
+        </motion.div>
+
+        {/* Step 2: Sign releases */}
+        <motion.div {...fadeUp(0.3)} className="mt-8">
+          <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
+            2. Sign releases
+          </h3>
+          <CodeBlock
+            language="yaml"
+            code={`- uses: auths-dev/sign@v1
+  with:
+    token: \${{ secrets.AUTHS_CI_TOKEN }}
+    files: 'dist/*.tar.gz'
+    verify: true`}
+          />
+        </motion.div>
+
+        {/* Step 3: Verify commits */}
+        <motion.div {...fadeUp(0.4)} className="mt-8">
+          <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
+            3. Verify commits
+          </h3>
+          <CodeBlock
+            language="yaml"
+            code={`- uses: auths-dev/verify@v1`}
+          />
+        </motion.div>
+
+        <motion.div {...fadeUp(0.5)} className="mt-8">
+          <a
+            href="https://docs.auths.dev/guides/platforms/ci-cd/"
+            className="inline-flex items-center gap-2 font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
+          >
+            Full CI/CD documentation <ChevronRight size={14} />
+          </a>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Authenticate Without Tokens
+// ---------------------------------------------------------------------------
+
+const AUTH_STEPS = [
+  {
+    step: '1',
+    title: 'Create identity',
+    description: 'Ed25519 keypair generated by the SDK. Private key stays on device — keychain or in-memory.',
+  },
+  {
+    step: '2',
+    title: 'Sign the action',
+    description: 'signAction() produces a verifiable envelope with DID, payload, and Ed25519 signature.',
+  },
+  {
+    step: '3',
+    title: 'Send the envelope',
+    description: 'Attach it to the request. No redirect, no token exchange, no session cookie.',
+  },
+  {
+    step: '4',
+    title: 'Server verifies',
+    description: 'verifyActionEnvelope() — one function call. No token introspection, no IdP round-trip.',
+  },
+] as const;
+
+export function LandingAuth() {
+  return (
+    <section id="auth" className="relative z-10 px-6 py-32 sm:py-40">
+      <div className="mx-auto max-w-3xl">
+        <motion.h2
+          {...fadeUp(0)}
+          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+        >
+          Authenticate Without Tokens
+        </motion.h2>
+        <motion.p
+          {...fadeUp(0.1)}
+          className="mt-4 text-lg text-zinc-400"
+        >
+          Your identity is your credential. Sign requests with your key — no OAuth, no sessions, no IdP.
+        </motion.p>
+
+        <motion.div
+          {...fadeUp(0.2)}
+          className="mt-10 grid gap-10 md:grid-cols-2"
+        >
+          {/* Left: 4-step flow */}
+          <div className="space-y-6">
+            {AUTH_STEPS.map((item) => (
+              <div key={item.step} className="flex gap-4">
+                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-emerald-500/30 font-mono text-xs font-bold text-emerald-400">
+                  {item.step}
+                </span>
+                <div>
+                  <h3 className="font-mono text-sm font-semibold text-zinc-200">{item.title}</h3>
+                  <p className="mt-1 text-sm text-zinc-500">{item.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Right: code block */}
+          <div>
+            <CodeBlock
+              language="typescript"
+              code={`import { EphemeralIdentity,
+  verifyActionEnvelope } from '@auths-dev/sdk'
+
+// Client: sign the request
+const id = new EphemeralIdentity()
+const envelope = id.signAction(
+  'api_call',
+  JSON.stringify({ endpoint: '/resource' })
+)
+
+// Server: verify — one function, no token lookup
+const { valid } = verifyActionEnvelope(
+  envelope, id.publicKeyHex
+)
+// valid === true`}
+            />
+          </div>
+        </motion.div>
+
+        {/* Contrast callout */}
+        <motion.div
+          {...fadeUp(0.3)}
+          className="mt-10 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6"
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <p className="font-mono text-xs font-semibold text-zinc-500">OAuth</p>
+              <p className="mt-2 font-mono text-sm text-zinc-400">
+                redirect &rarr; authorize &rarr; token &rarr; refresh &rarr; revoke &rarr; rotate
+              </p>
+            </div>
+            <div>
+              <p className="font-mono text-xs font-semibold text-emerald-400">Auths</p>
+              <p className="mt-2 font-mono text-sm text-zinc-200">
+                sign request &rarr; verify signature. Done.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Start Building (kept for reference, no longer on homepage)
+// ---------------------------------------------------------------------------
+
+const PATH_CARDS = [
+  {
+    icon: GitCommitHorizontal,
+    title: 'Sign My Commits',
+    description: 'Enable signing on your laptop in 2 minutes',
+    href: 'https://docs.auths.dev/getting-started/signing-commits/',
+  },
+  {
+    icon: Users,
+    title: 'Manage Team Identities',
+    description: 'Get your team verifiable credentials in 3 minutes',
+    href: 'https://docs.auths.dev/getting-started/install/',
+  },
+  {
+    icon: Bot,
+    title: 'Build Agents',
+    description: 'Give agents cryptographic identity in 4 minutes',
+    href: 'https://docs.auths.dev/guides/identity/profiles/#agent-profile',
+  },
+  {
+    icon: Package,
+    title: 'Prove Provenance',
+    description: 'Add supply chain verification in 5 minutes',
+    href: 'https://docs.auths.dev/guides/git/verifying-commits/#github-actions',
+  },
+] as const;
+
+export function LandingStartBuilding() {
+  return (
+    <section className="relative z-10 px-6 py-32 sm:py-40">
+      <div className="mx-auto max-w-3xl">
+        <motion.h2
+          {...fadeUp(0)}
+          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+        >
+          Get Started in 5 Minutes
+        </motion.h2>
+        <motion.p
+          {...fadeUp(0.1)}
+          className="mt-4 text-lg text-zinc-400"
+        >
+          Choose your path. We&apos;ll walk you through it.
+        </motion.p>
+
+        <motion.div
+          className="mt-10 grid gap-4 sm:grid-cols-2"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-40px' }}
         >
-          {TECH_STACK.map((tech) => (
-            <motion.div
-              key={tech.name}
-              variants={staggerItem}
-              className={`group relative overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/50 p-6 transition-colors duration-300 ${tech.borderHover} ${tech.bgGlow}`}
-            >
-              <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-
-                {/* Text Content */}
-                <div className="md:w-1/2">
-                  <div className="flex items-center gap-3">
-                    <tech.icon size={24} className={tech.highlight} />
-                    <h3 className="font-mono text-xl font-semibold text-zinc-100">
-                      {tech.name}
-                    </h3>
+          {PATH_CARDS.map((card) => {
+            const Icon = card.icon;
+            return (
+              <motion.a
+                key={card.title}
+                href={card.href}
+                variants={staggerItem}
+                className="group flex items-start gap-4 rounded-xl border border-zinc-800 bg-zinc-950/50 p-6 transition-colors hover:border-zinc-600"
+              >
+                <Icon size={28} className="mt-0.5 shrink-0 text-emerald-400" />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-sm font-semibold text-zinc-200">
+                      {card.title}
+                    </span>
+                    <ChevronRight
+                      size={16}
+                      className="text-zinc-600 opacity-0 transition-all group-hover:translate-x-1 group-hover:text-emerald-400 group-hover:opacity-100"
+                    />
                   </div>
-                  <p className="mt-4 text-sm leading-relaxed text-zinc-400">
-                    {tech.description}
-                  </p>
+                  <span className="mt-1 block text-sm text-zinc-500">
+                    {card.description}
+                  </span>
                 </div>
+              </motion.a>
+            );
+          })}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
 
-                {/* Code Snippet or Logo Grid */}
-                <div className="md:w-5/12">
-                  {tech.code ? (
-                    <LandingCodeBlock code={tech.code} language={tech.language} />
-                  ) : tech.languages ? (
-                    <div className="grid grid-cols-2 gap-3">
-                      {tech.languages.map((lang) => (
-                        <a
-                          key={lang.name}
-                          href={lang.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex flex-col items-center justify-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 transition-colors duration-200 hover:border-zinc-600 hover:bg-zinc-800/50"
-                        >
-                          <img src={lang.placeholder} alt={lang.name} className="h-10 w-10 object-contain" />
-                          <span className="font-mono text-[11px] text-zinc-500 group-hover:text-zinc-400">{lang.name}</span>
-                        </a>
-                      ))}
-                    </div>
-                  ) : null}
+// ---------------------------------------------------------------------------
+// Problem Statement
+// ---------------------------------------------------------------------------
+
+const PAIN_POINTS = [
+  {
+    icon: AlertCircle,
+    iconColor: 'text-rose-500',
+    title: 'GPG expired 3 months ago',
+    description: 'Nobody noticed. Your "verified" commits aren\'t.',
+  },
+  {
+    icon: Lock,
+    iconColor: 'text-amber-500',
+    title: 'CI bot pushes as you',
+    description: 'Same signature, no audit trail, no way to revoke.',
+  },
+  {
+    icon: WifiOff,
+    iconColor: 'text-rose-500',
+    title: 'New laptop, start over',
+    description: 'Generate new keys. Upload to GitHub. Reconfigure Git. Again.',
+  },
+] as const;
+
+export function LandingProblemStatement() {
+  return (
+    <section className="relative z-10 px-6 py-32 sm:py-40">
+      <div className="mx-auto max-w-3xl">
+        <motion.h2
+          {...fadeUp(0)}
+          className="text-center font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+        >
+          The Problems You Already Know
+        </motion.h2>
+
+        <motion.div
+          className="mt-12 grid gap-6 md:grid-cols-3"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+        >
+          {PAIN_POINTS.map((point) => {
+            const Icon = point.icon;
+            return (
+              <motion.div
+                key={point.title}
+                variants={staggerItem}
+                className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-8 text-center"
+              >
+                <Icon size={32} className={`mx-auto ${point.iconColor}`} />
+                <h3 className="mt-4 font-mono text-base font-semibold text-zinc-100">
+                  {point.title}
+                </h3>
+                <p className="mt-2 text-sm text-zinc-500">
+                  {point.description}
+                </p>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Agent Identity
+// ---------------------------------------------------------------------------
+
+const AGENT_CHAIN_NODES = [
+  { id: 'developer', icon: FingerprintIcon, label: 'Developer', color: 'text-zinc-300' },
+  { id: 'agent', icon: BotSvgIcon, label: 'Agent', color: 'text-emerald-400' },
+  { id: 'artifact', icon: PackageSvgIcon, label: 'Artifact', color: 'text-sky-400' },
+];
+
+export function LandingAgentIdentity() {
+  return (
+    <section id="agents" className="relative z-10 px-6 py-32 sm:py-40">
+      <div className="mx-auto max-w-3xl text-center">
+        <motion.h2
+          {...fadeUp(0)}
+          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+        >
+          Agents With Real Identity
+        </motion.h2>
+        <motion.p
+          {...fadeUp(0.1)}
+          className="mt-4 text-lg text-zinc-400"
+        >
+          Delegate real cryptographic identity to your agents. Revoke any time.
+        </motion.p>
+
+        {/* Simplified chain visual */}
+        <motion.div
+          {...fadeUp(0.2)}
+          className="mx-auto mt-10 flex flex-col items-center gap-2 md:flex-row md:justify-center md:gap-0"
+        >
+          {AGENT_CHAIN_NODES.map((node, i) => {
+            const Icon = node.icon;
+            return (
+              <Fragment key={node.id}>
+                <div className="flex flex-col items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-6 py-4 shadow-[0_0_20px_rgba(16,185,129,0.08)]">
+                  <Icon size={24} className={node.color} />
+                  <span className="font-mono text-xs font-semibold text-zinc-200">{node.label}</span>
                 </div>
+                {i < AGENT_CHAIN_NODES.length - 1 && (
+                  <>
+                    <div className="hidden h-[2px] w-8 bg-gradient-to-r from-zinc-600 to-zinc-500 md:block" aria-hidden="true" />
+                    <div className="h-6 w-[2px] bg-gradient-to-b from-zinc-600 to-zinc-500 md:hidden" aria-hidden="true" />
+                  </>
+                )}
+              </Fragment>
+            );
+          })}
+        </motion.div>
 
-              </div>
+        {/* Code terminal */}
+        <motion.div {...fadeUp(0.3)} className="mx-auto mt-10 max-w-lg text-left">
+          <TerminalBlock>
+            <p className="text-zinc-500"># Create an agent identity</p>
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              auths init --profile agent --non-interactive
+            </p>
+            <p className="mt-2 text-zinc-500"># Export identity for deployment</p>
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              auths id export-bundle --output agent-bundle.json
+            </p>
+            <p className="mt-2 text-zinc-500"># Rotate keys to revoke old access</p>
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              auths id rotate
+            </p>
+          </TerminalBlock>
+        </motion.div>
+
+        <motion.div {...fadeUp(0.4)} className="mt-8">
+          <a
+            href="https://docs.auths.dev/guides/identity/profiles/#agent-profile"
+            className="inline-flex items-center rounded-md bg-emerald-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
+          >
+            Give Your Agent an Identity
+          </a>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Supply Chain
+// ---------------------------------------------------------------------------
+
+const SUPPLY_CHAIN_FEATURES = [
+  {
+    icon: ShieldCheck,
+    title: 'Cryptographically Signed',
+    description: 'Every artifact verified with signatures you control — no central authority.',
+  },
+  {
+    icon: Link2,
+    title: 'Unbroken Chain',
+    description: 'Complete provenance from source to deployment, stored in Git.',
+  },
+  {
+    icon: History,
+    title: 'Audit Forever',
+    description: 'Immutable records accessible offline. No vendor lock-in.',
+  },
+] as const;
+
+export function LandingSupplyChain() {
+  return (
+    <section id="supply-chain" className="relative z-10 px-6 py-32 sm:py-40">
+      <div className="mx-auto max-w-3xl">
+        <motion.h2
+          {...fadeUp(0)}
+          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+        >
+          Prove Where Code Comes From
+        </motion.h2>
+        <motion.p
+          {...fadeUp(0.1)}
+          className="mt-4 text-lg text-zinc-400"
+        >
+          LiteLLM and Axios were both compromised through stolen publish credentials.
+          With Auths, stolen credentials can&apos;t produce valid signatures — the
+          signing key lives in your hardware keychain, not in CI.
+        </motion.p>
+
+        <motion.div
+          className="mt-10 grid gap-6 md:grid-cols-3"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+        >
+          {SUPPLY_CHAIN_FEATURES.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <motion.div
+                key={feature.title}
+                variants={staggerItem}
+                className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-6 transition-colors hover:border-zinc-600"
+              >
+                <Icon size={24} className="text-emerald-400" />
+                <h3 className="mt-3 font-mono text-sm font-semibold text-zinc-100">
+                  {feature.title}
+                </h3>
+                <p className="mt-2 text-sm text-zinc-400">
+                  {feature.description}
+                </p>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+        {/* Reuse EdgeVerificationDiagram */}
+        <EdgeVerificationDiagram />
+
+        {/* Interactive WASM verifier — GitHub, npm, Docker, or manual file drop */}
+        <motion.div {...fadeUp(0.5)} className="mt-10">
+          <VerifyHero />
+        </motion.div>
+
+        <motion.div {...fadeUp(0.6)} className="mt-8">
+          <a
+            href="https://docs.auths.dev/guides/git/verifying-commits/"
+            className="inline-flex items-center gap-2 font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
+          >
+            Explore Supply Chain Verification <ChevronRight size={14} />
+          </a>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Competitive Table
+// ---------------------------------------------------------------------------
+
+type StatusType = 'yes' | 'no' | 'partial' | 'text';
+
+interface ComparisonRow {
+  feature: string;
+  auths: { status: StatusType; text: string };
+  gpg: { status: StatusType; text: string };
+  ssh: { status: StatusType; text: string };
+  sigstore: { status: StatusType; text: string };
+}
+
+const COMPARISON_DATA: ComparisonRow[] = [
+  {
+    feature: 'Setup time',
+    auths: { status: 'text', text: '10 seconds' },
+    gpg: { status: 'text', text: '15+ minutes' },
+    ssh: { status: 'text', text: '5 minutes' },
+    sigstore: { status: 'text', text: '2 minutes' },
+  },
+  {
+    feature: 'Key rotation',
+    auths: { status: 'text', text: 'Pre-rotation built in' },
+    gpg: { status: 'text', text: 'Manual ceremony' },
+    ssh: { status: 'text', text: 'Manual replacement' },
+    sigstore: { status: 'text', text: 'Ephemeral keys' },
+  },
+  {
+    feature: 'Works offline',
+    auths: { status: 'yes', text: 'Yes' },
+    gpg: { status: 'yes', text: 'Yes' },
+    ssh: { status: 'yes', text: 'Yes' },
+    sigstore: { status: 'no', text: 'Requires internet' },
+  },
+  {
+    feature: 'Multi-device',
+    auths: { status: 'text', text: 'QR code pairing' },
+    gpg: { status: 'text', text: 'Export/import keys' },
+    ssh: { status: 'text', text: 'Copy key files' },
+    sigstore: { status: 'text', text: 'Via OIDC provider' },
+  },
+  {
+    feature: 'Agent delegation',
+    auths: { status: 'text', text: 'Scoped + revocable' },
+    gpg: { status: 'no', text: 'Not supported' },
+    ssh: { status: 'no', text: 'Not supported' },
+    sigstore: { status: 'no', text: 'Not supported' },
+  },
+  {
+    feature: 'Revocation',
+    auths: { status: 'text', text: 'Signed event in Git' },
+    gpg: { status: 'text', text: 'Keyserver dependent' },
+    ssh: { status: 'text', text: 'Delete from GitHub' },
+    sigstore: { status: 'text', text: 'Certificate expiry' },
+  },
+  {
+    feature: 'GitHub "Verified" badge',
+    auths: { status: 'partial', text: 'Not yet' },
+    gpg: { status: 'yes', text: 'Yes' },
+    ssh: { status: 'yes', text: 'Yes' },
+    sigstore: { status: 'partial', text: 'Not yet' },
+  },
+];
+
+function StatusBadge({ status, text }: { status: StatusType; text: string }) {
+  if (status === 'text') {
+    return <span className="text-sm text-zinc-300">{text}</span>;
+  }
+  const styles = {
+    yes: 'bg-emerald-500/10 text-emerald-400',
+    no: 'bg-rose-500/10 text-rose-400',
+    partial: 'bg-amber-500/10 text-amber-400',
+  };
+  const icons = {
+    yes: CircleCheck,
+    no: CircleX,
+    partial: CircleDot,
+  };
+  const Icon = icons[status];
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${styles[status]}`}>
+      <Icon size={12} />
+      {text}
+    </span>
+  );
+}
+
+export function LandingCompetitiveTable() {
+  return (
+    <section id="compare" className="relative z-10 px-6 py-32 sm:py-40">
+      <div className="mx-auto max-w-4xl">
+        <motion.h2
+          {...fadeUp(0)}
+          className="text-center font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+        >
+          How Auths Compares
+        </motion.h2>
+
+        <motion.div {...fadeUp(0.2)} className="mt-12 overflow-x-auto rounded-xl border border-zinc-800">
+          <table className="w-full min-w-[600px]">
+            <thead>
+              <tr className="border-b border-zinc-800 bg-zinc-900/50">
+                <th className="px-4 py-4 text-left font-mono text-sm font-semibold text-zinc-400">Feature</th>
+                <th className="px-4 py-4 text-left font-mono text-sm font-semibold text-emerald-400">Auths</th>
+                <th className="px-4 py-4 text-left font-mono text-sm font-semibold text-zinc-400">GPG Keys</th>
+                <th className="px-4 py-4 text-left font-mono text-sm font-semibold text-zinc-400">SSH Keys</th>
+                <th className="px-4 py-4 text-left font-mono text-sm font-semibold text-zinc-400">Sigstore</th>
+              </tr>
+            </thead>
+            <tbody>
+              {COMPARISON_DATA.map((row) => (
+                <tr key={row.feature} className="border-b border-zinc-800/50 transition-colors hover:bg-zinc-900/30">
+                  <td className="px-4 py-4 font-mono text-sm text-zinc-300">{row.feature}</td>
+                  <td className="px-4 py-4"><StatusBadge {...row.auths} /></td>
+                  <td className="px-4 py-4"><StatusBadge {...row.gpg} /></td>
+                  <td className="px-4 py-4"><StatusBadge {...row.ssh} /></td>
+                  <td className="px-4 py-4"><StatusBadge {...row.sigstore} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Multidevice
+// ---------------------------------------------------------------------------
+
+export function LandingMultidevice() {
+  return (
+    <section id="multidevice" className="relative z-10 px-6 py-32 sm:py-40">
+      <div className="mx-auto max-w-3xl">
+        {/* Subsection A: Your Keys, Your Control */}
+        <div className="grid items-center gap-10 md:grid-cols-2">
+          <div>
+            <motion.h2
+              {...fadeUp(0)}
+              className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+            >
+              Your Keys, Your Control
+            </motion.h2>
+            <motion.p
+              {...fadeUp(0.1)}
+              className="mt-4 text-lg text-zinc-400"
+            >
+              Each device has its own key. Revoke one, the rest keep working.
+            </motion.p>
+          </div>
+          <motion.div {...fadeUp(0.2)}>
+            <TerminalBlock>
+              <p>
+                <span className="select-none text-emerald-400">~ $ </span>
+                auths device list
+              </p>
+              <p className="mt-2 text-zinc-500">{'DEVICE        STATUS    ADDED'}</p>
+              <p>{'MacBook Pro   active    2026-01-15'}</p>
+              <p>{'iPhone 14     active    2026-02-03'}</p>
+              <p className="text-zinc-500">{'Old Laptop    revoked   2026-03-01'}</p>
+            </TerminalBlock>
+          </motion.div>
+        </div>
+
+        {/* Divider */}
+        <div className="my-16 h-px w-full bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+
+        {/* Subsection B: Seamless Onboarding */}
+        <div className="grid items-center gap-10 md:grid-cols-2">
+          <motion.div {...fadeUp(0.2)} className="order-2 md:order-1">
+            <TerminalBlock>
+              <p>
+                <span className="select-none text-emerald-400">~ $ </span>
+                auths pair
+              </p>
+              <p>Pairing code: ABC-123</p>
+              <p className="mt-2 text-zinc-500">Scan QR or enter code on new device:</p>
+              <p>
+                <span className="select-none text-emerald-400">~ $ </span>
+                auths pair --join ABC-123
+              </p>
+              <p className="text-emerald-400">✓ Device linked to did:keri:E8jsh...</p>
+            </TerminalBlock>
+          </motion.div>
+          <div className="order-1 md:order-2">
+            <motion.h2
+              {...fadeUp(0)}
+              className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+            >
+              Seamless Onboarding
+            </motion.h2>
+            <motion.p
+              {...fadeUp(0.1)}
+              className="mt-4 text-lg text-zinc-400"
+            >
+              New device? One scan. Your identity carries over.
+            </motion.p>
+            <motion.div {...fadeUp(0.3)} className="mt-6">
+              <a
+                href="https://docs.auths.dev/getting-started/install/"
+                className="inline-flex items-center gap-2 font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
+              >
+                See Device Identity in Action <ChevronRight size={14} />
+              </a>
             </motion.div>
-          ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Architecture (tabbed, absorbs TechStack)
+// ---------------------------------------------------------------------------
+
+const ARCH_TABS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'git-native', label: 'Git-Native' },
+  { id: 'offline', label: 'Offline' },
+  { id: 'agent-id', label: 'Agent Identity' },
+  { id: 'tech-stack', label: 'Tech Stack' },
+] as const;
+
+function TechStackContent() {
+  return (
+    <motion.div
+      className="grid gap-6 md:grid-cols-1"
+      variants={staggerContainer}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-40px' }}
+    >
+      {TECH_STACK.map((tech) => (
+        <motion.div
+          key={tech.name}
+          variants={staggerItem}
+          className={`group relative overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/50 p-6 transition-colors duration-300 ${tech.borderHover} ${tech.bgGlow}`}
+        >
+          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <div className="md:w-1/2">
+              <div className="flex items-center gap-3">
+                <tech.icon size={24} className={tech.highlight} />
+                <h3 className="font-mono text-xl font-semibold text-zinc-100">
+                  {tech.name}
+                </h3>
+              </div>
+              <p className="mt-4 text-sm leading-relaxed text-zinc-400">
+                {tech.description}
+              </p>
+            </div>
+            <div className="md:w-5/12">
+              {tech.code ? (
+                <LandingCodeBlock code={tech.code} language={tech.language} />
+              ) : tech.languages ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {tech.languages.map((lang) => (
+                    <a
+                      key={lang.name}
+                      href={lang.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center justify-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 transition-colors duration-200 hover:border-zinc-600 hover:bg-zinc-800/50"
+                    >
+                      <img src={lang.placeholder} alt={lang.name} className="h-10 w-10 object-contain" />
+                      <span className="font-mono text-[11px] text-zinc-500 group-hover:text-zinc-400">{lang.name}</span>
+                    </a>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+}
+
+export function LandingArchitecture() {
+  const [activeTab, setActiveTab] = useState<string>('overview');
+
+  return (
+    <section id="architecture" className="relative z-10 px-6 py-32 sm:py-40">
+      <div className="mx-auto max-w-3xl">
+        <motion.h2
+          {...fadeUp(0)}
+          className="text-center font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+        >
+          Architecture Deep Dive
+        </motion.h2>
+
+        {/* Tabs */}
+        <motion.div {...fadeUp(0.1)} className="mt-10">
+          <div className="grid grid-cols-2 gap-2 rounded-lg border border-zinc-800 bg-zinc-900/50 p-1 md:grid-cols-5">
+            {ARCH_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`rounded-md px-3 py-2 font-mono text-xs font-medium transition-colors ${
+                  activeTab === tab.id
+                    ? 'bg-zinc-800 text-emerald-400 shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Tab content */}
+        <motion.div {...fadeUp(0.2)} className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/50 p-6 md:p-10">
+          {activeTab === 'overview' && (
+            <div>
+              <p className="text-lg leading-8 text-zinc-400">
+                Auths provides a complete identity infrastructure built on cryptographic
+                primitives stored in Git. Every identity action is signed, auditable, and
+                verifiable offline using WASM verifiers embedded in your applications.
+              </p>
+              <DelegationChainDiagram />
+            </div>
+          )}
+
+          {activeTab === 'git-native' && (
+            <div>
+              <h3 className="font-mono text-xl font-semibold text-zinc-100">Git-Native Storage</h3>
+              <p className="mt-4 text-lg leading-8 text-zinc-400">
+                All identity events — keys, delegations, revocations — are stored as signed
+                Git commits. No central database means no single point of failure. Your
+                identity history is immutable and portable.
+              </p>
+            </div>
+          )}
+
+          {activeTab === 'offline' && (
+            <div>
+              <h3 className="font-mono text-xl font-semibold text-zinc-100">Offline Verification</h3>
+              <p className="mt-4 text-lg leading-8 text-zinc-400">
+                WASM-based verifiers run locally in your application without requiring
+                network roundtrips. Identity proofs are cryptographically valid anywhere,
+                whether you&apos;re online or offline.
+              </p>
+              <div className="mt-8">
+                <a
+                  href="https://docs.auths.dev/sdk/python/overview/"
+                  className="font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
+                >
+                  SDK Documentation &rarr;
+                </a>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'agent-id' && (
+            <div>
+              <h3 className="font-mono text-xl font-semibold text-zinc-100">Agent Identity</h3>
+              <p className="mt-4 text-lg leading-8 text-zinc-400">
+                Agents receive real cryptographic keys instead of bearer tokens. Developers
+                can delegate fine-grained capabilities to agents, with full audit trails
+                and the ability to revoke access through signed events.
+              </p>
+            </div>
+          )}
+
+          {activeTab === 'tech-stack' && (
+            <TechStackContent />
+          )}
+        </motion.div>
+
+        <motion.div {...fadeUp(0.25)} className="mt-8">
+          <a
+            href="https://weboftrust.github.io/ietf-keri/draft-ssmith-keri.html"
+            className="font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
+          >
+            KERI specification &rarr;
+          </a>
         </motion.div>
       </div>
     </section>
@@ -963,15 +1726,41 @@ export function LandingBottomCTA() {
         {...fadeUp(0)}
         className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
       >
-        Ready to build?
+        Ready to Control Your Identity?
       </motion.h2>
-      <motion.div {...fadeUp(0.1)} className="mt-8 flex justify-center">
+      <motion.p
+        {...fadeUp(0.1)}
+        className="mx-auto mt-6 max-w-xl text-lg text-zinc-400"
+      >
+        Join developers building the next generation of decentralized identity. Start for free, no credit card required.
+      </motion.p>
+      <motion.div
+        {...fadeUp(0.2)}
+        className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6"
+      >
         <a
           href="https://docs.auths.dev/getting-started/install/"
-          className="inline-flex items-center rounded-md bg-emerald-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
+          className="inline-flex items-center gap-2 rounded-md bg-emerald-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
         >
-          Read the documentation
+          Start Building <ArrowUpRight size={14} />
         </a>
+        <a
+          href="https://docs.auths.dev"
+          className="inline-flex items-center rounded-md border border-zinc-700 px-6 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
+        >
+          View Documentation
+        </a>
+      </motion.div>
+
+      <motion.div
+        {...fadeUp(0.3)}
+        className="mx-auto mt-10 flex items-center justify-center gap-4 border-t border-zinc-800 pt-8 font-mono text-sm text-zinc-500"
+      >
+        <span>Open Source</span>
+        <span className="h-1 w-1 rounded-full bg-zinc-700" aria-hidden="true" />
+        <span>No Vendor Lock-In</span>
+        <span className="h-1 w-1 rounded-full bg-zinc-700" aria-hidden="true" />
+        <span>Community Driven</span>
       </motion.div>
     </section>
   );
@@ -981,31 +1770,87 @@ export function LandingBottomCTA() {
 // Footer
 // ---------------------------------------------------------------------------
 
+const FOOTER_LINKS = {
+  product: [
+    { label: 'Features', href: '#supply-chain' },
+    { label: 'Documentation', href: 'https://docs.auths.dev/getting-started/install/' },
+    { label: 'GitHub', href: 'https://github.com/auths-dev/auths' },
+  ],
+  company: [
+    { label: 'About', href: '/about' },
+    { label: 'Blog', href: '/blog' },
+  ],
+  legal: [
+    { label: 'Apache 2.0 License', href: 'https://github.com/auths-dev/auths/blob/main/LICENSE' },
+  ],
+};
+
 export function LandingFooter() {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="relative z-10 border-t border-zinc-800/60 px-6 py-12">
-      <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 sm:flex-row sm:justify-between">
-        <nav className="flex gap-6 font-mono text-sm text-zinc-500" aria-label="Footer">
-          <a
-            href="https://github.com/auths-dev/auths"
-            className="transition-colors hover:text-zinc-300"
-          >
-            GitHub
-          </a>
-          <a
-            href="https://docs.auths.dev/getting-started/install/"
-            className="transition-colors hover:text-zinc-300"
-          >
-            Docs
-          </a>
-          <a
-            href="https://auths.dev/registry"
-            className="transition-colors hover:text-zinc-300"
-          >
-            Registry
-          </a>
-        </nav>
-        <p className="font-mono text-xs text-zinc-600">Apache 2.0</p>
+    <footer className="relative z-10 border-t border-zinc-800/60 px-6 py-16 md:py-24">
+      <div className="mx-auto grid max-w-3xl grid-cols-1 gap-12 md:grid-cols-4 md:gap-8">
+        {/* Brand */}
+        <div>
+          <span className="font-mono text-lg font-bold text-zinc-100">Auths</span>
+          <p className="mt-3 text-sm text-zinc-500">
+            Decentralized identity infrastructure for developers. Open source, no vendor lock-in.
+          </p>
+          <div className="mt-4 flex gap-4">
+            <a href="https://github.com/auths-dev/auths" className="text-zinc-500 transition-colors hover:text-zinc-300" aria-label="GitHub">
+              <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        {/* Product */}
+        <div>
+          <h3 className="font-mono text-xs font-semibold uppercase tracking-wide text-zinc-400">Product</h3>
+          <ul className="mt-4 space-y-3">
+            {FOOTER_LINKS.product.map((link) => (
+              <li key={link.label}>
+                <a href={link.href} className="text-sm text-zinc-500 transition-colors hover:text-zinc-300">{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Company */}
+        <div>
+          <h3 className="font-mono text-xs font-semibold uppercase tracking-wide text-zinc-400">Company</h3>
+          <ul className="mt-4 space-y-3">
+            {FOOTER_LINKS.company.map((link) => (
+              <li key={link.label}>
+                <a href={link.href} className="text-sm text-zinc-500 transition-colors hover:text-zinc-300">{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Legal */}
+        <div>
+          <h3 className="font-mono text-xs font-semibold uppercase tracking-wide text-zinc-400">Legal</h3>
+          <ul className="mt-4 space-y-3">
+            {FOOTER_LINKS.legal.map((link) => (
+              <li key={link.label}>
+                <a href={link.href} className="text-sm text-zinc-500 transition-colors hover:text-zinc-300">{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Bottom bar */}
+      <div className="mx-auto mt-12 max-w-3xl border-t border-zinc-800/60 pt-8">
+        <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <p className="font-mono text-xs text-zinc-600">
+            &copy; {currentYear} Auths. All rights reserved.
+          </p>
+          <p className="font-mono text-xs text-zinc-600">
+            Built with <span className="text-cyan-400">cryptography</span> and <span className="text-emerald-400">Git</span>
+          </p>
+        </div>
       </div>
     </footer>
   );

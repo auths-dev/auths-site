@@ -6,12 +6,11 @@ The site showcases zero-trust verification: a user drops a binary into their bro
 
 ## What's in this repo
 
-This is a **pnpm workspace monorepo**:
+This is a **bun workspace monorepo**:
 
 ```
 auths-site/
-├── pnpm-workspace.yaml
-├── package.json              # root scripts, shared devDependencies
+├── package.json              # root scripts, workspaces, shared devDependencies
 ├── apps/
 │   └── web/                  # Next.js 16 public site (App Router)
 │       ├── content/          # Markdown/MDX docs, blog, trust pages
@@ -24,21 +23,21 @@ auths-site/
 
 ## Local development
 
-**Prerequisites:** Node.js ≥ 18, pnpm ≥ 9
+**Prerequisites:** Node.js ≥ 18, [Bun](https://bun.sh)
 
 ```bash
 # Install all workspace dependencies
-pnpm install
+bun install
 
 # Start the Next.js dev server
-pnpm dev
+bun run dev
 # → http://localhost:3000
 ```
 
 To rebuild the widget (if you change `packages/widget/src/`):
 
 ```bash
-pnpm --filter auths-verify build
+bun run --filter auths-verify build
 ```
 
 The dev server hot-reloads the Next.js app. Widget changes require a manual rebuild + page refresh.
@@ -47,21 +46,21 @@ The dev server hot-reloads the Next.js app. Widget changes require a manual rebu
 
 ```bash
 # Run all tests (widget unit tests)
-pnpm test
+bun run test
 
 # Run widget tests only
-pnpm --filter auths-verify test
+bun run --filter auths-verify test
 
 # Watch mode
-pnpm --filter auths-verify test:watch
+bun run --filter auths-verify test:watch
 
 # Typecheck everything
-pnpm typecheck
+bun run typecheck
 ```
 
 ## Smoke tests (manual)
 
-After `pnpm dev`:
+After `bun run dev`:
 
 | URL | Expected |
 |-----|----------|
@@ -76,7 +75,7 @@ After `pnpm dev`:
 
 ```mermaid
 graph TD
-    subgraph Monorepo["auths-site (pnpm workspace)"]
+    subgraph Monorepo["auths-site (bun workspace)"]
         subgraph Widget["packages/widget (auths-verify)"]
             WC["&lt;auths-verify&gt;\nCustom Element"]
             RES["Resolvers\ngithub · gitea · detect"]
@@ -133,4 +132,4 @@ graph TD
 - **Content:** next-mdx-remote (RSC)
 - **Widget:** Vite + `vite-plugin-wasm` + `vite-plugin-dts`
 - **Testing:** Vitest + happy-dom
-- **Package manager:** pnpm workspaces
+- **Package manager:** Bun workspaces

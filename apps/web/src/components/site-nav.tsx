@@ -16,7 +16,7 @@ const ABOUT_HREFS = new Set(ABOUT_LINKS.map((l) => l.href));
 
 const NAV_LINKS = [
   { label: 'Overview', href: '/' },
-  { label: 'Registry', href: '/registry' },
+  // { label: 'Registry', href: '/registry' },
   { label: 'Network', href: '/network' },
 ];
 

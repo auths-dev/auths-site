@@ -6,6 +6,7 @@ declare module '*.wasm' {
 
 declare module 'auths-verifier-wasm' {
   export default function init(input?: BufferSource | string): Promise<void>;
-  export function verifyAttestationWithResult(attestationJson: string, issuerPkHex: string): string;
-  export function verifyChainJson(attestationsJsonArray: string, rootPkHex: string): string;
+  export function verifyAttestationWithResult(attestationJson: string, issuerPkHex: string): Promise<string>;
+  export function verifyChainJson(attestationsJsonArray: string, rootPkHex: string): Promise<string>;
+  export function verifyArtifactSignature(fileHashHex: string, signatureHex: string, publicKeyHex: string): Promise<boolean>;
 }

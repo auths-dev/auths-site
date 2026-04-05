@@ -1,6 +1,6 @@
 {
-  "installCommand": "cd ../.. && pnpm install",
-  "buildCommand": "cd ../.. && pnpm --filter auths-verify build && pnpm --filter @auths/web build",
+  "installCommand": "cd ../.. && bun install",
+  "buildCommand": "cd ../.. && bun run --filter auths-verify build && bun run copy-widget && bun run --filter @auths/web build",
   "outputDirectory": ".next",
   "framework": "nextjs"
 }

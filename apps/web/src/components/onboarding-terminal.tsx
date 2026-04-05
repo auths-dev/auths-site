@@ -12,6 +12,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { CLI_INSTALL } from '@/lib/cli';
 
 // ---------------------------------------------------------------------------
 // Tab data
@@ -27,7 +28,7 @@ const TABS: TabConfig[] = [
   {
     id: 'install',
     label: 'Install',
-    commands: 'curl -fsSL https://get.auths.dev | sh',
+    commands: CLI_INSTALL,
   },
   {
     id: 'create',

@@ -30,7 +30,7 @@ export function Hero() {
   const [mode, setMode]             = useState<SourceConfig['id']>('github');
   const [phase, setPhase]           = useState<Phase>('idle');
   const [lines, setLines]           = useState<LogLine[]>([]);
-  const [input, setInput]           = useState('');
+  const [input, setInput]           = useState('github.com/auths-dev/auths');
 
   // Manual-mode file state
   const [fileName, setFileName]     = useState('');
@@ -195,7 +195,8 @@ export function Hero() {
             </div>
           </div>
 
-          {/* ── Command prompt ──────────────────────────────────────────────── */}
+          {/* ── Command prompt (hidden in manual mode) ─────────────────────── */}
+          {mode !== 'manual' && (
           <div className="px-5 pt-4 pb-2">
             <p className="font-mono text-sm text-zinc-400">
               <span className="text-[var(--muted)]">~ $</span>{' '}
@@ -224,6 +225,7 @@ export function Hero() {
               </AnimatePresence>
             </p>
           </div>
+          )}
 
           {/* ── Log lines ──────────────────────────────────────────────────── */}
           <div className="px-5 space-y-1 pb-1 min-h-0">
@@ -287,7 +289,7 @@ export function Hero() {
             )}
           </AnimatePresence>
 
-          {/* ── Manual file-drop UI ────────────────────────────────────────── */}
+          {/* ── Manual: script + drag-drop UI ─────────────────────────────── */}
           <AnimatePresence>
             {mode === 'manual' && ['idle', 'hashing', 'awaiting_att'].includes(phase) && (
               <motion.div
@@ -298,6 +300,26 @@ export function Hero() {
                 transition={{ duration: 0.25 }}
                 className="mx-5 mt-2 mb-4 space-y-3"
               >
+                {/* Try-it script */}
+                <details className="rounded-lg border border-zinc-700">
+                  <summary className="cursor-pointer px-3 py-2 font-mono text-xs text-zinc-500 hover:text-zinc-300">
+                    Don&apos;t have files yet? Create a signed package in 4 commands
+                  </summary>
+                  <pre className="overflow-x-auto border-t border-zinc-700 bg-zinc-950 px-4 py-3 font-mono text-xs leading-relaxed text-zinc-300">
+{`mkdir -p auths-demo && cd auths-demo
+echo '{"name":"demo","version":"1.0.0"}' > package.json
+tar czf demo-1.0.0.tar.gz package.json
+auths artifact sign demo-1.0.0.tar.gz
+# -> demo-1.0.0.tar.gz.auths.json created
+
+# Verify locally:
+auths id export-bundle --alias main -o bundle.json --max-age-secs 86400
+auths artifact verify demo-1.0.0.tar.gz --identity-bundle bundle.json
+
+# Now drag .tar.gz + .auths.json into the dropzones below`}
+                  </pre>
+                </details>
+
                 {/* 1. Artifact dropzone */}
                 <div
                   className={`flex min-h-[60px] cursor-default flex-col items-center justify-center rounded-lg border border-dashed px-4 py-3 text-center text-sm transition-colors duration-200 ${
@@ -321,7 +343,7 @@ export function Hero() {
                       ✓ {fileName} hashed locally
                     </div>
                   ) : (
-                    '1. Drop an artifact here to hash locally'
+                    'Drop your .tar.gz artifact here'
                   )}
                 </div>
 
@@ -339,7 +361,7 @@ export function Hero() {
                   onDrop={handleAttDrop}
                 >
                   <label className="block px-3 pt-2 font-mono text-xs text-zinc-600">
-                    2. attestation (.auths.json) — drop file or paste contents
+                    Drop .auths.json attestation file or paste contents
                   </label>
                   {attFileName ? (
                     <div className="flex items-center gap-2 px-3 pb-2 pt-1">
