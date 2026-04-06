@@ -834,50 +834,117 @@ export function LandingCiIntegration() {
           {...fadeUp(0.1)}
           className="mt-4 text-lg text-zinc-400"
         >
-          One secret. Two GitHub Actions. Set up once, every release signed, every commit verified.
+          One secret, two actions. Every commit verified. Every release signed.
         </motion.p>
 
-        {/* Step 1: Setup */}
-        <motion.div {...fadeUp(0.2)} className="mt-10">
-          <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
-            1. Setup (once)
-          </h3>
-          <TerminalBlock>
-            <p>
-              <span className="select-none text-emerald-400">~ $ </span>
-              {CLI_CI_SETUP}
-            </p>
-            <p className="text-emerald-400">✓ AUTHS_CI_TOKEN set on auths-dev/my-repo</p>
-          </TerminalBlock>
+        {/* Side-by-side action cards */}
+        <motion.div
+          {...fadeUp(0.2)}
+          className="mt-10 grid items-stretch gap-6 md:grid-cols-2"
+        >
+          {/* Sign Commits */}
+          <div className="flex flex-col gap-3">
+            <h3 className="font-mono text-sm font-semibold text-zinc-400">Sign Commits</h3>
+            <div className="flex-1 [&>pre]:h-full">
+              <CodeBlock
+                language="yaml"
+                code={`# Run \`auths ci setup\` to set signing token
+- uses: auths-dev/sign@v1
+  with:
+    token: \${{ secrets.AUTHS_CI_TOKEN }}
+    commits: 'HEAD~1..HEAD'`}
+              />
+            </div>
+            <a
+              href="https://github.com/auths-dev/auths/actions/workflows/sign-commits.yml"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="self-start"
+            >
+              <img
+                src="https://github.com/auths-dev/auths/actions/workflows/sign-commits.yml/badge.svg"
+                alt="Sign Commits"
+                className="h-5"
+              />
+            </a>
+          </div>
+
+          {/* Verify Commits */}
+          <div className="flex flex-col gap-3">
+            <h3 className="font-mono text-sm font-semibold text-zinc-400">Verify Commits</h3>
+            <div className="flex-1 [&>pre]:h-full">
+              <CodeBlock
+                language="yaml"
+                code={`- uses: auths-dev/verify@v1
+  with:
+    fail-on-unsigned: true`}
+              />
+            </div>
+            <a
+              href="https://github.com/auths-dev/auths/actions/workflows/verify-commits.yml"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="self-start"
+            >
+              <img
+                src="https://github.com/auths-dev/auths/actions/workflows/verify-commits.yml/badge.svg?query=branch%3Amain+event%3Apush"
+                alt="Verify Commits"
+                className="h-5"
+              />
+            </a>
+          </div>
         </motion.div>
 
-        {/* Step 2: Sign releases */}
+        {/* Manual setup accordion */}
         <motion.div {...fadeUp(0.3)} className="mt-8">
-          <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
-            2. Sign releases
-          </h3>
-          <CodeBlock
-            language="yaml"
-            code={`- uses: auths-dev/sign@v1
+          <details className="group">
+            <summary className="flex cursor-pointer list-none items-center gap-2 font-mono text-sm text-zinc-500 transition-colors hover:text-zinc-300">
+              <ChevronRight
+                size={14}
+                className="transition-transform group-open:rotate-90"
+              />
+              Set up manually with the CLI
+            </summary>
+            <div className="mt-6 space-y-6">
+              <div>
+                <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
+                  1. Setup (once)
+                </h3>
+                <TerminalBlock>
+                  <p>
+                    <span className="select-none text-emerald-400">~ $ </span>
+                    {CLI_CI_SETUP}
+                  </p>
+                  <p className="text-emerald-400">✓ AUTHS_CI_TOKEN set on auths-dev/my-repo</p>
+                </TerminalBlock>
+              </div>
+              <div>
+                <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
+                  2. Sign releases
+                </h3>
+                <CodeBlock
+                  language="yaml"
+                  code={`- uses: auths-dev/sign@v1
   with:
     token: \${{ secrets.AUTHS_CI_TOKEN }}
     files: 'dist/*.tar.gz'
     verify: true`}
-          />
+                />
+              </div>
+              <div>
+                <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
+                  3. Verify commits
+                </h3>
+                <CodeBlock
+                  language="yaml"
+                  code={`- uses: auths-dev/verify@v1`}
+                />
+              </div>
+            </div>
+          </details>
         </motion.div>
 
-        {/* Step 3: Verify commits */}
         <motion.div {...fadeUp(0.4)} className="mt-8">
-          <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
-            3. Verify commits
-          </h3>
-          <CodeBlock
-            language="yaml"
-            code={`- uses: auths-dev/verify@v1`}
-          />
-        </motion.div>
-
-        <motion.div {...fadeUp(0.5)} className="mt-8">
           <a
             href="https://docs.auths.dev/guides/platforms/ci-cd/"
             className="inline-flex items-center gap-2 font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
@@ -1344,7 +1411,7 @@ interface ComparisonRow {
   sigstore: { status: StatusType; text: string };
 }
 
-const COMPARISON_DATA: ComparisonRow[] = [
+const COMPARISON_GENERAL: ComparisonRow[] = [
   {
     feature: 'Setup time',
     auths: { status: 'text', text: '10 seconds' },
@@ -1396,6 +1463,37 @@ const COMPARISON_DATA: ComparisonRow[] = [
   },
 ];
 
+const COMPARISON_ATTACK: ComparisonRow[] = [
+  {
+    feature: 'Survives stolen CI token (Axios/LiteLLM attack)',
+    auths: { status: 'yes', text: 'Yes' },
+    gpg: { status: 'no', text: 'No' },
+    ssh: { status: 'no', text: 'No' },
+    sigstore: { status: 'no', text: 'No — CI token bypass still accepted' },
+  },
+  {
+    feature: 'Offline / air-gapped verification',
+    auths: { status: 'yes', text: 'Yes — WASM, no server' },
+    gpg: { status: 'yes', text: 'Yes' },
+    ssh: { status: 'yes', text: 'Yes' },
+    sigstore: { status: 'no', text: 'Requires Rekor network call' },
+  },
+  {
+    feature: 'Persistent maintainer identity',
+    auths: { status: 'yes', text: 'Lifelong key history' },
+    gpg: { status: 'partial', text: 'Manual key management' },
+    ssh: { status: 'partial', text: 'No history model' },
+    sigstore: { status: 'no', text: 'Ephemeral — no persistent identity' },
+  },
+  {
+    feature: 'AI agent identity delegation',
+    auths: { status: 'yes', text: 'Scoped + revocable' },
+    gpg: { status: 'no', text: 'Not supported' },
+    ssh: { status: 'no', text: 'Not supported' },
+    sigstore: { status: 'no', text: 'Not supported' },
+  },
+];
+
 function StatusBadge({ status, text }: { status: StatusType; text: string }) {
   if (status === 'text') {
     return <span className="text-sm text-zinc-300">{text}</span>;
@@ -1442,7 +1540,24 @@ export function LandingCompetitiveTable() {
               </tr>
             </thead>
             <tbody>
-              {COMPARISON_DATA.map((row) => (
+              {COMPARISON_GENERAL.map((row) => (
+                <tr key={row.feature} className="border-b border-zinc-800/50 transition-colors hover:bg-zinc-900/30">
+                  <td className="px-4 py-4 font-mono text-sm text-zinc-300">{row.feature}</td>
+                  <td className="px-4 py-4"><StatusBadge {...row.auths} /></td>
+                  <td className="px-4 py-4"><StatusBadge {...row.gpg} /></td>
+                  <td className="px-4 py-4"><StatusBadge {...row.ssh} /></td>
+                  <td className="px-4 py-4"><StatusBadge {...row.sigstore} /></td>
+                </tr>
+              ))}
+              <tr className="border-b border-zinc-800">
+                <td colSpan={5} className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-rose-400">
+                    <AlertCircle size={11} />
+                    Supply-chain attack scenarios
+                  </span>
+                </td>
+              </tr>
+              {COMPARISON_ATTACK.map((row) => (
                 <tr key={row.feature} className="border-b border-zinc-800/50 transition-colors hover:bg-zinc-900/30">
                   <td className="px-4 py-4 font-mono text-sm text-zinc-300">{row.feature}</td>
                   <td className="px-4 py-4"><StatusBadge {...row.auths} /></td>
@@ -1500,21 +1615,19 @@ export function LandingMultidevice() {
         {/* Divider */}
         <div className="my-16 h-px w-full bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
 
-        {/* Subsection B: Seamless Onboarding */}
+        {/* Subsection B: Key Rotation */}
         <div className="grid items-center gap-10 md:grid-cols-2">
           <motion.div {...fadeUp(0.2)} className="order-2 md:order-1">
             <TerminalBlock>
               <p>
                 <span className="select-none text-emerald-400">~ $ </span>
-                auths pair
+                auths id rotate --alias my-key
               </p>
-              <p>Pairing code: ABC-123</p>
-              <p className="mt-2 text-zinc-500">Scan QR or enter code on new device:</p>
-              <p>
-                <span className="select-none text-emerald-400">~ $ </span>
-                auths pair --join ABC-123
-              </p>
-              <p className="text-emerald-400">✓ Device linked to did:keri:E8jsh...</p>
+              <p className="text-emerald-400">✓ New key generated</p>
+              <p className="text-emerald-400">✓ Rotation event signed by current key</p>
+              <p className="text-emerald-400">✓ Key Event Log updated</p>
+              <p className="mt-2 text-zinc-500">Prior signatures remain valid.</p>
+              <p className="text-zinc-500">Nothing to re-sign.</p>
             </TerminalBlock>
           </motion.div>
           <div className="order-1 md:order-2">
@@ -1522,20 +1635,21 @@ export function LandingMultidevice() {
               {...fadeUp(0)}
               className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
             >
-              Seamless Onboarding
+              Rotate Without Breaking History
             </motion.h2>
             <motion.p
               {...fadeUp(0.1)}
               className="mt-4 text-lg text-zinc-400"
             >
-              New device? One scan. Your identity carries over.
+              Rotation is a signed event in your Key Event Log — not a manual ceremony.
+              Suspect compromise? One command. Prior signatures stay valid. Nothing to re-sign.
             </motion.p>
             <motion.div {...fadeUp(0.3)} className="mt-6">
               <a
-                href="https://docs.auths.dev/getting-started/install/"
+                href="https://docs.auths.dev/guides/identity/key-rotation/"
                 className="inline-flex items-center gap-2 font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
               >
-                See Device Identity in Action <ChevronRight size={14} />
+                Learn about key rotation <ChevronRight size={14} />
               </a>
             </motion.div>
           </div>
