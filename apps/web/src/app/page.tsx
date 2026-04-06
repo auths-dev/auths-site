@@ -3,7 +3,7 @@ import {
   LandingInstall,
   LandingSignAndVerify,
   LandingCiIntegration,
-  LandingAuth,
+  // LandingAuth, // not for launch
   LandingSupplyChain,
   LandingCompetitiveTable,
   LandingAgentIdentity,
@@ -32,8 +32,8 @@ export default function HomePage() {
       <Divider />
       <LandingCiIntegration />
       <Divider />
-      <LandingAuth />
-      <Divider />
+      {/* <LandingAuth /> not for launch */}
+      {/* <Divider /> */}
       <LandingSupplyChain />
       <Divider />
       <LandingCompetitiveTable />
