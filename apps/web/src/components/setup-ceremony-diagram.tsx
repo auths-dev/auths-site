@@ -178,6 +178,22 @@ const VARIANTS: Record<string, VariantConfig> = {
     badgeBg: 'bg-emerald-500/10 border-emerald-500/20',
     label: '1 command',
   },
+  'auths-sigstore-setup': {
+    rows: [
+      [
+        { icon: ShieldCheckIcon, title: 'auths init', detail: 'Create identity' },
+        { icon: TerminalIcon, title: 'auths artifact sign', detail: 'Sign artifact' },
+        { icon: UploadIcon, title: '--log sigstore-rekor', detail: 'Record on Rekor' },
+      ],
+    ],
+    accent: 'text-emerald-400',
+    border: 'border-emerald-500/40',
+    glow: 'shadow-[0_0_30px_rgba(16,185,129,0.15)]',
+    line: 'from-emerald-600/50 to-emerald-500/30',
+    badge: 'text-emerald-400',
+    badgeBg: 'bg-emerald-500/10 border-emerald-500/20',
+    label: '3 steps',
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -202,7 +218,7 @@ function StepRow({
             <motion.div
               variants={nodeVariants}
               className={`relative z-10 flex shrink-0 flex-col items-center justify-center rounded-xl border bg-zinc-900 ${config.border} ${config.glow} ${
-                isOnlyStep ? 'h-24 w-44' : 'h-[72px] w-[108px]'
+                isOnlyStep ? 'h-24 w-44' : 'h-[80px] w-[140px]'
               }`}
             >
               <Icon size={isOnlyStep ? 22 : 18} className={`mb-1 ${config.accent}`} />
