@@ -1,0 +1,51 @@
+import {
+  LandingHero,
+  LandingInstall,
+  LandingSignAndVerify,
+  LandingCiIntegration,
+  // LandingAuth, // not for launch
+  LandingSupplyChain,
+  LandingCompetitiveTable,
+  LandingAgentIdentity,
+  LandingMultidevice,
+  LandingArchitecture,
+  LandingBottomCTA,
+  LandingFooter,
+} from '@/components/landing-sections';
+
+function Divider() {
+  return (
+    <div className="mx-auto max-w-3xl px-6">
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+    </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <main className="relative min-h-screen bg-zinc-950 text-zinc-50 selection:bg-emerald-500/30">
+      <LandingHero />
+      <Divider />
+      <LandingInstall />
+      <Divider />
+      <LandingSignAndVerify />
+      <Divider />
+      <LandingCiIntegration />
+      <Divider />
+      {/* <LandingAuth /> not for launch */}
+      {/* <Divider /> */}
+      <LandingSupplyChain />
+      <Divider />
+      <LandingCompetitiveTable />
+      <Divider />
+      <LandingAgentIdentity />
+      <Divider />
+      <LandingMultidevice />
+      <Divider />
+      <LandingArchitecture />
+      <Divider />
+      <LandingBottomCTA />
+      <LandingFooter />
+    </main>
+  );
+}

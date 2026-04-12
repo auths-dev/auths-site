@@ -1,0 +1,146 @@
+---
+title: "Sigstore's Public Ledger, Without the Login Screen"
+description: "Auths now submits attestations to Sigstore's Rekor transparency log — using its own identity model instead of OIDC. Here's what that means and why it matters."
+date: "2026-04-10"
+---
+
+# Sigstore's Public Ledger, Without the Login Screen
+
+Today we landed our first entry on Sigstore's production Rekor transparency log. Index 1,271,709,852. A P-256 ECDSA signature over a DSSE envelope containing an auths attestation. Verifiable by anyone with `rekor-cli`.
+
+No OIDC token was involved. No Fulcio certificate was requested. No browser window opened. No corporate account was consulted.
+
+This post explains what happened, why it matters, and what it means for the relationship between decentralized identity and the supply chain security infrastructure the industry is converging on.
+
+## What Auths is (30-second version)
+
+Auths is a code signing tool that gives developers a cryptographic identity without relying on any third party. You run `auths init`, a P-256 key goes into your OS keychain, a KERI Key Event Log is created in Git, and your commits are signed. No accounts, no servers, no ceremony.
+
+<SetupCeremonyDiagram variant="auths-sigstore-setup" />
+
+Your identity survives key rotation, works across devices via cryptographic pairing, and is verifiable offline by replaying the key event log — a purely mathematical operation.
+
+The full comparison with GPG and Sigstore is in [The Three Paths to Signing a Commit](/blog/why_not_gpg).
+
+## The problem: signing in a vacuum
+
+Until today, auths signatures lived in a closed loop. You signed a commit. A verifier with your key event log could confirm it. But there was no public record — no way for an independent third party to say "this signing event was observed at this point in time."
+
+Without a public record, a compromised registry operator could present different views of the same identity to different parties. This is the split-view attack, and it's the reason transparency logs exist.
+
+We needed a witness. The question was: whose?
+
+## Why Sigstore's Rekor
+
+The honest answer: because it's already there and everyone trusts it.
+
+Rekor is a free, public, append-only Merkle tree operated by the Linux Foundation. Every entry gets an inclusion proof and a signed checkpoint. npm uses it. PyPI uses it. Kubernetes uses it. It has years of production hardening and is monitored by the entire supply chain security community.
+
+Running our own transparency log was the other option. We designed the format (C2SP tlog-tiles, documented in ADR-006), but operating a log requires infrastructure, uptime guarantees, and a witness ecosystem. All overhead that slows a pre-launch project.
+
+Rekor gave us cryptographic auditability on day one with zero operational cost.
+
+## The catch: Rekor expects OIDC
+
+Here's the standard Sigstore signing flow:
+
+<LifelineDiagram variant="sigstore-sign" />
+
+Five participants. Your identity comes from an OIDC provider (Google, GitHub). Fulcio issues a short-lived certificate binding your OIDC identity to an ephemeral key. The signature and certificate go to Rekor. The key is discarded.
+
+This is the architectural assumption the entire Sigstore ecosystem is built on: **to sign, you must authenticate through a corporate identity provider.**
+
+## What we did instead
+
+We skipped Fulcio and OIDC entirely. Auths has its own identity model (KERI key event logs), its own keys (P-256 in your OS keychain), and its own attestation format. We only needed Rekor for one thing: a public, append-only record that the signing event occurred.
+
+The signing flow with Rekor:
+
+<LifelineDiagram variant="auths-sigstore-sign" />
+
+Four participants. Developer, CLI, keychain, and Rekor. No Fulcio. No OIDC. No browser redirect. The attestation gets wrapped in a DSSE (Dead Simple Signing Envelope) and submitted directly to Rekor with the public key in PEM format.
+
+Rekor doesn't know or care that we're not using Fulcio. It accepts the DSSE envelope, verifies the signature, appends it to the Merkle tree, and returns an inclusion proof. Our entry sits alongside every other entry from npm, PyPI, and GitHub Actions — same log, same cryptographic guarantees, same verifiability.
+
+## What the entry looks like
+
+You can see the first auths based entry here:
+
+[search.sigstore.dev/?logIndex=1271709852](https://search.sigstore.dev/?logIndex=1271709852)
+
+```bash
+$ rekor-cli get --log-index 1271709852 --rekor_server https://rekor.sigstore.dev
+LogID: c0d23d6ad406973f9559f3ba2d1ca01f84147d8ffc5b8445c224f98b9591801d
+Index: 1271709852
+IntegratedTime: 2026-04-10T15:06:22Z
+Body: {
+  "DSSEObj": {
+    "payloadHash": {
+      "algorithm": "sha256",
+      "value": "cf2569c779e9da0d14af2da22342ebae39038037b43c9d4ed2e03f43d2dcf6b4"
+    },
+    "signatures": [
+      {
+        "signature": "vawl1LZzGd9kNsfPyb7FnYo7+z0wFrduZ+w5kH9JWcvsoGTj...",
+        "verifier": "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0K..."
+      }
+    ]
+  }
+}
+```
+
+Decode the verifier and you get a standard SPKI PEM:
+
+```
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEXhs/VevCYYjO/kBHcvrgzNWaGdwp
+Ilm9Sb+9Fo0VDmTrJES8sgnA6YAjuJ9z2hpNZ0s5b8kP9/HcDMNGE0TI1Q==
+-----END PUBLIC KEY-----
+```
+
+That's a P-256 public key. The same key that's in the developer's OS keychain and referenced in their KERI key event log. No certificate wrapping it. No OIDC claim binding it to an email address. Just a key and a signature.
+
+## Why this matters
+
+The supply chain security industry has been converging on a single model: you need a corporate identity provider to produce trusted signatures. Sigstore made this model practical and widely adopted — a genuine improvement over the GPG status quo.
+
+But it created a gatekeeping assumption: **signing infrastructure requires login infrastructure.** If you're not on GitHub Actions or Google Cloud, if you're an independent developer or a project on a sovereign forge, if you simply don't want your signing identity controlled by a third party — you're outside the system.
+
+We just demonstrated that the gatekeeping assumption is false. The public ledger is open infrastructure. You can write to it with your own identity model, your own keys, and your own signing protocol. The entry is indistinguishable in cryptographic strength from any other entry in the log.
+
+This doesn't replace Sigstore. Sigstore's OIDC model is genuinely excellent for CI/CD workflows where platform tokens are already available. But it proves that the transparency log — the part that actually provides the security guarantee — is separable from the identity provider.
+
+## The implementation
+
+The Rekor adapter is ~500 lines of Rust in `crates/auths-infra-rekor/`. It implements our `TransparencyLog` port trait, which means it's pluggable — swap it for a self-hosted log, a Sigsum instance, or anything else without changing core code.
+
+Key design decisions:
+
+- **DSSE entry type**, not hashedrekord. Our attestation signatures cover the canonicalized attestation content. DSSE wraps the payload and signature in an envelope that Rekor stores without requiring signature-over-hash verification.
+- **P-256 keys in SPKI PEM format** at the Rekor boundary. Internally auths uses raw SEC1 key bytes. The PEM conversion happens in the adapter — one function, one boundary.
+- **DSSE PAE (Pre-Authentication Encoding)** signature computed at signing time while the key is in scope. The DSSE spec requires the signature to cover `"DSSEv1" || payloadType || payload`, not just the raw payload.
+
+## Try it
+
+```bash
+cargo install auths-cli
+auths init
+echo "hello world" > artifact.txt
+auths artifact sign --log sigstore-rekor artifact.txt
+```
+
+Your attestation lands on Rekor. Check it:
+
+```bash
+rekor-cli get --log-index <INDEX> --rekor_server https://rekor.sigstore.dev
+```
+
+The code is at [github.com/auths-dev/auths](https://github.com/auths-dev/auths). The design document for the transparency log integration is in `docs/design/transparency-log-port.md`. The architectural decision record is ADR-007.
+
+## What's next
+
+- **Verification against Rekor**: `auths artifact verify` will check the embedded transparency section against the log, confirming the entry exists and the inclusion proof is valid.
+- **Release workflow integration**: GitHub Actions signing with `--ci --log sigstore-rekor` so every release artifact gets a public Rekor entry.
+- **Self-hosted log**: For organizations that can't depend on Sigstore infrastructure, the C2SP tlog-tiles implementation (ADR-006) as an alternative backend.
+
+The hard engineering is done. The transparency log is a trait. The adapter is one crate. The identity model is ours. The ledger is shared.

@@ -72,20 +72,12 @@ Refresh your profile page on the registry. You will now see your newly published
 
 ## 5. Set Up CI Signing
 
-One command sets a single `AUTHS_CI_TOKEN` secret on your repo:
-
-```bash
-auths ci setup
-```
-
-Then add signing to your release workflow:
+Add signing to your release workflow — no secrets needed:
 
 ```yaml
 - uses: auths-dev/sign@v1
   with:
-    token: $\{{ secrets.AUTHS_CI_TOKEN }}
     files: 'dist/*.tar.gz'
-    verify: true
 ```
 
 And commit verification to your CI:

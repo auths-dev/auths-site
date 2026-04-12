@@ -594,15 +594,14 @@ function TerminalBlock({ children, label = 'terminal' }: { children: React.React
 // TABBED INSTALL TERMINAL
 // ===========================================================================
 
-const INSTALL_TABS = [
-  { id: 'brew', label: 'macOS', cmd: CLI_INSTALL_BREW },
-  { id: 'curl', label: 'Linux', cmd: CLI_INSTALL_CURL },
-  { id: 'cargo', label: 'Cargo', cmd: CLI_INSTALL_CARGO },
+const HERO_TABS = [
+  { id: 'macos', label: 'macOS' },
+  { id: 'linux', label: 'Linux' },
+  { id: 'windows', label: 'Windows' },
 ] as const;
 
 function HeroInstallTerminal() {
-  const [tab, setTab] = useState<string>('brew');
-  const activeCmd = INSTALL_TABS.find((t) => t.id === tab)?.cmd ?? CLI_INSTALL_BREW;
+  const [tab, setTab] = useState<string>('macos');
 
   return (
     <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50 shadow-2xl">
@@ -613,7 +612,7 @@ function HeroInstallTerminal() {
           <span className="h-3 w-3 rounded-full bg-zinc-700" />
         </div>
         <div className="flex gap-1">
-          {INSTALL_TABS.map((t) => (
+          {HERO_TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
@@ -631,15 +630,23 @@ function HeroInstallTerminal() {
       <div className="space-y-2 px-5 py-4 font-mono text-sm text-zinc-300">
         <p>
           <span className="select-none text-emerald-400">~ $ </span>
-          {activeCmd}
+          {tab === 'macos' ? 'brew install auths && auths init' : 'cargo install auths-cli && auths init'}
         </p>
+        <p className="text-zinc-500">{
+          tab === 'macos' ? '  🔐 Touch ID' :
+          tab === 'linux' ? '  🔐 Stored in GNOME Keyring' :
+          '  🔐 Stored in Windows Credential Manager'
+        }</p>
+        <p className="text-emerald-400">✓ Identity created</p>
         <p>
           <span className="select-none text-emerald-400">~ $ </span>
-          auths init
+          git commit -m &quot;first signed commit&quot;
         </p>
-        <p className="text-emerald-400">✓ Identity created: did:keri:E8jsh...</p>
-        <p className="text-emerald-400">✓ Git signing configured</p>
-        <p className="text-emerald-400">✓ Ready. Every commit is now signed.</p>
+        {tab === 'macos' ? (
+          <p className="text-emerald-400">✓ Commit signed (Touch ID)</p>
+        ) : (
+          <p className="text-emerald-400">✓ Commit signed</p>
+        )}
       </div>
     </div>
   );
@@ -655,7 +662,7 @@ function HeroInstallTerminal() {
 
 export function LandingHero() {
   return (
-    <section className="relative z-10 flex min-h-[85vh] items-center px-6">
+    <section className="relative z-10 flex min-h-[85vh] items-center px-6 pt-24 pb-16">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-12 md:flex-row md:items-center md:gap-16">
         {/* Content */}
         <div className="flex-1">
@@ -663,14 +670,14 @@ export function LandingHero() {
             {...fadeUp(0)}
             className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
           >
-            Sign commits. Verify releases. Authorize agents.
+            Sign code with your fingerprint. Verified on Sigstore.
           </motion.h1>
 
           <motion.p
             {...fadeUp(0.15)}
             className="mt-6 text-lg leading-8 text-zinc-400 sm:text-xl"
           >
-            Cryptographic identity that lives in your Git repo. No GPG. No central server. 10 seconds to set up.
+            Hardware-backed identity. Touch ID signs your commits and releases. Every signature lands on the same public ledger as Google and GitHub &mdash; no accounts, no certificates, no permission needed.
           </motion.p>
 
           <motion.div
@@ -695,11 +702,11 @@ export function LandingHero() {
             {...fadeUp(0.4)}
             className="mt-8 flex items-center gap-4 font-mono text-sm text-zinc-500"
           >
-            <span>Open source</span>
+            <span>Touch ID signing</span>
             <span className="h-1 w-1 rounded-full bg-zinc-700" aria-hidden="true" />
-            <span>Works offline</span>
+            <span>On Sigstore&apos;s public ledger</span>
             <span className="h-1 w-1 rounded-full bg-zinc-700" aria-hidden="true" />
-            <span>No vendor lock-in</span>
+            <span>No OIDC or CA</span>
           </motion.div>
         </div>
 
@@ -713,7 +720,7 @@ export function LandingHero() {
 }
 
 // ---------------------------------------------------------------------------
-// Install — Zero to Signed Commit
+// Sigstore — Public transparency log integration
 // ---------------------------------------------------------------------------
 
 export function LandingInstall() {
@@ -724,34 +731,65 @@ export function LandingInstall() {
           {...fadeUp(0)}
           className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
         >
-          Zero to Signed Commit in 30 Seconds
+          Publicly Verified on Sigstore
         </motion.h2>
         <motion.p
           {...fadeUp(0.1)}
           className="mt-4 text-lg text-zinc-400"
         >
-          Install, create your identity, and sign your first commit. Copy-paste and go.
+          Every signature lands on the same public transparency log used by Google, GitHub, npm, and PyPI. No OIDC. No certificate authority. Just your key and a public record.
         </motion.p>
 
         <motion.div {...fadeUp(0.2)} className="mt-10">
-          <TerminalBlock>
+          <TerminalBlock label="try it yourself">
+            <p className="text-zinc-500"># create something to sign</p>
             <p>
               <span className="select-none text-emerald-400">~ $ </span>
-              brew install auths
-              <span className="text-zinc-600"> # or: cargo install auths-cli</span>
+              echo &quot;my-app v1.0.0&quot; &gt; release.tar.gz
             </p>
+            <p className="mt-2 text-zinc-500"># sign it and publish to Sigstore</p>
             <p>
               <span className="select-none text-emerald-400">~ $ </span>
-              auths init
+              auths artifact sign --log sigstore-rekor release.tar.gz
             </p>
-            <p className="text-emerald-400">✓ Identity created: did:keri:E8jsh...</p>
-            <p className="text-emerald-400">✓ Git signing configured</p>
+            <p className="text-emerald-400">  Logged to sigstore-rekor at index 1271709852</p>
+            <p className="text-emerald-400">✓ Signed &quot;release.tar.gz&quot; → &quot;release.tar.gz.auths.json&quot;</p>
+            <p className="mt-2 text-zinc-500"># verify it landed — anyone can do this, no auths needed</p>
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              rekor-cli get --log-index 1271709852
+            </p>
+            <p className="text-zinc-500">  Body: {'{'}&quot;DSSEObj&quot;: {'{'}&quot;payloadHash&quot;: ...{'}'}{'}'}</p>
             <p className="mt-2">
-              <span className="select-none text-emerald-400">~ $ </span>
-              git commit -m &quot;first signed commit&quot;
+              <a href="https://search.sigstore.dev/?logIndex=1271709852" target="_blank" rel="noopener noreferrer" className="text-zinc-500 underline decoration-zinc-700 hover:text-emerald-400 hover:decoration-emerald-500 transition-colors">
+                → view on search.sigstore.dev
+              </a>
             </p>
-            <p className="text-emerald-400">✓ Commit signed with did:keri:E8jsh...</p>
           </TerminalBlock>
+        </motion.div>
+
+        <motion.div
+          {...fadeUp(0.3)}
+          className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3"
+        >
+          <div>
+            <h3 className="font-mono text-sm font-semibold text-emerald-400">Bring your own network</h3>
+            <p className="mt-2 text-sm text-zinc-400">
+              Sigstore is the default, not a dependency. Swap in a self-hosted log, a Sigsum instance, or run fully offline with <code className="text-zinc-300">--allow-unlogged</code>.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-mono text-sm font-semibold text-emerald-400">No OIDC required</h3>
+            <p className="mt-2 text-sm text-zinc-400">
+              Sigstore normally requires Google or GitHub login. Auths skips that entirely. Your identity is cryptographic, not borrowed from a provider.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-mono text-sm font-semibold text-emerald-400">Independently verifiable</h3>
+            <p className="mt-2 text-sm text-zinc-400">
+              Anyone can verify your entry with <code className="text-zinc-300">rekor-cli</code> or <code className="text-zinc-300">cosign</code>. No auths installation needed. Standard tooling, standard formats.
+            </p>
+          </div>
         </motion.div>
       </div>
     </section>
@@ -834,7 +872,7 @@ export function LandingCiIntegration() {
           {...fadeUp(0.1)}
           className="mt-4 text-lg text-zinc-400"
         >
-          One secret, two actions. Every commit verified. Every release signed.
+          Zero secrets. Two actions. Every commit verified. Every release signed.
         </motion.p>
 
         {/* Side-by-side action cards */}
@@ -845,13 +883,12 @@ export function LandingCiIntegration() {
           {/* Sign Commits */}
           <div className="flex flex-col gap-3">
             <h3 className="font-mono text-sm font-semibold text-zinc-400">Sign Commits</h3>
+            <p className="text-xs text-zinc-500">No secrets needed &mdash; ephemeral signing with scoped credentials.</p>
             <div className="flex-1 [&>pre]:h-full">
               <CodeBlock
                 language="yaml"
-                code={`# Run \`auths ci setup\` to set signing token
-- uses: auths-dev/sign@v1
+                code={`- uses: auths-dev/sign@v1
   with:
-    token: \${{ secrets.AUTHS_CI_TOKEN }}
     commits: 'HEAD~1..HEAD'`}
               />
             </div>
@@ -872,6 +909,7 @@ export function LandingCiIntegration() {
           {/* Verify Commits */}
           <div className="flex flex-col gap-3">
             <h3 className="font-mono text-sm font-semibold text-zinc-400">Verify Commits</h3>
+            <p className="text-xs text-zinc-500">Offline verification &mdash; no network calls, no CA lookups.</p>
             <div className="flex-1 [&>pre]:h-full">
               <CodeBlock
                 language="yaml"
@@ -908,36 +946,55 @@ export function LandingCiIntegration() {
             <div className="mt-6 space-y-6">
               <div>
                 <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
-                  1. Setup (once)
+                  1. Install &amp; init (local, once)
                 </h3>
                 <TerminalBlock>
                   <p>
                     <span className="select-none text-emerald-400">~ $ </span>
-                    {CLI_CI_SETUP}
+                    brew install auths
                   </p>
-                  <p className="text-emerald-400">✓ AUTHS_CI_TOKEN set on auths-dev/my-repo</p>
+                  <p>
+                    <span className="select-none text-emerald-400">~ $ </span>
+                    auths init
+                  </p>
+                  <p className="text-emerald-400">✓ Identity created, git signing configured</p>
                 </TerminalBlock>
               </div>
               <div>
                 <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
-                  2. Sign releases
+                  2. Add verify action to CI
                 </h3>
                 <CodeBlock
                   language="yaml"
-                  code={`- uses: auths-dev/sign@v1
-  with:
-    token: \${{ secrets.AUTHS_CI_TOKEN }}
-    files: 'dist/*.tar.gz'
-    verify: true`}
+                  code={`# .github/workflows/verify.yml
+name: Verify Commits
+on: [pull_request, push]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: auths-dev/verify@v1
+        with:
+          fail-on-unsigned: true`}
                 />
               </div>
               <div>
                 <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
-                  3. Verify commits
+                  3. Add sign action to releases
                 </h3>
                 <CodeBlock
                   language="yaml"
-                  code={`- uses: auths-dev/verify@v1`}
+                  code={`# In your release workflow, after building:
+- name: Sign release artifacts
+  run: |
+    for f in dist/*; do
+      auths artifact sign --ci \\
+        --commit \${{ github.sha }} \\
+        --log sigstore-rekor "$f"
+    done`}
                 />
               </div>
             </div>

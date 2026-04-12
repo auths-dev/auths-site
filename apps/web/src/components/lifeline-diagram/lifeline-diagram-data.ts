@@ -158,6 +158,27 @@ export const VARIANTS: Record<string, FlowConfig> = {
     ],
     colors: EMERALD,
   },
+  'auths-sigstore-sign': {
+    actors: [
+      { name: 'Developer', iconId: 'user' },
+      { name: 'Auths CLI', iconId: 'terminal' },
+      { name: 'OS Keychain', iconId: 'lock' },
+      { name: 'Rekor', iconId: 'database' },
+    ],
+    steps: [
+      { from: 0, to: 1, label: 'auths artifact sign --log sigstore-rekor file.tar.gz' },
+      { from: 1, to: 2, label: 'sign attestation with device key' },
+      { from: 2, to: 2, label: 'unlock P-256 key (passphrase or cached)' },
+      { from: 2, to: 1, label: 'attestation signature + DSSE signature' },
+      { from: 1, to: 1, label: 'build DSSE envelope (payload + signature + PEM key)' },
+      { from: 1, to: 3, label: 'POST /api/v1/log/entries (DSSE entry)' },
+      { from: 3, to: 3, label: 'verify signature, append to Merkle tree' },
+      { from: 3, to: 1, label: 'inclusion proof + signed checkpoint' },
+      { from: 1, to: 1, label: 'embed transparency section in .auths.json' },
+      { from: 1, to: 0, label: 'file.tar.gz.auths.json written (logged at index N)' },
+    ],
+    colors: EMERALD,
+  },
   'auths-verify': {
     actors: [
       { name: 'Verifier', iconId: 'user' },
