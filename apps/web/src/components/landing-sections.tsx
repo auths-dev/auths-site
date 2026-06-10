@@ -5,12 +5,6 @@ import { Fragment, useState, type ComponentType, type SVGProps } from 'react';
 import { CodeBlock } from '@/components/code-block';
 import { Hero as VerifyHero } from '@/components/hero';
 import {
-  CLI_INSTALL_BREW,
-  CLI_INSTALL_CURL,
-  CLI_INSTALL_CARGO,
-  CLI_CI_SETUP,
-} from '@/lib/cli';
-import {
   GitCommitHorizontal,
   Users,
   Bot,
@@ -653,6 +647,66 @@ function HeroInstallTerminal() {
 }
 
 // ===========================================================================
+// HERO SIGNED-REQUEST TERMINAL
+// ===========================================================================
+
+const heroSessionContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.45, delayChildren: 0.6 } },
+};
+
+const heroSessionLine = {
+  hidden: { opacity: 0, y: 4 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } },
+};
+
+function HeroRequestTerminal() {
+  return (
+    <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50 shadow-2xl">
+      <div className="flex items-center border-b border-zinc-800 px-4 py-3">
+        <div className="flex items-center gap-2" aria-hidden="true">
+          <span className="h-3 w-3 rounded-full bg-zinc-700" />
+          <span className="h-3 w-3 rounded-full bg-zinc-700" />
+          <span className="h-3 w-3 rounded-full bg-zinc-700" />
+        </div>
+        <span className="ml-4 font-mono text-xs text-zinc-600">service → api.example.com</span>
+      </div>
+      <motion.div
+        className="space-y-1.5 px-5 py-4 font-mono text-[13px] leading-relaxed text-zinc-300"
+        variants={heroSessionContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.p variants={heroSessionLine} className="text-zinc-500"># mint a single-use challenge</motion.p>
+        <motion.p variants={heroSessionLine}>
+          <span className="select-none text-emerald-400">~ $ </span>
+          curl -s https://api.example.com/v1/auth/challenge
+        </motion.p>
+        <motion.p variants={heroSessionLine} className="text-zinc-500">
+          {'{ "nonce": "Vqt3K9…", "notAfter": "03:05:00Z" }'}
+        </motion.p>
+        <motion.p variants={heroSessionLine} className="pt-1 text-zinc-500"># sign it with the device-bound key</motion.p>
+        <motion.p variants={heroSessionLine}>
+          <span className="select-none text-emerald-400">~ $ </span>
+          auths auth challenge --nonce Vqt3K9… --domain api.example.com
+        </motion.p>
+        <motion.p variants={heroSessionLine} className="text-emerald-400">
+          ✓ signed — the private key never left the keychain
+        </motion.p>
+        <motion.p variants={heroSessionLine} className="pt-1 text-zinc-500"># the signature is the credential</motion.p>
+        <motion.p variants={heroSessionLine} className="break-all">
+          <span className="select-none text-emerald-400">~ $ </span>
+          curl -H &quot;Authorization: Auths-Presentation eyJ…&quot; …/v1/deploy
+        </motion.p>
+        <motion.p variants={heroSessionLine} className="text-emerald-400">
+          {'{ "deployedBy": "did:keri:EBf2cE…", "caps": ["acme:deploy"] }'}
+        </motion.p>
+      </motion.div>
+    </div>
+  );
+}
+
+// ===========================================================================
 // SECTIONS
 // ===========================================================================
 
@@ -670,14 +724,14 @@ export function LandingHero() {
             {...fadeUp(0)}
             className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
           >
-            Sign code with your fingerprint. Verified on Sigstore.
+            Replace static API keys with signed, scoped, revocable identity.
           </motion.h1>
 
           <motion.p
             {...fadeUp(0.15)}
             className="mt-6 text-lg leading-8 text-zinc-400 sm:text-xl"
           >
-            Hardware-backed identity. Touch ID signs your commits and releases. One flag puts any signature on the same public ledger Google and GitHub use &mdash; no accounts, no certificates, no permission needed.
+            Long-lived secrets leak, outlive their owners, and never rotate. With Auths, services and agents authenticate each request with a signature from a device-bound key &mdash; the secret never transmits, so there is nothing to leak.
           </motion.p>
 
           <motion.div
@@ -702,17 +756,17 @@ export function LandingHero() {
             {...fadeUp(0.4)}
             className="mt-8 flex items-center gap-4 font-mono text-sm text-zinc-500"
           >
-            <span>Touch ID signing</span>
+            <span>No bearer tokens</span>
             <span className="h-1 w-1 rounded-full bg-zinc-700" aria-hidden="true" />
-            <span>On Sigstore&apos;s public ledger</span>
+            <span>Scoped per request</span>
             <span className="h-1 w-1 rounded-full bg-zinc-700" aria-hidden="true" />
-            <span>No OIDC or CA</span>
+            <span>Revoked in one command</span>
           </motion.div>
         </div>
 
         {/* Terminal */}
         <motion.div {...fadeUp(0.3)} className="flex-1">
-          <HeroInstallTerminal />
+          <HeroRequestTerminal />
         </motion.div>
       </div>
     </section>
@@ -720,338 +774,33 @@ export function LandingHero() {
 }
 
 // ---------------------------------------------------------------------------
-// Sigstore — Public transparency log integration
-// ---------------------------------------------------------------------------
-
-export function LandingInstall() {
-  return (
-    <section className="relative z-10 px-6 py-32 sm:py-40">
-      <div className="mx-auto max-w-3xl">
-        <motion.h2
-          {...fadeUp(0)}
-          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
-        >
-          Publicly Verified on Sigstore
-        </motion.h2>
-        <motion.p
-          {...fadeUp(0.1)}
-          className="mt-4 text-lg text-zinc-400"
-        >
-          One flag puts a signature on the same public transparency log used by Google, GitHub, npm, and PyPI &mdash; auths&apos; own releases are logged there. No OIDC. No certificate authority. Just your key and a public record.
-        </motion.p>
-
-        <motion.div {...fadeUp(0.2)} className="mt-10">
-          <TerminalBlock label="try it yourself">
-            <p className="text-zinc-500"># create something to sign</p>
-            <p>
-              <span className="select-none text-emerald-400">~ $ </span>
-              echo &quot;my-app v1.0.0&quot; &gt; release.tar.gz
-            </p>
-            <p className="mt-2 text-zinc-500"># sign it and publish to Sigstore</p>
-            <p>
-              <span className="select-none text-emerald-400">~ $ </span>
-              auths artifact sign --log sigstore-rekor release.tar.gz
-            </p>
-            <p className="text-emerald-400">  Logged to sigstore-rekor at index 1271709852</p>
-            <p className="text-emerald-400">✓ Signed &quot;release.tar.gz&quot; → &quot;release.tar.gz.auths.json&quot;</p>
-            <p className="mt-2 text-zinc-500"># verify it landed — anyone can do this, no auths needed</p>
-            <p>
-              <span className="select-none text-emerald-400">~ $ </span>
-              rekor-cli get --log-index 1271709852
-            </p>
-            <p className="text-zinc-500">  Body: {'{'}&quot;DSSEObj&quot;: {'{'}&quot;payloadHash&quot;: ...{'}'}{'}'}</p>
-            <p className="mt-2">
-              <a href="https://search.sigstore.dev/?logIndex=1271709852" target="_blank" rel="noopener noreferrer" className="text-zinc-500 underline decoration-zinc-700 hover:text-emerald-400 hover:decoration-emerald-500 transition-colors">
-                → view on search.sigstore.dev
-              </a>
-            </p>
-          </TerminalBlock>
-        </motion.div>
-
-        <motion.div
-          {...fadeUp(0.3)}
-          className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3"
-        >
-          <div>
-            <h3 className="font-mono text-sm font-semibold text-emerald-400">Bring your own network</h3>
-            <p className="mt-2 text-sm text-zinc-400">
-              Sigstore is the default, not a dependency. Swap in a self-hosted log, a Sigsum instance, or run fully offline with <code className="text-zinc-300">--allow-unlogged</code>.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-mono text-sm font-semibold text-emerald-400">No OIDC required</h3>
-            <p className="mt-2 text-sm text-zinc-400">
-              Sigstore normally requires Google or GitHub login. Auths skips that entirely. Your identity is cryptographic, not borrowed from a provider.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-mono text-sm font-semibold text-emerald-400">Independently verifiable</h3>
-            <p className="mt-2 text-sm text-zinc-400">
-              Anyone can verify your entry with <code className="text-zinc-300">rekor-cli</code> or <code className="text-zinc-300">cosign</code>. No auths installation needed. Standard tooling, standard formats.
-            </p>
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Sign & Verify — The core CLI workflow
-// ---------------------------------------------------------------------------
-
-export function LandingSignAndVerify() {
-  return (
-    <section className="relative z-10 px-6 py-32 sm:py-40">
-      <div className="mx-auto max-w-3xl">
-        <motion.h2
-          {...fadeUp(0)}
-          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
-        >
-          Sign Anything. Verify Anywhere.
-        </motion.h2>
-        <motion.p
-          {...fadeUp(0.1)}
-          className="mt-4 text-lg text-zinc-400"
-        >
-          Commits, release artifacts, SBOM manifests. One tool, one identity.
-        </motion.p>
-
-        <motion.div
-          {...fadeUp(0.2)}
-          className="mt-10 grid items-stretch gap-6 md:grid-cols-2"
-        >
-          {/* Sign */}
-          <div className="flex flex-col">
-            <h3 className="mb-3 font-mono text-sm font-semibold text-zinc-400">Sign</h3>
-            <div className="flex-1 [&>div]:h-full [&>div]:flex [&>div]:flex-col [&>div>div:last-child]:flex-1">
-              <TerminalBlock>
-                <p>
-                  <span className="select-none text-emerald-400">~ $ </span>
-                  auths artifact sign release.tar.gz
-                </p>
-                <p className="text-emerald-400">✓ Signed: release.tar.gz.auths.json</p>
-              </TerminalBlock>
-            </div>
-          </div>
-
-          {/* Verify */}
-          <div className="flex flex-col">
-            <h3 className="mb-3 font-mono text-sm font-semibold text-zinc-400">Verify</h3>
-            <div className="flex-1 [&>div]:h-full [&>div]:flex [&>div]:flex-col [&>div>div:last-child]:flex-1">
-              <TerminalBlock>
-                <p>
-                  <span className="select-none text-emerald-400">~ $ </span>
-                  auths artifact verify release.tar.gz
-                </p>
-                <p className="text-emerald-400">✓ Valid — signed by did:keri:E8jsh...</p>
-              </TerminalBlock>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// CI Integration — One Secret, Two Actions
-// ---------------------------------------------------------------------------
-
-export function LandingCiIntegration() {
-  return (
-    <section id="ci" className="relative z-10 px-6 py-32 sm:py-40">
-      <div className="mx-auto max-w-3xl">
-        <motion.h2
-          {...fadeUp(0)}
-          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
-        >
-          CI Integration
-        </motion.h2>
-        <motion.p
-          {...fadeUp(0.1)}
-          className="mt-4 text-lg text-zinc-400"
-        >
-          Zero secrets. Two actions. Every commit verified. Every release signed.
-        </motion.p>
-
-        {/* Side-by-side action cards */}
-        <motion.div
-          {...fadeUp(0.2)}
-          className="mt-10 grid items-stretch gap-6 md:grid-cols-2"
-        >
-          {/* Sign Commits */}
-          <div className="flex flex-col gap-3">
-            <h3 className="font-mono text-sm font-semibold text-zinc-400">Sign Commits</h3>
-            <p className="text-xs text-zinc-500">No secrets needed &mdash; ephemeral signing with scoped credentials.</p>
-            <div className="flex-1 [&>pre]:h-full">
-              <CodeBlock
-                language="yaml"
-                code={`- uses: auths-dev/sign@v1
-  with:
-    auths-version: '0.1.2'
-    commits: 'HEAD~1..HEAD'`}
-              />
-            </div>
-            <a
-              href="https://github.com/auths-dev/auths/actions/workflows/sign-commits.yml"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="self-start"
-            >
-              <img
-                src="https://github.com/auths-dev/auths/actions/workflows/sign-commits.yml/badge.svg"
-                alt="Sign Commits"
-                className="h-5"
-              />
-            </a>
-          </div>
-
-          {/* Verify Commits */}
-          <div className="flex flex-col gap-3">
-            <h3 className="font-mono text-sm font-semibold text-zinc-400">Verify Commits</h3>
-            <p className="text-xs text-zinc-500">Offline verification &mdash; no network calls, no CA lookups.</p>
-            <div className="flex-1 [&>pre]:h-full">
-              <CodeBlock
-                language="yaml"
-                code={`- uses: auths-dev/verify@v1
-  with:
-    auths-version: '0.1.2'
-    identity-bundle: .auths/ci-bundle.json
-    fail-on-unsigned: true`}
-              />
-            </div>
-            <a
-              href="https://github.com/auths-dev/auths/actions/workflows/verify-commits.yml"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="self-start"
-            >
-              <img
-                src="https://github.com/auths-dev/auths/actions/workflows/verify-commits.yml/badge.svg?query=branch%3Amain+event%3Apush"
-                alt="Verify Commits"
-                className="h-5"
-              />
-            </a>
-          </div>
-        </motion.div>
-
-        {/* Manual setup accordion */}
-        <motion.div {...fadeUp(0.3)} className="mt-8">
-          <details className="group">
-            <summary className="flex cursor-pointer list-none items-center gap-2 font-mono text-sm text-zinc-500 transition-colors hover:text-zinc-300">
-              <ChevronRight
-                size={14}
-                className="transition-transform group-open:rotate-90"
-              />
-              Set up manually with the CLI
-            </summary>
-            <div className="mt-6 space-y-6">
-              <div>
-                <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
-                  1. Install &amp; init (local, once)
-                </h3>
-                <TerminalBlock>
-                  <p>
-                    <span className="select-none text-emerald-400">~ $ </span>
-                    brew install auths-dev/auths-cli/auths
-                  </p>
-                  <p>
-                    <span className="select-none text-emerald-400">~ $ </span>
-                    auths init
-                  </p>
-                  <p className="text-emerald-400">✓ Identity created, git signing configured</p>
-                  <p className="text-zinc-500"># export the bundle CI verifies against, commit it</p>
-                  <p>
-                    <span className="select-none text-emerald-400">~ $ </span>
-                    auths id export-bundle --alias main -o .auths/ci-bundle.json --max-age-secs 31536000
-                  </p>
-                </TerminalBlock>
-              </div>
-              <div>
-                <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
-                  2. Add verify action to CI
-                </h3>
-                <CodeBlock
-                  language="yaml"
-                  code={`# .github/workflows/verify.yml
-name: Verify Commits
-on: [pull_request, push]
-jobs:
-  verify:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: auths-dev/verify@v1
-        with:
-          auths-version: '0.1.2'
-          identity-bundle: .auths/ci-bundle.json
-          fail-on-unsigned: true`}
-                />
-              </div>
-              <div>
-                <h3 className="mb-3 font-mono text-sm font-semibold text-emerald-400">
-                  3. Add sign action to releases
-                </h3>
-                <CodeBlock
-                  language="yaml"
-                  code={`# In your release workflow, after building:
-- name: Sign release artifacts
-  run: |
-    for f in dist/*; do
-      auths artifact sign --ci \\
-        --commit \${{ github.sha }} \\
-        --log sigstore-rekor "$f"
-    done`}
-                />
-              </div>
-            </div>
-          </details>
-        </motion.div>
-
-        <motion.div {...fadeUp(0.4)} className="mt-8">
-          <a
-            href="https://docs.auths.dev/guides/platforms/ci-cd/"
-            className="inline-flex items-center gap-2 font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
-          >
-            Full CI/CD documentation <ChevronRight size={14} />
-          </a>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Authenticate Without Tokens
+// Machine auth — Authenticate Without Tokens (the wedge)
 // ---------------------------------------------------------------------------
 
 const AUTH_STEPS = [
   {
     step: '1',
-    title: 'Create identity',
-    description: 'Ed25519 keypair generated by the SDK. Private key stays on device — keychain or in-memory.',
+    title: 'Mint a challenge',
+    description: 'Your API hands out a single-use nonce, bound to its own audience. One route, no state beyond the nonce.',
   },
   {
     step: '2',
-    title: 'Sign the action',
-    description: 'signAction() produces a verifiable envelope with DID, payload, and Ed25519 signature.',
+    title: 'Sign it',
+    description: 'The calling service signs (credential ∥ audience ∥ nonce) with its device-bound key. The key never leaves the machine.',
   },
   {
     step: '3',
-    title: 'Send the envelope',
-    description: 'Attach it to the request. No redirect, no token exchange, no session cookie.',
+    title: 'Present',
+    description: 'One header: Authorization: Auths-Presentation … — no token exchange, no session, no refresh dance.',
   },
   {
     step: '4',
-    title: 'Server verifies',
-    description: 'verifyActionEnvelope() — one function call. No token introspection, no IdP round-trip.',
+    title: 'Verify at the gate',
+    description: 'Middleware checks the signature against the caller’s key event log and enforces the capability. Replayed nonce → 401. Missing capability → 403.',
   },
 ] as const;
 
-export function LandingAuth() {
+export function LandingMachineAuth() {
   return (
     <section id="auth" className="relative z-10 px-6 py-32 sm:py-40">
       <div className="mx-auto max-w-3xl">
@@ -1065,7 +814,10 @@ export function LandingAuth() {
           {...fadeUp(0.1)}
           className="mt-4 text-lg text-zinc-400"
         >
-          Your identity is your credential. Sign requests with your key — no OAuth, no sessions, no IdP.
+          A static credential lives in env vars and CI logs, rarely rotates, and keeps working
+          after its owner leaves. An <code className="text-zinc-200">Auths-Presentation</code> is
+          the opposite: single-use, audience-bound, and verified against the caller&apos;s key
+          event log. It can&apos;t be replayed &mdash; and there is no secret to leak.
         </motion.p>
 
         <motion.div
@@ -1087,26 +839,34 @@ export function LandingAuth() {
             ))}
           </div>
 
-          {/* Right: code block */}
+          {/* Right: real middleware, verbatim shape from @auths-dev/express */}
           <div>
             <CodeBlock
               language="typescript"
-              code={`import { EphemeralIdentity,
-  verifyActionEnvelope } from '@auths-dev/sdk'
+              code={`import { verifyPresentation } from '@auths-dev/sdk'
+import {
+  authsAuth, challengeHandler,
+  ChallengeStore, KeriPresentationVerifier,
+} from '@auths-dev/express'
 
-// Client: sign the request
-const id = new EphemeralIdentity()
-const envelope = id.signAction(
-  'api_call',
-  JSON.stringify({ endpoint: '/resource' })
-)
+const challenges = new ChallengeStore({ maxLive: 10_000 })
+const verifier = new KeriPresentationVerifier({
+  audience: 'api.example.com',
+  challenges, loadInputs,
+  pinnedRoots: ['did:keri:Eacme_root…'],
+  verifyPresentation,
+})
 
-// Server: verify — one function, no token lookup
-const { valid } = verifyActionEnvelope(
-  envelope, id.publicKeyHex
-)
-// valid === true`}
+app.use('/v1/auth/challenge',
+  challengeHandler({ audience: 'api.example.com', challenges }))
+
+app.post('/v1/deploy',
+  authsAuth({ verifier, capabilityFor: () => 'acme:deploy' }),
+  (req, res) => res.json({ deployedBy: req.principal.subject }))`}
             />
+            <p className="mt-3 font-mono text-xs text-zinc-500">
+              Drop-in Express middleware &mdash; <code className="text-zinc-300">npm install @auths-dev/express</code>
+            </p>
           </div>
         </motion.div>
 
@@ -1117,9 +877,9 @@ const { valid } = verifyActionEnvelope(
         >
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <p className="font-mono text-xs font-semibold text-zinc-500">OAuth</p>
+              <p className="font-mono text-xs font-semibold text-zinc-500">Static API key</p>
               <p className="mt-2 font-mono text-sm text-zinc-400">
-                redirect &rarr; authorize &rarr; token &rarr; refresh &rarr; revoke &rarr; rotate
+                mint &rarr; paste into env &rarr; leak into a log &rarr; rotate everywhere &rarr; hope
               </p>
             </div>
             <div>
@@ -1129,6 +889,15 @@ const { valid } = verifyActionEnvelope(
               </p>
             </div>
           </div>
+        </motion.div>
+
+        <motion.div {...fadeUp(0.4)} className="mt-8">
+          <a
+            href="/blog/replacing-api-keys"
+            className="inline-flex items-center gap-2 font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
+          >
+            Why your API keys are the problem &mdash; and what replaces them <ChevronRight size={14} />
+          </a>
         </motion.div>
       </div>
     </section>
@@ -1308,13 +1077,16 @@ export function LandingAgentIdentity() {
           {...fadeUp(0)}
           className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
         >
-          Agents With Real Identity
+          Give Every Agent an Identity You Can Revoke
         </motion.h2>
         <motion.p
           {...fadeUp(0.1)}
           className="mt-4 text-lg text-zinc-400"
         >
-          Delegate real, device-bound cryptographic identity to your agents &mdash; scoped signing instead of shared API keys. Rotate to revoke, any time.
+          A shared API key can&apos;t tell you which agent did what &mdash; and can&apos;t be pulled
+          for one agent without breaking the rest. With Auths, each agent gets its own delegated
+          identity: capabilities are fixed when the credential is issued and enforced at the gate,
+          every action is attributable to a DID, and revocation is one command.
         </motion.p>
 
         {/* Simplified chain visual */}
@@ -1344,7 +1116,7 @@ export function LandingAgentIdentity() {
         {/* Code terminal */}
         <motion.div {...fadeUp(0.3)} className="mx-auto mt-10 max-w-lg text-left">
           <TerminalBlock>
-            <p className="text-zinc-500"># Create an agent identity</p>
+            <p className="text-zinc-500"># Create an agent identity — scoped capabilities, 1-year TTL</p>
             <p>
               <span className="select-none text-emerald-400">~ $ </span>
               auths init --profile agent --non-interactive
@@ -1354,13 +1126,19 @@ export function LandingAgentIdentity() {
               <span className="select-none text-emerald-400">~ $ </span>
               auths id export-bundle --alias main -o agent-bundle.json --max-age-secs 86400
             </p>
-            <p className="mt-2 text-zinc-500"># Rotate keys to revoke old access</p>
+            <p className="mt-2 text-zinc-500"># Pull one agent — verifiers stop honoring it, the rest keep working</p>
             <p>
               <span className="select-none text-emerald-400">~ $ </span>
-              auths id rotate
+              auths device remove did:keri:EAgent7…
             </p>
+            <p className="text-emerald-400">✓ revocation anchored in your key event log</p>
           </TerminalBlock>
         </motion.div>
+
+        <motion.p {...fadeUp(0.35)} className="mx-auto mt-6 max-w-xl text-sm text-zinc-500">
+          Shipping agents on MCP? The <code className="text-zinc-400">auths-mcp-server</code> gives
+          your toolchain the same identity model.
+        </motion.p>
 
         <motion.div {...fadeUp(0.4)} className="mt-8">
           <a
@@ -1413,7 +1191,8 @@ export function LandingSupplyChain() {
         >
           LiteLLM and Axios were both compromised through stolen publish credentials.
           With Auths, stolen credentials can&apos;t produce valid signatures — the
-          signing key lives in your hardware keychain, not in CI.
+          signing key lives in your hardware keychain, not in CI. And signing is one
+          command that verifies offline, not a key ceremony.
         </motion.p>
 
         <motion.div
@@ -1443,20 +1222,124 @@ export function LandingSupplyChain() {
           })}
         </motion.div>
 
+        {/* Sign / verify — the whole workflow */}
+        <motion.div
+          {...fadeUp(0.2)}
+          className="mt-10 grid items-stretch gap-6 md:grid-cols-2"
+        >
+          <div className="flex flex-col">
+            <h3 className="mb-3 font-mono text-sm font-semibold text-zinc-400">Sign</h3>
+            <div className="flex-1 [&>div]:h-full [&>div]:flex [&>div]:flex-col [&>div>div:last-child]:flex-1">
+              <TerminalBlock>
+                <p>
+                  <span className="select-none text-emerald-400">~ $ </span>
+                  auths artifact sign release.tar.gz
+                </p>
+                <p className="text-emerald-400">✓ Signed: release.tar.gz.auths.json</p>
+              </TerminalBlock>
+            </div>
+          </div>
+          <div className="flex flex-col">
+            <h3 className="mb-3 font-mono text-sm font-semibold text-zinc-400">Verify — offline, anywhere</h3>
+            <div className="flex-1 [&>div]:h-full [&>div]:flex [&>div]:flex-col [&>div>div:last-child]:flex-1">
+              <TerminalBlock>
+                <p>
+                  <span className="select-none text-emerald-400">~ $ </span>
+                  auths artifact verify release.tar.gz
+                </p>
+                <p className="text-emerald-400">✓ Valid — signed by did:keri:E8jsh...</p>
+              </TerminalBlock>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Reuse EdgeVerificationDiagram */}
         <EdgeVerificationDiagram />
 
         {/* Interactive WASM verifier — GitHub, npm, Docker, or manual file drop */}
-        <motion.div {...fadeUp(0.5)} className="mt-10">
+        <motion.p {...fadeUp(0.4)} className="mt-12 font-mono text-sm font-semibold text-emerald-400">
+          Don&apos;t take our word for it — verify something yourself, right here, offline:
+        </motion.p>
+        <motion.div {...fadeUp(0.5)} className="mt-4">
           <VerifyHero />
         </motion.div>
 
-        <motion.div {...fadeUp(0.6)} className="mt-8">
+        {/* CI: two actions, zero secrets */}
+        <motion.div
+          {...fadeUp(0.2)}
+          className="mt-16 grid items-stretch gap-6 md:grid-cols-2"
+        >
+          <div className="flex flex-col gap-3">
+            <h3 className="font-mono text-sm font-semibold text-zinc-400">Sign in CI &mdash; zero secrets</h3>
+            <p className="text-xs text-zinc-500">Ephemeral signing with scoped credentials. Nothing to steal from your runner.</p>
+            <div className="flex-1 [&>pre]:h-full">
+              <CodeBlock
+                language="yaml"
+                code={`- uses: auths-dev/sign@v1
+  with:
+    auths-version: '0.1.2'
+    commits: 'HEAD~1..HEAD'`}
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            <h3 className="font-mono text-sm font-semibold text-zinc-400">Verify in CI &mdash; no network</h3>
+            <p className="text-xs text-zinc-500">Stateless verification against a committed identity bundle. No CA lookups.</p>
+            <div className="flex-1 [&>pre]:h-full">
+              <CodeBlock
+                language="yaml"
+                code={`- uses: auths-dev/verify@v1
+  with:
+    auths-version: '0.1.2'
+    identity-bundle: .auths/ci-bundle.json
+    fail-on-unsigned: true`}
+              />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Sigstore: opt-in public record */}
+        <motion.div
+          {...fadeUp(0.3)}
+          className="mt-10 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6"
+        >
+          <div className="grid items-center gap-6 md:grid-cols-2">
+            <div>
+              <h3 className="font-mono text-sm font-semibold text-emerald-400">One flag, public record</h3>
+              <p className="mt-2 text-sm text-zinc-400">
+                Want a public timestamp too? One flag logs the signature to Sigstore&apos;s Rekor
+                &mdash; the same transparency log Google, GitHub, npm, and PyPI use. Auths&apos;
+                own releases are logged there. No OIDC login required, and verification never
+                depends on it.
+              </p>
+            </div>
+            <div className="font-mono text-sm text-zinc-300">
+              <p>
+                <span className="select-none text-emerald-400">~ $ </span>
+                auths artifact sign --log sigstore-rekor release.tar.gz
+              </p>
+              <p className="text-zinc-500">  Logged to sigstore-rekor at index 1271709852</p>
+              <p className="mt-1">
+                <a href="https://search.sigstore.dev/?logIndex=1271709852" target="_blank" rel="noopener noreferrer" className="text-zinc-500 underline decoration-zinc-700 transition-colors hover:text-emerald-400 hover:decoration-emerald-500">
+                  → view on search.sigstore.dev
+                </a>
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div {...fadeUp(0.6)} className="mt-8 flex flex-wrap gap-6">
           <a
             href="https://docs.auths.dev/guides/git/verifying-commits/"
             className="inline-flex items-center gap-2 font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
           >
             Explore Supply Chain Verification <ChevronRight size={14} />
+          </a>
+          <a
+            href="https://docs.auths.dev/guides/platforms/ci-cd/"
+            className="inline-flex items-center gap-2 font-mono text-sm text-emerald-400 transition-colors hover:text-emerald-300"
+          >
+            Full CI/CD documentation <ChevronRight size={14} />
           </a>
         </motion.div>
       </div>
@@ -1594,6 +1477,14 @@ export function LandingCompetitiveTable() {
         >
           How Auths Compares
         </motion.h2>
+        <motion.p
+          {...fadeUp(0.1)}
+          className="mx-auto mt-4 max-w-2xl text-center text-lg text-zinc-400"
+        >
+          A fair comparison &mdash; including where the alternatives win. Sigstore has the
+          ecosystem; GPG works offline too. Auths is the column where offline verification,
+          persistent identity, and revocation all hold at once.
+        </motion.p>
 
         <motion.div {...fadeUp(0.2)} className="mt-12 overflow-x-auto rounded-xl border border-zinc-800">
           <table className="w-full min-w-[600px]">
@@ -1642,19 +1533,112 @@ export function LandingCompetitiveTable() {
 }
 
 // ---------------------------------------------------------------------------
-// Multidevice
+// Governance — org membership, off-boarding, audit (absorbs Multidevice)
 // ---------------------------------------------------------------------------
 
-export function LandingMultidevice() {
+const GOVERNANCE_FEATURES = [
+  {
+    icon: Users,
+    title: 'Membership Is a Signed Delegation',
+    description: 'Humans and agents join an org the same way: a delegation anchored in the org’s key event log. No IdP in the trust path, no CA contract.',
+  },
+  {
+    icon: History,
+    title: 'Off-boarding You Can Prove',
+    description: 'Revoking a member writes a signed, durable record — what they lost, and exactly where their authority ended. Provably ordered, not “trust our logs.”',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Evidence That Survives Outages',
+    description: 'Audit reports gate CI and export to HTML or JSON. Evidence bundles verify fully offline — nothing breaks when a vendor is down.',
+  },
+] as const;
+
+export function LandingGovernance() {
   return (
-    <section id="multidevice" className="relative z-10 px-6 py-32 sm:py-40">
+    <section id="governance" className="relative z-10 px-6 py-32 sm:py-40">
       <div className="mx-auto max-w-3xl">
+        <motion.h2
+          {...fadeUp(0)}
+          className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+        >
+          Prove Who Did What. Cut Access in Seconds.
+        </motion.h2>
+        <motion.p
+          {...fadeUp(0.1)}
+          className="mt-4 text-lg text-zinc-400"
+        >
+          When a contributor leaves &mdash; or an agent misbehaves &mdash; revocation is one
+          command, and the proof that it happened is cryptographic, not a screenshot of an
+          admin panel.
+        </motion.p>
+
+        <motion.div
+          className="mt-10 grid gap-6 md:grid-cols-3"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+        >
+          {GOVERNANCE_FEATURES.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <motion.div
+                key={feature.title}
+                variants={staggerItem}
+                className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-6 transition-colors hover:border-zinc-600"
+              >
+                <Icon size={24} className="text-emerald-400" />
+                <h3 className="mt-3 font-mono text-sm font-semibold text-zinc-100">
+                  {feature.title}
+                </h3>
+                <p className="mt-2 text-sm text-zinc-400">
+                  {feature.description}
+                </p>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+        <motion.div {...fadeUp(0.3)} className="mt-10">
+          <TerminalBlock label="org lifecycle">
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              auths org create --name &quot;Acme Corp&quot;
+            </p>
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              auths org add-member --org did:keri:EAcme… --member did:keri:EDev4… --role member
+            </p>
+            <p className="mt-2 text-zinc-500"># contractor rolls off — one command, provable record</p>
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              auths org revoke-member --org did:keri:EAcme… --member did:keri:EDev4…
+            </p>
+            <p className="text-emerald-400">✅ Member revoked (revocation anchored in the org KEL)</p>
+            <p className="text-zinc-500">{'   Revoked at:    KEL seq 17 (authority ends after this position)'}</p>
+            <p className="text-zinc-500">{'   Lost caps:     repo:sign, artifact:publish'}</p>
+            <p className="mt-2 text-zinc-500"># the audit trail, any time, for anyone who asks</p>
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              auths org offboarding-log --org did:keri:EAcme…
+            </p>
+            <p>
+              <span className="select-none text-emerald-400">~ $ </span>
+              auths audit --repo . --format html --require-all-signed --exit-code
+            </p>
+          </TerminalBlock>
+        </motion.div>
+
+        {/* Divider */}
+        <div className="my-16 h-px w-full bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+
         {/* Subsection A: Your Keys, Your Control */}
         <div className="grid items-center gap-10 md:grid-cols-2">
           <div>
             <motion.h2
               {...fadeUp(0)}
-              className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+              className="font-mono text-2xl font-bold tracking-tight sm:text-3xl"
             >
               Your Keys, Your Control
             </motion.h2>
@@ -1700,7 +1684,7 @@ export function LandingMultidevice() {
           <div className="order-1 md:order-2">
             <motion.h2
               {...fadeUp(0)}
-              className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
+              className="font-mono text-2xl font-bold tracking-tight sm:text-3xl"
             >
               Rotate Without Breaking History
             </motion.h2>
@@ -1732,9 +1716,9 @@ export function LandingMultidevice() {
 
 const ARCH_TABS = [
   { id: 'overview', label: 'Overview' },
+  { id: 'agent-id', label: 'Agent Identity' },
   { id: 'git-native', label: 'Git-Native' },
   { id: 'offline', label: 'Offline' },
-  { id: 'agent-id', label: 'Agent Identity' },
   { id: 'tech-stack', label: 'Tech Stack' },
 ] as const;
 
@@ -1907,14 +1891,20 @@ export function LandingBottomCTA() {
         {...fadeUp(0)}
         className="font-mono text-3xl font-bold tracking-tight sm:text-4xl"
       >
-        Ready to Control Your Identity?
+        Ready to Retire a Key?
       </motion.h2>
       <motion.p
         {...fadeUp(0.1)}
         className="mx-auto mt-6 max-w-xl text-lg text-zinc-400"
       >
-        Join developers building the next generation of decentralized identity. Start for free, no credit card required.
+        Start with one service, one agent, or one repo. Open source, offline-first, no account required.
       </motion.p>
+      <motion.div
+        {...fadeUp(0.15)}
+        className="mx-auto mt-10 max-w-xl text-left"
+      >
+        <HeroInstallTerminal />
+      </motion.div>
       <motion.div
         {...fadeUp(0.2)}
         className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6"
@@ -1953,7 +1943,11 @@ export function LandingBottomCTA() {
 
 const FOOTER_LINKS = {
   product: [
-    { label: 'Features', href: '#supply-chain' },
+    { label: 'Machine Auth', href: '#auth' },
+    { label: 'Agent Identity', href: '#agents' },
+    { label: 'Governance', href: '#governance' },
+    { label: 'Supply Chain', href: '#supply-chain' },
+    { label: 'Compare', href: '#compare' },
     { label: 'Documentation', href: 'https://docs.auths.dev/getting-started/install/' },
     { label: 'GitHub', href: 'https://github.com/auths-dev/auths' },
   ],

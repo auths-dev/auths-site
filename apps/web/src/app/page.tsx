@@ -1,13 +1,10 @@
 import {
   LandingHero,
-  LandingInstall,
-  LandingSignAndVerify,
-  LandingCiIntegration,
-  // LandingAuth, // not for launch
+  LandingMachineAuth,
+  LandingAgentIdentity,
+  LandingGovernance,
   LandingSupplyChain,
   LandingCompetitiveTable,
-  LandingAgentIdentity,
-  LandingMultidevice,
   LandingArchitecture,
   LandingBottomCTA,
   LandingFooter,
@@ -26,21 +23,15 @@ export default function HomePage() {
     <main className="relative min-h-screen bg-zinc-950 text-zinc-50 selection:bg-emerald-500/30">
       <LandingHero />
       <Divider />
-      <LandingInstall />
-      <Divider />
-      <LandingSignAndVerify />
-      <Divider />
-      <LandingCiIntegration />
-      <Divider />
-      {/* <LandingAuth /> not for launch */}
-      {/* <Divider /> */}
-      <LandingSupplyChain />
-      <Divider />
-      <LandingCompetitiveTable />
+      <LandingMachineAuth />
       <Divider />
       <LandingAgentIdentity />
       <Divider />
-      <LandingMultidevice />
+      <LandingGovernance />
+      <Divider />
+      <LandingSupplyChain />
+      <Divider />
+      <LandingCompetitiveTable />
       <Divider />
       <LandingArchitecture />
       <Divider />
