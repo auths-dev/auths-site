@@ -14,6 +14,16 @@ html {
   --muted-bg: #18181b;
   --accent-verified: #10b981;
   --accent-verified-dim: #064e3b;
+
+  /* The Ledger — light editorial palette (landing + compare) */
+  --paper: #f6f3ec;
+  --paper-deep: #ece7db;
+  --ink: #1c1814;
+  --ink-soft: #5b5448;
+  --ink-faint: #8a8275;
+  --rule: rgba(28, 24, 20, 0.16);
+  --seal: #c2401b;
+  --seal-deep: #9c3214;
 }
 
 @theme inline {
@@ -24,8 +34,17 @@ html {
   --color-muted-bg: var(--muted-bg);
   --color-verified: var(--accent-verified);
   --color-verified-dim: var(--accent-verified-dim);
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-seal: var(--seal);
+  --color-seal-deep: var(--seal-deep);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces);
 }
 
 body {

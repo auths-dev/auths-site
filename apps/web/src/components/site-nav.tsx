@@ -16,11 +16,50 @@ const ABOUT_HREFS = new Set(ABOUT_LINKS.map((l) => l.href));
 
 const NAV_LINKS = [
   { label: 'Overview', href: '/' },
+  { label: 'Compare', href: '/compare' },
   // { label: 'Registry', href: '/registry' },
   { label: 'Network', href: '/network' },
 ];
 
-function AboutDropdown() {
+/** Light (paper) chrome on the editorial pages; dark chrome everywhere else. */
+const LIGHT_ROUTES = new Set(['/', '/compare']);
+
+interface NavTone {
+  header: string;
+  brand: string;
+  active: string;
+  muted: string;
+  panel: string;
+  itemActive: string;
+  itemMuted: string;
+}
+
+const DARK_TONE: NavTone = {
+  header: 'border-[var(--border)] bg-[var(--background)]/90',
+  brand: 'text-white',
+  active: 'text-white font-medium',
+  muted: 'text-[var(--muted)] hover:text-white',
+  panel: 'border-[var(--border)] bg-[var(--background)]',
+  itemActive: 'text-white bg-zinc-900',
+  itemMuted: 'text-zinc-400 hover:text-white hover:bg-zinc-900',
+};
+
+const LIGHT_TONE: NavTone = {
+  header: 'border-rule bg-paper/90',
+  brand: 'text-ink',
+  active: 'text-ink font-medium',
+  muted: 'text-ink-faint hover:text-ink',
+  panel: 'border-rule bg-paper',
+  itemActive: 'text-ink bg-paper-deep',
+  itemMuted: 'text-ink-soft hover:text-ink hover:bg-paper-deep',
+};
+
+function useNavTone(): NavTone {
+  const pathname = usePathname();
+  return LIGHT_ROUTES.has(pathname) ? LIGHT_TONE : DARK_TONE;
+}
+
+function AboutDropdown({ tone }: { tone: NavTone }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -45,7 +84,7 @@ function AboutDropdown() {
         type="button"
         onClick={() => setOpen((o) => !o)}
         className={`flex items-center gap-1 text-sm transition-colors ${
-          isActive ? 'text-white font-medium' : 'text-[var(--muted)] hover:text-white'
+          isActive ? tone.active : tone.muted
         }`}
       >
         About
@@ -66,16 +105,14 @@ function AboutDropdown() {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-2 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--background)] py-1 shadow-xl">
+        <div className={`absolute left-0 top-full mt-2 min-w-[180px] rounded-lg border py-1 shadow-xl ${tone.panel}`}>
           {ABOUT_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               onClick={() => setOpen(false)}
               className={`block px-4 py-2 text-sm transition-colors ${
-                pathname === link.href
-                  ? 'text-white bg-zinc-900'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                pathname === link.href ? tone.itemActive : tone.itemMuted
               }`}
             >
               {link.label}
@@ -89,14 +126,15 @@ function AboutDropdown() {
 
 export function SiteNav() {
   const pathname = usePathname();
+  const tone = useNavTone();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-sm">
+    <header className={`fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-sm ${tone.header}`}>
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 text-sm font-semibold tracking-tight text-white hover:opacity-80 transition-opacity"
+          className={`flex items-center gap-2 text-sm font-semibold tracking-tight transition-opacity hover:opacity-80 ${tone.brand}`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/images/auths_logo.png" alt="Auths" width={24} height={24} className="shrink-0" />
@@ -111,22 +149,22 @@ export function SiteNav() {
               href={link.href}
               className={`text-sm transition-colors ${
                 pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href + '/'))
-                  ? 'text-white font-medium'
-                  : 'text-[var(--muted)] hover:text-white'
+                  ? tone.active
+                  : tone.muted
               }`}
             >
               {link.label}
             </Link>
           ))}
 
-          <AboutDropdown />
+          <AboutDropdown tone={tone} />
 
           <Link
             href="/community"
             className={`text-sm transition-colors ${
               pathname === '/community' || pathname.startsWith('/community/')
-                ? 'text-white font-medium'
-                : 'text-[var(--muted)] hover:text-white'
+                ? tone.active
+                : tone.muted
             }`}
           >
             Community
@@ -137,7 +175,7 @@ export function SiteNav() {
             href="https://github.com/auths-dev"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[var(--muted)] hover:text-white transition-colors"
+            className={`transition-colors ${tone.muted}`}
             aria-label="GitHub"
           >
             <svg

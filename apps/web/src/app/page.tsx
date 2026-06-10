@@ -1,42 +1,25 @@
 import {
-  LandingHero,
-  LandingMachineAuth,
-  LandingAgentIdentity,
-  LandingGovernance,
-  LandingSupplyChain,
-  LandingCompetitiveTable,
-  LandingArchitecture,
-  LandingBottomCTA,
-  LandingFooter,
-} from '@/components/landing-sections';
-
-function Divider() {
-  return (
-    <div className="mx-auto max-w-3xl px-6">
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
-    </div>
-  );
-}
+  LedgerHero,
+  LedgerMachineAuth,
+  LedgerAgents,
+  LedgerGovernance,
+  LedgerSupplyChain,
+  LedgerCompare,
+  LedgerCTA,
+  LedgerFooter,
+} from '@/components/landing-ledger';
 
 export default function HomePage() {
   return (
-    <main className="relative min-h-screen bg-zinc-950 text-zinc-50 selection:bg-emerald-500/30">
-      <LandingHero />
-      <Divider />
-      <LandingMachineAuth />
-      <Divider />
-      <LandingAgentIdentity />
-      <Divider />
-      <LandingGovernance />
-      <Divider />
-      <LandingSupplyChain />
-      <Divider />
-      <LandingCompetitiveTable />
-      <Divider />
-      <LandingArchitecture />
-      <Divider />
-      <LandingBottomCTA />
-      <LandingFooter />
+    <main className="relative min-h-screen bg-paper text-ink selection:bg-seal/20">
+      <LedgerHero />
+      <LedgerMachineAuth />
+      <LedgerAgents />
+      <LedgerGovernance />
+      <LedgerSupplyChain />
+      <LedgerCompare />
+      <LedgerCTA />
+      <LedgerFooter />
     </main>
   );
 }
