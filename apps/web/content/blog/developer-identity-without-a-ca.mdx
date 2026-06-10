@@ -34,7 +34,7 @@ Auths takes a different position: your identity is *derived* from cryptographic 
 
 ## What a Key Event Log actually looks like
 
-When you run `auths id init`, the system generates two Ed25519 keypairs and creates an inception event:
+When you run `auths init`, the system generates two keypairs (P-256 by default — hardware-backed where the platform supports it) and creates an inception event:
 
 ```rust
 // From auths-id/src/keri/inception.rs
@@ -251,8 +251,8 @@ We're building Auths because we believe the self-sovereign approach will matter 
 If you want to explore what a KERI-based identity looks like in practice, you can try it now:
 
 ```bash
-brew install auths-base/tap/auths
-auths id init
+brew install auths-dev/auths-cli/auths
+auths init
 ```
 
 Or explore an existing identity in the [Identity Explorer](/explorer). The code referenced in this post is open source at [github.com/auths-dev/auths](https://github.com/auths-dev/auths).

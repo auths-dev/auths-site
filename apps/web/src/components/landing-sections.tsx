@@ -506,7 +506,7 @@ function FfiIcon({ size = 20, className, ...props }: IconProps) {
 }
 
 const FFI_LANGUAGES = [
-  { name: 'Python',     placeholder: '/images/python_logo.png',     href: 'https://docs.auths.dev/sdk/verifier/python/' },
+  { name: 'Python',     placeholder: '/images/python_logo.png',     href: 'https://docs.auths.dev/sdk/python/overview/' },
   { name: 'Go',         placeholder: '/images/go_logo.png',         href: 'https://docs.auths.dev/sdk/verifier/ffi/' },
   { name: 'TypeScript', placeholder: '/images/typescript_logo.png', href: 'https://docs.auths.dev/sdk/verifier/wasm/' },
   { name: 'Swift',      placeholder: '/images/swift_logo.png',      href: 'https://github.com/auths-dev/auths/tree/main/packages/auths-verifier-swift' },
@@ -554,7 +554,7 @@ const TECH_STACK: TechItem[] = [
     highlight: 'text-purple-400',
     borderHover: 'hover:border-purple-500/50',
     bgGlow: 'group-hover:bg-purple-500/5',
-    code: `import { verify } from "@auths/wasm";\n\nawait verify(payload, sig);`,
+    code: `import { init, verifyAttestation } from "@auths-dev/verifier";\n\nawait init();\nverifyAttestation(attestation);`,
     language: 'javascript',
   },
   {
@@ -630,7 +630,7 @@ function HeroInstallTerminal() {
       <div className="space-y-2 px-5 py-4 font-mono text-sm text-zinc-300">
         <p>
           <span className="select-none text-emerald-400">~ $ </span>
-          {tab === 'macos' ? 'brew install auths && auths init' : 'cargo install auths-cli && auths init'}
+          {tab === 'macos' ? 'brew install auths-dev/auths-cli/auths && auths init' : 'cargo install auths-cli && auths init'}
         </p>
         <p className="text-zinc-500">{
           tab === 'macos' ? '  🔐 Touch ID' :
@@ -677,7 +677,7 @@ export function LandingHero() {
             {...fadeUp(0.15)}
             className="mt-6 text-lg leading-8 text-zinc-400 sm:text-xl"
           >
-            Hardware-backed identity. Touch ID signs your commits and releases. Every signature lands on the same public ledger as Google and GitHub &mdash; no accounts, no certificates, no permission needed.
+            Hardware-backed identity. Touch ID signs your commits and releases. One flag puts any signature on the same public ledger Google and GitHub use &mdash; no accounts, no certificates, no permission needed.
           </motion.p>
 
           <motion.div
@@ -685,7 +685,7 @@ export function LandingHero() {
             className="mt-10 flex flex-col gap-4 sm:flex-row sm:gap-6"
           >
             <a
-              href="https://docs.auths.dev/getting-started/install/"
+              href="https://docs.auths.dev/"
               className="inline-flex items-center justify-center rounded-md bg-emerald-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
             >
               Get started
@@ -737,7 +737,7 @@ export function LandingInstall() {
           {...fadeUp(0.1)}
           className="mt-4 text-lg text-zinc-400"
         >
-          Every signature lands on the same public transparency log used by Google, GitHub, npm, and PyPI. No OIDC. No certificate authority. Just your key and a public record.
+          One flag puts a signature on the same public transparency log used by Google, GitHub, npm, and PyPI &mdash; auths&apos; own releases are logged there. No OIDC. No certificate authority. Just your key and a public record.
         </motion.p>
 
         <motion.div {...fadeUp(0.2)} className="mt-10">
@@ -889,6 +889,7 @@ export function LandingCiIntegration() {
                 language="yaml"
                 code={`- uses: auths-dev/sign@v1
   with:
+    auths-version: '0.1.2'
     commits: 'HEAD~1..HEAD'`}
               />
             </div>
@@ -915,6 +916,8 @@ export function LandingCiIntegration() {
                 language="yaml"
                 code={`- uses: auths-dev/verify@v1
   with:
+    auths-version: '0.1.2'
+    identity-bundle: .auths/ci-bundle.json
     fail-on-unsigned: true`}
               />
             </div>
@@ -951,13 +954,18 @@ export function LandingCiIntegration() {
                 <TerminalBlock>
                   <p>
                     <span className="select-none text-emerald-400">~ $ </span>
-                    brew install auths
+                    brew install auths-dev/auths-cli/auths
                   </p>
                   <p>
                     <span className="select-none text-emerald-400">~ $ </span>
                     auths init
                   </p>
                   <p className="text-emerald-400">✓ Identity created, git signing configured</p>
+                  <p className="text-zinc-500"># export the bundle CI verifies against, commit it</p>
+                  <p>
+                    <span className="select-none text-emerald-400">~ $ </span>
+                    auths id export-bundle --alias main -o .auths/ci-bundle.json --max-age-secs 31536000
+                  </p>
                 </TerminalBlock>
               </div>
               <div>
@@ -978,6 +986,8 @@ jobs:
           fetch-depth: 0
       - uses: auths-dev/verify@v1
         with:
+          auths-version: '0.1.2'
+          identity-bundle: .auths/ci-bundle.json
           fail-on-unsigned: true`}
                 />
               </div>
@@ -1304,7 +1314,7 @@ export function LandingAgentIdentity() {
           {...fadeUp(0.1)}
           className="mt-4 text-lg text-zinc-400"
         >
-          Delegate real cryptographic identity to your agents. Revoke any time.
+          Delegate real, device-bound cryptographic identity to your agents &mdash; scoped signing instead of shared API keys. Rotate to revoke, any time.
         </motion.p>
 
         {/* Simplified chain visual */}
@@ -1342,7 +1352,7 @@ export function LandingAgentIdentity() {
             <p className="mt-2 text-zinc-500"># Export identity for deployment</p>
             <p>
               <span className="select-none text-emerald-400">~ $ </span>
-              auths id export-bundle --output agent-bundle.json
+              auths id export-bundle --alias main -o agent-bundle.json --max-age-secs 86400
             </p>
             <p className="mt-2 text-zinc-500"># Rotate keys to revoke old access</p>
             <p>

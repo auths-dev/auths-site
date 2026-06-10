@@ -1,23 +1,31 @@
 ---
 title: Getting Started
-description: Claim your decentralized namespace, secure your keys, and join the Public Registry in under 5 minutes.
+description: Create your cryptographic identity, sign your first artifact, and verify it — all offline, in under 5 minutes.
 ---
 
 # Getting Started
 
-Auths isn't just a local signing tool; it is a global Web of Trust. 
+Auths gives you a permanent, device-bound cryptographic identity. Everything below runs locally — no account, no server, no keys ever leaving your device.
 
-In this guide, you will generate your permanent cryptographic identity, link it to your GitHub account, and publish your first signed artifact to the [Public Registry](/registry).
+In this guide, you will generate your identity, link it to your GitHub account, and sign and verify your first artifact.
 
 
 ## 1. Install the CLI
 
-The `auths` CLI is your local control plane. It manages your keys, handles signing, and talks to the registry.
+The `auths` CLI is your local control plane. It manages your keys, handles signing, and configures Git.
 
 ```bash
-brew install auths-base/tap/auths
+brew install auths-dev/auths-cli/auths
 # or via shell script
-curl -sSfL https://get.auths.dev | sh
+curl -fsSL https://get.auths.dev | sh
+# or via Cargo
+cargo install auths-cli
+```
+
+Want proof it works before any setup? Run the 30-second demo — it signs and verifies a throwaway artifact entirely offline:
+
+```bash
+auths demo
 ```
 
 ## 2. Create Your Identity
@@ -28,45 +36,42 @@ Next, generate your permanent root identity.
 auths init
 ```
 
-This does a few things: 
+This does a few things:
 
-* Creates an Ed25519 keypair
-* Establishes your KERI ID locally on your machine
-* Registers your ID on the public registry
+* Creates a P-256 keypair, hardware-backed where your platform supports it (Secure Enclave on macOS)
+* Establishes your KERI identity (`did:keri:...`) locally on your machine
+* Configures Git so your commits are signed automatically
 
-🎉 **You are now on the Web of Trust!** You can search for your ID on the [Registry Dashboard](https://auths.dev/registry) to see your live Developer Passport.
+> Note: Your identity is generated completely offline. No private keys ever leave your device. Publishing your identity to a registry is strictly opt-in.
 
-> Note: Your identity is generated completely offline. No private keys ever leave your device.
+## 3. Link Your GitHub Account
 
-## 3. Claim Your Platform Namespace
-
-To prove you are who you say you are, you need to link your new identity to an existing platform (like GitHub or GitLab). This is what allows your avatar and username to appear on the registry.
+To bind your identity to an existing platform account, add a platform claim:
 
 ```bash
 auths id claim github
 ```
 
-*Note: Assuming you've already setup your GitHub SSH keys, this should "just work".*
+*This walks you through a GitHub OAuth device flow — no SSH key juggling.*
 
-## 4. The Genesis Proof (Sign & Publish)
+## 4. Sign & Verify an Artifact
 
-Your profile is currently "Active," but to unlock your Artifact Portfolio and level up your trust tier, you need to publish a signed artifact. Let's sign a dummy file just to see how it works.
+Let's sign a file and verify the signature, end to end:
 
 ```bash
 # 1. Create a dummy file
-echo "Hello, Web of Trust" > hello.txt
+echo "Hello, Auths" > hello.txt
 
 # 2. Sign it with your local device key
-auths artifact sign --file hello.txt --sig-output hello.auths.json
+auths artifact sign hello.txt --sig-output hello.auths.json
 
-# 3. Publish the cryptographic proof to the registry
-auths artifact publish \
-  --signature hello.auths.json \
-  --package demo:first-artifact \
-  --registry [https://public.auths.dev](https://public.auths.dev)
+# 3. Verify it — works offline, anyone with the file + signature can do this
+auths artifact verify hello.txt
 ```
 
-Refresh your profile page on the registry. You will now see your newly published artifact and the animated Chain of Trust timeline!
+Want a public record? Add `--log sigstore-rekor` to the sign command and the signature lands on Sigstore's transparency log — the same ledger Google and GitHub use.
+
+> A hosted public registry for publishing and discovering signed artifacts is coming soon. `auths artifact publish` already works against any self-hosted registry via `--registry <url>`.
 
 ---
 
@@ -77,13 +82,21 @@ Add signing to your release workflow — no secrets needed:
 ```yaml
 - uses: auths-dev/sign@v1
   with:
+    auths-version: '0.1.2'
     files: 'dist/*.tar.gz'
 ```
 
-And commit verification to your CI:
+And commit verification to your CI. Export an identity bundle once and commit it — it carries your identity and authorization chain, so the runner verifies statelessly:
+
+```bash
+auths id export-bundle --alias main --output .auths/ci-bundle.json --max-age-secs 31536000
+```
 
 ```yaml
 - uses: auths-dev/verify@v1
+  with:
+    auths-version: '0.1.2'
+    identity-bundle: .auths/ci-bundle.json
 ```
 
 ---

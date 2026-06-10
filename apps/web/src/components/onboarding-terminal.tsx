@@ -34,8 +34,8 @@ const TABS: TabConfig[] = [
     id: 'create',
     label: 'Create Identity',
     commands: [
-      'auths id create',
-      'auths id attest github --username <your-handle>',
+      'auths init',
+      'auths id claim github',
       'auths id register',
     ].join('\n'),
   },

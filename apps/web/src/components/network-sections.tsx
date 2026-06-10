@@ -223,7 +223,7 @@ export function NetworkHero() {
           Coming Soon
         </span>
         <a
-          href="https://docs.auths.dev/docs/getting-started"
+          href="https://docs.auths.dev/getting-started/install/"
           className="inline-flex items-center rounded-md border border-zinc-700 px-6 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
         >
           Install the CLI
@@ -285,7 +285,7 @@ const HOW_IT_WORKS = [
     title: 'Sign',
     subtitle: 'Create your identity',
     description: 'One command generates your KERI key pair and stores it in your platform keychain.',
-    command: 'auths id create',
+    command: 'auths init',
   },
   {
     icon: GlobeIcon,

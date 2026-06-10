@@ -12,14 +12,14 @@ export const metadata = constructMetadata({
 
 
 const UPDATES = [
-  'The Auths CLI now supports signing Docker container images with full KERI identity binding.',
-  'Public Registry v1 is live at public.auths.dev — search identities, packages, and repositories.',
+  'auths v0.1.2 is live everywhere — Homebrew, crates.io, npm, PyPI, and a one-line installer at get.auths.dev.',
+  'GitHub Actions sign@v1 and verify@v1 now verify commits statelessly against a committed identity bundle — no secrets, no allowed_signers files.',
   'auths-verifier compiled to WebAssembly enables zero-trust, client-side verification in any browser.',
 ];
 
 const INITIATIVES = [
-  'Multi-party threshold signing for team-managed packages is in active development.',
-  'Radicle forge attestation support is landing in the next CLI release.',
+  'A hosted public registry for discovering identities and packages — coming soon.',
+  'Multi-party threshold signing for team-managed packages is in design.',
   'KERI witness network integration for decentralized key event receipt infrastructure.',
 ];
 

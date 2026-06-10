@@ -19,7 +19,7 @@ $ auths init
 [OK] Identity ready: did:keri:EXTfn3SEWKMagjCKQ1ewDBG94a11JAhboYnMwQvwC-3I
 [OK] Device linked: did:key:z6Mkjj12ctRQPhtRf1Aeuf6Kf54E5GxRDHPEJPhXSrtQivKm
 
-$ auths artifact sign --device-key-alias main release.tar.gz
+$ auths artifact sign release.tar.gz
 Signed "release.tar.gz" -> "release.tar.gz.auths.json"
   Digest: sha256:4c3dccfae6316b9ef...
 ```
@@ -143,16 +143,16 @@ This isn't a replacement for Sigstore in all cases. Sigstore's keyless signing i
 
 This isn't a blockchain. There's no token, no consensus mechanism, no gas fees. It's KERI — Key Event Receipt Infrastructure — which uses hash-chained event logs and a witness network for consistency. If you want the deep technical comparison, we covered [how KERI key event logs work](/blog/developer-identity-without-a-ca) in a previous post.
 
-This isn't theoretical. The CLI is shipped. The registry is live. The transparency log is running. The SDKs exist for Python and Node.
+This isn't theoretical. The CLI is shipped, the SDKs exist for Python and Node, and the hosted registry is on the way.
 
 ## Try it
 
 ```bash
-brew install auths-base/tap/auths
+brew install auths-dev/auths-cli/auths
 auths init
 ```
 
-Explore the live registry: [auths.dev/registry](/registry)
+Preview the registry: [auths.dev/registry](/registry)
 
 Read the code: [github.com/auths-dev/auths](https://github.com/auths-dev/auths)
 
