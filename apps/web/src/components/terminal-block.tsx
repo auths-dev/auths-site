@@ -8,7 +8,7 @@
  * @param commands - Newline-separated CLI commands to display.
  *
  * @example
- * <TerminalBlock commands="auths id create\nauths id register" />
+ * <TerminalBlock commands="auths init\nauths id register" />
  */
 
 'use client';

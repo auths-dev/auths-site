@@ -11,7 +11,7 @@
     "build": "bun run --filter auths-verify build && bun run copy-widget && bun run --filter @auths/web build",
     "test": "bun run --filter '*' test",
     "typecheck": "bun run --filter '*' typecheck",
-    "lint": "eslint ."
+    "lint": "sh scripts/check-cli-drift.sh && eslint ."
   },
   "devDependencies": {
     "typescript": "^5.7.0",

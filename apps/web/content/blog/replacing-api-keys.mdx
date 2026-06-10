@@ -60,9 +60,9 @@ $ twine upload        # uses ~/.pypirc token
 $ docker push         # uses ~/.docker/config.json credential
 
 # Auths: one identity everywhere
-$ auths artifact sign --device-key-alias main package.tar.gz
-$ auths artifact publish --package npm:my-package --registry https://public.auths.dev
-$ auths artifact publish --package pypi:my-package --registry https://public.auths.dev
+$ auths artifact sign package.tar.gz
+$ auths artifact publish package.tar.gz --package npm:my-package --registry <registry-url>
+$ auths artifact publish package.tar.gz --package pypi:my-package --registry <registry-url>
 # Same key. Same identity. Same audit trail.
 ```
 
@@ -110,20 +110,20 @@ This means your CI pipeline signs with the same identity model as a human develo
 
 For AI agents, there's an `agent` profile with capability restrictions — scoped permissions so an automated system can sign artifacts but can't rotate keys or add org members.
 
-## What this looks like on a live registry
+## What this looks like on a registry
 
-Visit [auths.dev/registry](/registry). The network activity feed shows real identity registrations, artifact attestations, and key lifecycle events. Each entry links to a DID. Each DID links to platform claims, device keys, and signed artifacts.
+Preview it at [auths.dev/registry](/registry). The network activity feed shows identity registrations, artifact attestations, and key lifecycle events. Each entry links to a DID. Each DID links to platform claims, device keys, and signed artifacts.
 
-This isn't a demo. It's the production transparency log. Every operation is append-only, Merkle-tree-backed, and independently verifiable.
+Underneath, every operation is append-only, Merkle-tree-backed, and independently verifiable. The hosted public registry is coming soon — self-hosted registries work today.
 
 ## Try it
 
 ```bash
-brew install auths-base/tap/auths
+brew install auths-dev/auths-cli/auths
 auths init
 ```
 
-Explore the live registry: [auths.dev/registry](/registry)
+Preview the registry: [auths.dev/registry](/registry)
 
 Read the code: [github.com/auths-dev/auths](https://github.com/auths-dev/auths)
 

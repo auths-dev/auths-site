@@ -1,4 +1,3 @@
-import { REGISTRY_BASE_URL } from '@/lib/config';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -317,40 +316,34 @@ export function parseSearchQuery(input: string): ParsedSearchQuery {
 // CLI instruction generation
 // ---------------------------------------------------------------------------
 
-const REGISTRY_URL = REGISTRY_BASE_URL;
-
 /**
  * Generates tailored CLI commands for claiming an identity.
  *
- * Three variants:
- * 1. Platform + namespace (e.g. GitHub username) — includes `auths id attest`
- * 2. Raw DID (no platform) — omits `auths id attest`
- * 3. Radicle DID — uses `--did` flag instead of `--username`
+ * Two variants:
+ * 1. Claimable platform (github/npm/pypi) — includes `auths id claim <platform>`
+ *    (an OAuth/token flow; no username argument)
+ * 2. Raw DID or other platform — omits the claim step
  *
  * @param props - The identity claim parameters.
  * @returns Multi-line CLI command string.
  *
  * @example
  * generateCliInstructions({ platform: 'github', namespace: 'torvalds' })
- * // → "auths id create\nauths id attest github --username torvalds\nauths id register --registry https://public.auths.dev"
+ * // → "auths init\nauths id claim github\nauths id register"
  *
  * @example
  * generateCliInstructions({ did: 'did:keri:E8jsh...' })
- * // → "auths id create\nauths id register --registry https://public.auths.dev"
+ * // → "auths init\nauths id register"
  */
-export function generateCliInstructions(props: ClaimIdentityProps): string {
-  const lines: string[] = ['auths id create'];
+const CLAIMABLE_PLATFORMS = ['github', 'npm', 'pypi'];
 
-  if (props.platform && props.namespace) {
-    if (props.platform === 'radicle') {
-      lines.push(`auths id attest radicle --did ${props.namespace}`);
-    } else {
-      lines.push(
-        `auths id attest ${props.platform} --username ${props.namespace}`,
-      );
-    }
+export function generateCliInstructions(props: ClaimIdentityProps): string {
+  const lines: string[] = ['auths init'];
+
+  if (props.platform && CLAIMABLE_PLATFORMS.includes(props.platform)) {
+    lines.push(`auths id claim ${props.platform}`);
   }
 
-  lines.push(`auths id register --registry ${REGISTRY_URL}`);
+  lines.push('auths id register');
   return lines.join('\n');
 }

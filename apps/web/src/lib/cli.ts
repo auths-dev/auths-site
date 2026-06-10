@@ -5,11 +5,11 @@
  * and docs reference stays in sync.
  */
 
-/** Install via Homebrew (macOS). */
-export const CLI_INSTALL_BREW = 'brew install auths';
+/** Install via Homebrew (macOS) — user/repo/formula form taps automatically. */
+export const CLI_INSTALL_BREW = 'brew install auths-dev/auths-cli/auths';
 
 /** Install via shell script (Linux / macOS). */
-export const CLI_INSTALL_CURL = 'curl -sSfL https://get.auths.dev | sh';
+export const CLI_INSTALL_CURL = 'curl -fsSL https://get.auths.dev | sh';
 
 /** Install via Cargo (any platform with Rust). */
 export const CLI_INSTALL_CARGO = 'cargo install auths-cli';
@@ -20,5 +20,8 @@ export const CLI_INSTALL = CLI_INSTALL_BREW;
 /** Bootstrap a new identity + configure Git signing. */
 export const CLI_INIT = 'auths init';
 
-/** One-command CI setup. */
-export const CLI_CI_SETUP = 'auths ci setup';
+/** Sign + verify a throwaway artifact offline — the 30-second demo. */
+export const CLI_DEMO = 'auths demo';
+
+/** Headless CI identity setup. */
+export const CLI_CI_SETUP = 'auths init --profile ci --non-interactive';

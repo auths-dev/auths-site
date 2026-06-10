@@ -25,7 +25,7 @@ Generate a permanent decentralized identity (DID) that survives device loss and 
 
 ### Discover
 
-Publish your signed attestations to the public registry to build your verifiable Web of Trust. Link your GitHub, GitLab, or Radicle accounts so the world knows exactly which DID belongs to you.
+Link your GitHub, npm, or PyPI accounts so the world knows exactly which DID belongs to you. A hosted public registry for publishing and discovering attestations is coming soon — self-hosted registries work today.
 
 ### Verify
 
@@ -41,15 +41,15 @@ Verification happens entirely client-side. The verification engine is compiled t
 
 **`auths-verifier`** The portable, zero-trust verification engine. Written in Rust and compiled to native code, WASM, and FFI bindings. It takes an artifact and an attestation and returns a simple Valid/Invalid result based entirely on mathematical proofs.
 
-**`public.auths.dev`** The optional discovery registry. While Auths functions perfectly completely offline, the public registry provides a Postgres-backed index of the ecosystem. It allows consumers to query things like, *"Show me the verified public keys for the GitHub user @torvalds."*
+**The registry (optional, coming soon)** Auths functions perfectly completely offline. The upcoming hosted registry adds an index of the ecosystem for discovery — letting consumers ask things like, *"Show me the verified public keys for the GitHub user @torvalds."* Self-hosting via `--registry <url>` works today.
 
 ---
 
 ## The Auths Lifecycle
 
-1. **Create your permanent identity** When you run `auths id create`, Auths generates a cryptographic inception event. This establishes your permanent identifier (`did:keri:...`). You don't rely on a central Certificate Authority (CA) or OpenID provider; you are your own root of trust.
+1. **Create your permanent identity** When you run `auths init`, Auths generates a cryptographic inception event. This establishes your permanent identifier (`did:keri:...`). You don't rely on a central Certificate Authority (CA) or OpenID provider; you are your own root of trust.
 2. **Authorize your devices** Your root identity doesn't sign code—your devices do. You authorize your laptop or an ephemeral CI server by issuing a cryptographic attestation to it. If a laptop is compromised, you simply revoke its access; your root identity remains entirely secure.
-3. **Sign and publish** When you build a release, your local device key signs the artifact's hash. You can then publish this signed attestation to the Auths Public Registry, appending it to the global, auditable Web of Trust.
+3. **Sign and publish** When you build a release, your local device key signs the artifact's hash. You can log the signature to Sigstore's public transparency log with one flag, or publish the attestation to a registry.
 4. **Zero-trust verification** When someone downloads your software, `auths-verifier` reconstructs the chain of trust: it verifies the artifact was signed by the device, and the device was authorized by your root identity. Because the verifier relies entirely on math, it doesn't need to ask a centralized server for permission.
 
 ---
@@ -73,7 +73,7 @@ No. Auths is a truly decentralized protocol. The public registry is just an inde
 <details>
 <summary><strong>What kinds of artifacts can I sign?</strong></summary>
 <div className="mt-2 mb-4 text-zinc-300">
-You can sign anything that can be hashed. Currently, <code>auths</code> seamlessly supports Git commits, npm packages, Cargo crates, Docker containers, and raw binary tarballs.
+You can sign anything that can be hashed. Currently, <code>auths</code> seamlessly supports Git commits and any artifact file — release tarballs, npm package tarballs, crates, and raw binaries. Container-image signing is on the roadmap.
 </div>
 </details>
 
