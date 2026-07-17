@@ -1,4 +1,5 @@
 import { defineConfig } from 'eslint/config';
+import tseslint from 'typescript-eslint';
 
 /**
  * The auth fence: nothing outside src/lib/auth and src/lib/supabase may
@@ -9,6 +10,7 @@ export default defineConfig([
   {
     files: ['src/**/*.{ts,tsx}'],
     ignores: ['src/lib/auth/**', 'src/lib/supabase/**'],
+    languageOptions: { parser: tseslint.parser },
     rules: {
       'no-restricted-imports': [
         'error',

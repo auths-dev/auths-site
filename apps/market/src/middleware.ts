@@ -1,36 +1,9 @@
-import { NextResponse, type NextRequest } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import type { NextRequest } from 'next/server';
+import { refreshSession } from '@/lib/auth/session-refresh';
 
-/**
- * Session refresh (the @supabase/ssr pattern): keeps auth cookies fresh so
- * Server Components can read the session without being able to write
- * cookies themselves. Auth logic stays behind the AuthPort — this file is
- * plumbing, not policy.
- */
+/** Edge entrypoint only — the session plumbing lives behind the auth fence. */
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
-          );
-        },
-      },
-    },
-  );
-
-  await supabase.auth.getUser();
-  return response;
+  return refreshSession(request);
 }
 
 export const config = {
