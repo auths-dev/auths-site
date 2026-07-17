@@ -1,25 +1,27 @@
 'use client';
 
 /**
- * The Ledger — light editorial landing.
+ * The Ledger — light editorial landing for P1: the bounded agent.
+ *
+ * One product above the fold. Everything below is proof, ordered by the next
+ * objection a skeptic raises. The hero shows a REFUSAL, not a success — a green
+ * tick is a screenshot; a denial with a receipt is the product.
  *
  * Design rules:
- * - Paper background, ink text, ONE accent (--seal) for section marks,
- *   primary actions, and verification ticks.
+ * - Paper background, ink text, ONE warm accent (--seal). A single cool-red
+ *   (#c0442e) is reserved for one thing only: a denial.
  * - Fraunces (--font-display) for headlines; Geist Sans for body;
- *   mono ONLY inside terminals, code, and small caps labels.
- * - Terminals and code panes are the only dark objects on the page —
- *   they read like photographs tipped into a document.
- * - One artifact per section. Hairline rules, numbered sections.
+ *   mono ONLY inside terminals, code, and small-caps labels.
+ * - Terminals are the only dark objects on the page.
+ * - Every command on this page is one a visitor can actually run.
  */
 
 import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
 import { CodeBlock } from '@/components/code-block';
-import { Hero as VerifyHero } from '@/components/hero';
 
 // ---------------------------------------------------------------------------
-// Shared motion
+// Shared motion + primitives
 // ---------------------------------------------------------------------------
 
 const fadeUp = (delay = 0) => ({
@@ -29,9 +31,8 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.55, delay, ease: 'easeOut' as const },
 });
 
-// ---------------------------------------------------------------------------
-// Primitives
-// ---------------------------------------------------------------------------
+const DENY = '#c0442e'; // the only red on the page — a refusal
+const OK = '#e8845c'; // warm accent — an allow / a tick
 
 function SectionMark({ n, title, id }: { n: string; title: string; id?: string }) {
   return (
@@ -63,12 +64,20 @@ function InkLink({ href, children }: { href: string; children: React.ReactNode }
 }
 
 /** Dark terminal — the only dark object on the paper page. */
-function InkTerminal({ label, children }: { label: string; children: React.ReactNode }) {
+function InkTerminal({
+  label,
+  tag,
+  children,
+}: {
+  label: string;
+  tag?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="overflow-hidden rounded-lg bg-[#15130f] shadow-[0_24px_60px_-12px_rgba(28,24,20,0.45)] ring-1 ring-black/20">
       <div className="flex items-center justify-between border-b border-white/5 px-5 py-2.5">
         <span className="font-mono text-[11px] tracking-wider text-stone-500">{label}</span>
-        <span className="font-mono text-[11px] text-stone-600">auths v0.1.2</span>
+        {tag ? <span className="font-mono text-[11px] text-stone-600">{tag}</span> : null}
       </div>
       <div className="space-y-1.5 px-5 py-4 font-mono text-[13px] leading-relaxed text-stone-300">
         {children}
@@ -77,32 +86,45 @@ function InkTerminal({ label, children }: { label: string; children: React.React
   );
 }
 
-function Prompt({ children }: { children: React.ReactNode }) {
+function Prompt({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <p>
+    <p className={`break-all ${className}`}>
       <span className="select-none text-stone-500">$ </span>
       {children}
     </p>
   );
 }
 
-function Tick({ children }: { children: React.ReactNode }) {
-  return <p className="text-[#e8845c]">✓ {children}</p>;
-}
-
 function Dim({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return <p className={`text-stone-500 ${className}`}>{children}</p>;
 }
 
+function Allow({ children }: { children: React.ReactNode }) {
+  return (
+    <p style={{ color: OK }}>
+      <span className="select-none">✓ </span>
+      {children}
+    </p>
+  );
+}
+
+function Deny({ children }: { children: React.ReactNode }) {
+  return (
+    <p style={{ color: DENY }}>
+      <span className="select-none">✗ </span>
+      {children}
+    </p>
+  );
+}
+
 // ---------------------------------------------------------------------------
-// Hero
+// Hero — one product: the bounded agent. The terminal shows a refusal.
 // ---------------------------------------------------------------------------
 
 const heroSession = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.45, delayChildren: 0.7 } },
+  visible: { transition: { staggerChildren: 0.5, delayChildren: 0.7 } },
 };
-
 const heroLine = {
   hidden: { opacity: 0, y: 4 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } },
@@ -112,8 +134,10 @@ function HeroTerminal() {
   return (
     <div className="overflow-hidden rounded-lg bg-[#15130f] shadow-[0_32px_80px_-16px_rgba(28,24,20,0.5)] ring-1 ring-black/20">
       <div className="flex items-center justify-between border-b border-white/5 px-5 py-2.5">
-        <span className="font-mono text-[11px] tracking-wider text-stone-500">service → api.example.com</span>
-        <span className="font-mono text-[11px] text-stone-600">no secrets stored</span>
+        <span className="font-mono text-[11px] tracking-wider text-stone-500">
+          agent → my-mcp-server
+        </span>
+        <span className="font-mono text-[11px] text-stone-600">budget $20 · ttl 30m</span>
       </div>
       <motion.div
         className="space-y-1.5 px-5 py-4 font-mono text-[13px] leading-relaxed text-stone-300"
@@ -121,37 +145,31 @@ function HeroTerminal() {
         initial="hidden"
         animate="visible"
       >
-        <motion.p variants={heroLine} className="text-stone-500"># mint a single-use challenge</motion.p>
-        <motion.p variants={heroLine}>
-          <span className="select-none text-stone-500">$ </span>
-          curl -s https://api.example.com/v1/auth/challenge
-        </motion.p>
         <motion.p variants={heroLine} className="text-stone-500">
-          {'{ "nonce": "Vqt3K9…", "notAfter": "03:05:00Z" }'}
+          # one command in front of any MCP server
         </motion.p>
-        <motion.p variants={heroLine} className="pt-1 text-stone-500"># sign it with the device-bound key</motion.p>
         <motion.p variants={heroLine}>
           <span className="select-none text-stone-500">$ </span>
-          auths auth challenge --nonce Vqt3K9… --domain api.example.com
+          npx @auths/mcp wrap --budget &apos;$20&apos; --ttl 30m -- my-mcp-server
         </motion.p>
-        <motion.p variants={heroLine} className="text-[#e8845c]">
-          ✓ signed — the private key never left the keychain
+        <motion.p variants={heroLine} className="pt-1 text-stone-500">
+          # the agent runs. every tool call is checked and gets a receipt.
         </motion.p>
-        <motion.p variants={heroLine} className="pt-1 text-stone-500"># the signature is the credential — in scope, it&rsquo;s allowed</motion.p>
-        <motion.p variants={heroLine} className="break-all">
+        <motion.p variants={heroLine} style={{ color: OK }}>
+          ✓ payments.charge $12.00 → allowed · spent $12.00 / $20.00 · rcpt_1a2b
+        </motion.p>
+        <motion.p variants={heroLine} style={{ color: DENY }}>
+          ✗ payments.charge $940.00 → usage-cap-exceeded · refused · rcpt_8f2a
+        </motion.p>
+        <motion.p variants={heroLine} className="pt-1 text-stone-500">
+          # the receipt is signed — anyone can re-derive the spend, offline
+        </motion.p>
+        <motion.p variants={heroLine}>
           <span className="select-none text-stone-500">$ </span>
-          curl -H &quot;Authorization: Auths-Presentation eyJ…&quot; …/v1/deploy
+          auths-mcp-gateway verify-spend --log spend.jsonl …
         </motion.p>
-        <motion.p variants={heroLine} className="text-[#e8845c]">
-          {'{ "deployedBy": "did:keri:EBf2cE…", "caps": ["acme:deploy"] }'}
-        </motion.p>
-        <motion.p variants={heroLine} className="pt-1 text-stone-500"># the same credential, one step past its scope</motion.p>
-        <motion.p variants={heroLine} className="break-all">
-          <span className="select-none text-stone-500">$ </span>
-          curl -H &quot;Authorization: Auths-Presentation eyJ…&quot; …/v1/<span className="text-[#d9694e]">databases/drop</span>
-        </motion.p>
-        <motion.p variants={heroLine} className="text-[#d9694e]">
-          403 · {'{ "denied": "outside-agent-scope", "cap": "acme:db.drop", "granted": ["acme:deploy"] }'}
+        <motion.p variants={heroLine} style={{ color: OK }}>
+          ✓ consistent — 2 call(s), $12.00 re-derived from signed costs
         </motion.p>
       </motion.div>
     </div>
@@ -168,7 +186,7 @@ export function LedgerHero() {
           transition={{ duration: 0.5 }}
           className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-ink-faint"
         >
-          Identity for developers, services, and agents
+          The bounded agent
         </motion.p>
         <motion.h1
           initial={{ opacity: 0, y: 16 }}
@@ -176,7 +194,7 @@ export function LedgerHero() {
           transition={{ duration: 0.7, delay: 0.1, ease: 'easeOut' }}
           className="mt-6 max-w-3xl font-display text-5xl font-medium leading-[1.05] tracking-tight text-ink sm:text-6xl lg:text-7xl"
         >
-          Replace static API keys with signed, scoped, revocable identity.
+          Your agent can&rsquo;t exceed its budget. And you can prove it.
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 12 }}
@@ -184,9 +202,9 @@ export function LedgerHero() {
           transition={{ duration: 0.6, delay: 0.25, ease: 'easeOut' }}
           className="mt-8 max-w-xl text-lg leading-8 text-ink-soft"
         >
-          Long-lived secrets leak, outlive their owners, and never rotate. With Auths,
-          services and agents sign each request with a device-bound key &mdash; the secret
-          never transmits, so there is nothing to leak.
+          One command in front of any MCP server. Every tool call is checked against a scope, a
+          budget, and an expiry &mdash; and leaves a receipt anyone can verify. Without trusting you,
+          your platform, or your cloud.
         </motion.p>
 
         <motion.div
@@ -196,16 +214,16 @@ export function LedgerHero() {
           className="mt-10 flex flex-wrap items-center gap-5"
         >
           <a
-            href="https://docs.auths.dev/"
+            href="#wrap"
             className="rounded-sm bg-seal px-6 py-3 text-sm font-semibold text-paper transition-colors hover:bg-seal-deep"
           >
-            Get started
+            Bound an agent in 5 minutes
           </a>
           <a
-            href="https://github.com/auths-dev/auths"
+            href="#audit"
             className="font-mono text-sm text-ink-soft underline decoration-rule underline-offset-4 transition-colors hover:text-ink"
           >
-            View on GitHub
+            See a stranger verify it
           </a>
         </motion.div>
 
@@ -223,73 +241,171 @@ export function LedgerHero() {
 }
 
 // ---------------------------------------------------------------------------
-// 01 — Authenticate without tokens
+// 01 — Don't trust us. Check.  (verify-spend — the whole company)
 // ---------------------------------------------------------------------------
 
-export function LedgerMachineAuth() {
+export function LedgerAudit() {
   return (
     <section className="px-6 py-24 sm:py-32">
       <div className="mx-auto max-w-5xl">
-        <SectionMark n="01" title="Authenticate without tokens" id="auth" />
+        <SectionMark n="01" title="Don't trust us. Check." id="audit" />
 
         <div className="mt-10 grid gap-12 lg:grid-cols-[5fr_6fr]">
           <div>
             <motion.p {...fadeUp(0.1)} className="text-lg leading-8 text-ink-soft">
-              A static credential lives in env vars and CI logs, rarely rotates, and keeps
-              working after its owner leaves. An <span className="font-mono text-[0.93em] text-ink">Auths-Presentation</span> is
-              the opposite: single-use, audience-bound, and verified against the caller&apos;s
-              key event log.
+              A log is a claim the operator makes about themselves. A receipt is a claim you can
+              check <span className="italic">against</span> them. Each tool call is signed by the
+              agent&apos;s delegated key; the spend re-derives from those signatures, so a party who
+              never ran the agent can confirm what it did &mdash; offline, with no account and no
+              server to trust.
             </motion.p>
-            <motion.ul {...fadeUp(0.2)} className="mt-8 space-y-4 text-base leading-7 text-ink-soft">
-              <li className="flex gap-3">
-                <span className="font-mono text-sm text-seal">a.</span>
-                Your API mints a single-use nonce, bound to its own audience.
-              </li>
-              <li className="flex gap-3">
-                <span className="font-mono text-sm text-seal">b.</span>
-                The caller signs it with a device-bound key that never leaves the machine.
-              </li>
-              <li className="flex gap-3">
-                <span className="font-mono text-sm text-seal">c.</span>
-                One header carries the proof. Replay gets 401; a missing capability gets 403.
-              </li>
-            </motion.ul>
-            <motion.p {...fadeUp(0.3)} className="mt-8 border-l-2 border-seal/50 pl-4 font-display text-xl italic leading-8 text-ink">
-              Sign request &rarr; verify signature. No token to mint, store, rotate, or leak.
+            <motion.p
+              {...fadeUp(0.2)}
+              className="mt-8 border-l-2 border-seal/50 pl-4 font-display text-xl italic leading-8 text-ink"
+            >
+              Tamper with one byte of a signed proof and the audit says so.
             </motion.p>
-            <motion.div {...fadeUp(0.4)} className="mt-8 flex flex-col gap-3">
-              <InkLink href="/blog/replacing-api-keys">Why your API keys are the problem</InkLink>
+            <motion.div {...fadeUp(0.35)} className="mt-8">
+              <InkLink href="https://github.com/auths-dev/auths">How the audit works</InkLink>
+            </motion.div>
+          </div>
+
+          <motion.div {...fadeUp(0.2)}>
+            <InkTerminal label="an auditor who does not operate the agent" tag="offline">
+              <Dim># re-derive the spend from the signed receipts alone</Dim>
+              <Prompt>
+                auths-mcp-gateway verify-spend --log spend.jsonl \
+              </Prompt>
+              <Prompt className="pl-4">
+                --registry ./registry --agent did:keri:E… --root did:keri:E…
+              </Prompt>
+              <Allow>consistent — 2 call(s), $12.00 re-derived from signed costs</Allow>
+              <Dim className="pt-2"># now flip one byte of a signed proof and re-run</Dim>
+              <Prompt>auths-mcp-gateway verify-spend --log tampered.jsonl …</Prompt>
+              <Deny>tampered-proof — 51017ad1… failed verification (exit 1)</Deny>
+            </InkTerminal>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 02 — It bounds, it doesn't just watch.
+// ---------------------------------------------------------------------------
+
+const VERDICTS = [
+  { rule: 'scope ⊆ parent', deny: 'outside-agent-scope', note: 'a call for a capability the grant never gave' },
+  { rule: 'budget', deny: 'usage-cap-exceeded', note: 'the reservation refuses before the rail is charged' },
+  { rule: 'expiry', deny: 'expired', note: 'the delegation has a TTL; past it, nothing signs' },
+  { rule: 'revocation', deny: 'revoked', note: 'the root anchored a revocation seal in its KEL' },
+  { rule: 'authenticity', deny: 'proof-unauthentic', note: 'the signature does not verify against the agent’s key' },
+];
+
+export function LedgerBound() {
+  return (
+    <section className="px-6 py-24 sm:py-32">
+      <div className="mx-auto max-w-5xl">
+        <SectionMark n="02" title="It bounds. It doesn't just watch." id="bound" />
+
+        <motion.p {...fadeUp(0.1)} className="mt-10 max-w-2xl text-lg leading-8 text-ink-soft">
+          AWS, Entra, and Okta can tell you <span className="italic">who</span> the agent is. None of
+          them can stop it. The gate checks five things on every call and fails closed &mdash; the
+          downstream tool is never invoked on a deny.
+        </motion.p>
+
+        <motion.div {...fadeUp(0.2)} className="mt-12 overflow-hidden rounded-lg ring-1 ring-rule">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-rule bg-ink/[0.02]">
+                <th className="px-5 py-3 font-mono text-xs font-semibold uppercase tracking-wider text-ink-faint">
+                  Bound
+                </th>
+                <th className="px-5 py-3 font-mono text-xs font-semibold uppercase tracking-wider text-ink-faint">
+                  Refusal
+                </th>
+                <th className="hidden px-5 py-3 font-mono text-xs font-semibold uppercase tracking-wider text-ink-faint sm:table-cell">
+                  When
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {VERDICTS.map((v) => (
+                <tr key={v.deny} className="border-b border-rule last:border-0">
+                  <td className="px-5 py-3.5 font-mono text-ink">{v.rule}</td>
+                  <td className="px-5 py-3.5 font-mono" style={{ color: DENY }}>
+                    {v.deny}
+                  </td>
+                  <td className="hidden px-5 py-3.5 text-ink-soft sm:table-cell">{v.note}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </motion.div>
+        <motion.p {...fadeUp(0.3)} className="mt-6 font-mono text-xs text-ink-faint">
+          Scope is <span className="text-ink">⊆ parent</span>: an agent can only ever narrow what it
+          was delegated, never widen it.
+        </motion.p>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 03 — Works with what you have.
+// ---------------------------------------------------------------------------
+
+export function LedgerWrap() {
+  return (
+    <section className="px-6 py-24 sm:py-32">
+      <div className="mx-auto max-w-5xl">
+        <SectionMark n="03" title="Works with what you have." id="wrap" />
+
+        <div className="mt-10 grid gap-12 lg:grid-cols-[5fr_6fr]">
+          <div>
+            <motion.p {...fadeUp(0.1)} className="text-lg leading-8 text-ink-soft">
+              No migration, no SDK, no rewrite. Prepend one command to any MCP server line in your
+              client config. The agent keeps working &mdash; now bounded.
+            </motion.p>
+            <motion.p {...fadeUp(0.25)} className="mt-8 text-base leading-7 text-ink-soft">
+              The gateway speaks MCP up to your agent and down to the wrapped server, proxying{' '}
+              <span className="font-mono text-[0.93em] text-ink">tools/list</span> and{' '}
+              <span className="font-mono text-[0.93em] text-ink">tools/call</span> and gating each
+              one.
+            </motion.p>
+            <motion.div {...fadeUp(0.4)} className="mt-8">
+              <InkLink href="https://github.com/auths-dev/auths">Read the quickstart</InkLink>
             </motion.div>
           </div>
 
           <motion.div {...fadeUp(0.2)}>
             <div className="overflow-hidden rounded-lg shadow-[0_24px_60px_-12px_rgba(28,24,20,0.45)] ring-1 ring-black/20 [&_pre]:!m-0 [&_pre]:!rounded-none">
               <div className="flex items-center justify-between bg-[#15130f] px-5 py-2.5">
-                <span className="font-mono text-[11px] tracking-wider text-stone-500">server.ts</span>
-                <span className="font-mono text-[11px] text-stone-600">npm install @auths-dev/express</span>
+                <span className="font-mono text-[11px] tracking-wider text-stone-500">
+                  ~/.config/mcp.json
+                </span>
+                <span className="font-mono text-[11px] text-stone-600">before → after</span>
               </div>
               <CodeBlock
-                language="typescript"
-                code={`import { verifyPresentation } from '@auths-dev/sdk'
-import {
-  authsAuth, challengeHandler,
-  ChallengeStore, KeriPresentationVerifier,
-} from '@auths-dev/express'
-
-const challenges = new ChallengeStore({ maxLive: 10_000 })
-const verifier = new KeriPresentationVerifier({
-  audience: 'api.example.com',
-  challenges, loadInputs,
-  pinnedRoots: ['did:keri:Eacme_root…'],
-  verifyPresentation,
-})
-
-app.use('/v1/auth/challenge',
-  challengeHandler({ audience: 'api.example.com', challenges }))
-
-app.post('/v1/deploy',
-  authsAuth({ verifier, capabilityFor: () => 'acme:deploy' }),
-  (req, res) => res.json({ deployedBy: req.principal.subject }))`}
+                language="json"
+                code={`{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "@auths/mcp", "wrap",
+        "--scope", "fs.read",
+        "--budget", "$5",
+        "--ttl", "30m",
+        "--",
+        "npx", "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/path/to/project"
+      ]
+    }
+  }
+}`}
               />
             </div>
           </motion.div>
@@ -300,47 +416,41 @@ app.post('/v1/deploy',
 }
 
 // ---------------------------------------------------------------------------
-// 02 — Agents you can revoke
+// 04 — Revoke and it stops.
 // ---------------------------------------------------------------------------
 
-export function LedgerAgents() {
+export function LedgerRevoke() {
   return (
     <section className="px-6 py-24 sm:py-32">
       <div className="mx-auto max-w-5xl">
-        <SectionMark n="02" title="Give every agent an identity you can revoke" id="agents" />
+        <SectionMark n="04" title="Revoke, and it stops." id="revoke" />
 
         <div className="mt-10 grid gap-12 lg:grid-cols-[5fr_6fr]">
           <div>
             <motion.p {...fadeUp(0.1)} className="text-lg leading-8 text-ink-soft">
-              A shared API key can&apos;t tell you which agent did what &mdash; and can&apos;t be
-              pulled for one agent without breaking the rest. With Auths, each agent gets its
-              own delegated identity: capabilities are fixed when the credential is issued and
-              enforced at the gate, and every action is attributable to a DID.
+              A shared key can&apos;t be pulled for one agent without breaking the rest. An Auths
+              agent is a delegated identity of your root &mdash; revoking it anchors a revocation
+              seal in your key event log. Every verifier honors it on the next call. The other agents
+              never notice.
             </motion.p>
-            <motion.p {...fadeUp(0.2)} className="mt-6 text-lg leading-8 text-ink-soft">
-              When one misbehaves, revocation is one command &mdash; anchored in your key event
-              log, honored by every verifier, and the other agents keep working.
+            <motion.p
+              {...fadeUp(0.25)}
+              className="mt-8 border-l-2 border-seal/50 pl-4 font-display text-xl italic leading-8 text-ink"
+            >
+              One command. No key rotation across the fleet. No distribution to wait on.
             </motion.p>
-            <motion.p {...fadeUp(0.3)} className="mt-6 text-sm leading-6 text-ink-faint">
-              Shipping agents on MCP? <span className="font-mono text-[0.95em]">auths-mcp-server</span> gives
-              your toolchain the same identity model.
-            </motion.p>
-            <motion.div {...fadeUp(0.4)} className="mt-8">
-              <InkLink href="https://docs.auths.dev/guides/identity/profiles/#agent-profile">
-                Give your agent an identity
-              </InkLink>
-            </motion.div>
           </div>
 
           <motion.div {...fadeUp(0.2)}>
-            <InkTerminal label="agent lifecycle">
-              <Dim># create an agent identity — scoped capabilities, 1-year TTL</Dim>
-              <Prompt>auths init --profile agent --non-interactive</Prompt>
-              <Dim className="pt-1"># export identity for deployment</Dim>
-              <Prompt>auths id export-bundle --alias main -o agent-bundle.json --max-age-secs 86400</Prompt>
-              <Dim className="pt-1"># pull one agent — the rest keep working</Dim>
-              <Prompt>auths device remove did:keri:EAgent7…</Prompt>
-              <Tick>revocation anchored in your key event log</Tick>
+            <InkTerminal label="revoke one agent">
+              <Dim># the deploy bot is compromised — cut it</Dim>
+              <Prompt>auths id agent revoke --label deploy-bot</Prompt>
+              <Allow>revocation anchored at seq 7 of did:keri:Eroot…</Allow>
+              <Dim className="pt-2"># its very next call, at the gate</Dim>
+              <Prompt>payments.charge $4.00</Prompt>
+              <Deny>revoked — refused (the downstream tool was never called)</Deny>
+              <Dim className="pt-2"># every other agent keeps working</Dim>
+              <Allow>report-bot · fs.read → allowed</Allow>
             </InkTerminal>
           </motion.div>
         </div>
@@ -350,48 +460,35 @@ export function LedgerAgents() {
 }
 
 // ---------------------------------------------------------------------------
-// 03 — Govern and prove
+// 05 — How it works.
 // ---------------------------------------------------------------------------
 
-export function LedgerGovernance() {
+export function LedgerHowItWorks() {
   return (
     <section className="px-6 py-24 sm:py-32">
       <div className="mx-auto max-w-5xl">
-        <SectionMark n="03" title="Prove who did what. Cut access in seconds." id="governance" />
+        <SectionMark n="05" title="How it works." id="how" />
 
-        <div className="mt-10 grid gap-12 lg:grid-cols-[5fr_6fr]">
-          <div>
-            <motion.p {...fadeUp(0.1)} className="text-lg leading-8 text-ink-soft">
-              Org membership &mdash; human or agent &mdash; is a signed delegation, with no IdP
-              in the trust path and no CA contract. Revoking a member writes a durable,
-              signed off-boarding record: what they lost, and exactly where their authority
-              ended. Proof for a regulator, not &ldquo;trust our logs.&rdquo;
-            </motion.p>
-            <motion.p {...fadeUp(0.2)} className="mt-6 text-lg leading-8 text-ink-soft">
-              Audit reports gate CI and export to HTML or JSON. Evidence bundles verify fully
-              offline &mdash; nothing breaks when a vendor is down. And key rotation is a
-              signed event, so prior signatures stay valid with nothing to re-sign.
-            </motion.p>
-            <motion.div {...fadeUp(0.3)} className="mt-8">
-              <InkLink href="https://docs.auths.dev/guides/identity/key-rotation/">
-                Rotation without broken history
-              </InkLink>
+        <div className="mt-10 grid gap-10 md:grid-cols-3">
+          {[
+            {
+              h: 'A device-bound key',
+              b: 'The signing key is generated in the machine’s secure element and never transmits. There is no secret to leak, store, or rotate across your fleet.',
+            },
+            {
+              h: 'A delegation, not a token',
+              b: 'Each agent is a delegated identifier of your root identity, with its scope and budget fixed at issue time and anchored in a key event log — not a bearer token anyone who holds it can replay.',
+            },
+            {
+              h: 'A signed receipt',
+              b: 'Every gated call is canonicalized, signed, and recorded. The verdict and the running spend are re-derivable by anyone with the receipts — the operator’s word is never required.',
+            },
+          ].map((c, i) => (
+            <motion.div key={c.h} {...fadeUp(0.1 + i * 0.1)}>
+              <h3 className="font-display text-xl font-medium text-ink">{c.h}</h3>
+              <p className="mt-3 text-base leading-7 text-ink-soft">{c.b}</p>
             </motion.div>
-          </div>
-
-          <motion.div {...fadeUp(0.2)}>
-            <InkTerminal label="org lifecycle">
-              <Prompt>auths org create --name &quot;Acme Corp&quot;</Prompt>
-              <Prompt>auths org add-member --org did:keri:EAcme… --member did:keri:EDev4… --role member</Prompt>
-              <Dim className="pt-1"># contractor rolls off — one command, provable record</Dim>
-              <Prompt>auths org revoke-member --org did:keri:EAcme… --member did:keri:EDev4…</Prompt>
-              <Tick>member revoked — anchored in the org KEL</Tick>
-              <Dim>{'  revoked at: KEL seq 17 · lost caps: repo:sign, artifact:publish'}</Dim>
-              <Dim className="pt-1"># the audit trail, any time, for anyone who asks</Dim>
-              <Prompt>auths org offboarding-log --org did:keri:EAcme…</Prompt>
-              <Prompt>auths audit --repo . --format html --require-all-signed --exit-code</Prompt>
-            </InkTerminal>
-          </motion.div>
+          ))}
         </div>
       </div>
     </section>
@@ -399,97 +496,32 @@ export function LedgerGovernance() {
 }
 
 // ---------------------------------------------------------------------------
-// 04 — Prove where code comes from
+// 06 — Why the receipt survives a key rotation.
 // ---------------------------------------------------------------------------
 
-export function LedgerSupplyChain() {
+export function LedgerRotation() {
   return (
     <section className="px-6 py-24 sm:py-32">
       <div className="mx-auto max-w-5xl">
-        <SectionMark n="04" title="Prove where code comes from" id="supply-chain" />
+        <SectionMark n="06" title="Why the receipt survives a key rotation." id="rotation" />
 
-        <div className="mt-10 max-w-2xl">
-          <motion.p {...fadeUp(0.1)} className="text-lg leading-8 text-ink-soft">
-            LiteLLM and Axios were both compromised through stolen publish credentials. With
-            Auths, a stolen credential can&apos;t produce a valid signature &mdash; the signing
-            key lives in your hardware keychain, not in CI. Signing is one command
-            (<span className="font-mono text-[0.93em] text-ink">auths artifact sign release.tar.gz</span>),
-            verification works fully offline, and one flag logs a public record to
-            Sigstore&apos;s Rekor &mdash; where Auths&apos; own releases live.
-          </motion.p>
-          <motion.p {...fadeUp(0.2)} className="mt-8 font-display text-xl italic leading-8 text-ink">
-            Don&apos;t take our word for it &mdash; verify something yourself, right here, offline:
-          </motion.p>
-        </div>
-
-        <motion.div {...fadeUp(0.3)} className="mt-8">
-          <div className="overflow-hidden rounded-lg shadow-[0_24px_60px_-12px_rgba(28,24,20,0.45)]">
-            <VerifyHero />
-          </div>
+        <motion.div {...fadeUp(0.1)} className="mt-10 max-w-3xl space-y-6 text-lg leading-8 text-ink-soft">
+          <p>
+            Other tools can verify offline too. The difference is narrower than &ldquo;offline vs
+            online,&rdquo; and worth stating precisely: their offline check runs against a{' '}
+            <span className="text-ink">trust-root snapshot</span> you refreshed at some point &mdash;
+            so a key that rotated or was revoked since is one you cannot see.
+          </p>
+          <p>
+            An Auths key carries its own rotation history: the receipt verifies against the key that
+            was valid <span className="text-ink">at signing time</span>, with no trust root to
+            refresh. That matters most for long-lived agent and device keys &mdash; which is exactly
+            what Auths issues.
+          </p>
         </motion.div>
-
-        <motion.div {...fadeUp(0.4)} className="mt-8 flex flex-wrap gap-x-10 gap-y-3">
-          <InkLink href="https://docs.auths.dev/guides/platforms/ci-cd/">
-            Two GitHub Actions, zero secrets
-          </InkLink>
-          <InkLink href="https://docs.auths.dev/guides/git/verifying-commits/">
-            Supply-chain verification docs
-          </InkLink>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Compare strip
-// ---------------------------------------------------------------------------
-
-const COMPARE_ROWS = [
-  { feature: 'Verifies offline / air-gapped', auths: 'Yes — WASM, no server', field: 'Sigstore needs a Rekor call' },
-  { feature: 'Survives a stolen CI token', auths: 'Yes — key is hardware-bound', field: 'GPG, SSH, Sigstore: no' },
-  { feature: 'Identity survives key rotation', auths: 'Yes — KERI pre-rotation', field: 'Sigstore is ephemeral; GPG is manual' },
-  { feature: 'Agent delegation + revocation', auths: 'Scoped, one-command revoke', field: 'Not supported elsewhere' },
-] as const;
-
-export function LedgerCompare() {
-  return (
-    <section className="px-6 py-24 sm:py-32">
-      <div className="mx-auto max-w-5xl">
-        <div id="compare" className="scroll-mt-24">
-          <motion.div {...fadeUp(0)} className="flex items-baseline gap-4">
-            <span className="font-mono text-sm font-semibold tracking-widest text-seal">&sect;</span>
-            <span className="h-px flex-1 bg-rule" aria-hidden="true" />
-          </motion.div>
-          <motion.h2
-            {...fadeUp(0.05)}
-            className="mt-6 font-display text-4xl font-medium tracking-tight text-ink sm:text-5xl"
-          >
-            A fair comparison
-          </motion.h2>
-        </div>
-        <motion.p {...fadeUp(0.1)} className="mt-6 max-w-2xl text-lg leading-8 text-ink-soft">
-          Sigstore has the ecosystem. GPG works offline too. Auths is the column where
-          offline verification, persistent identity, and revocation all hold at once.
+        <motion.p {...fadeUp(0.25)} className="mt-8 font-mono text-xs text-ink-faint">
+          No CA. No blockchain. The key history proves itself.
         </motion.p>
-
-        <motion.div {...fadeUp(0.2)} className="mt-10">
-          <table className="w-full">
-            <tbody>
-              {COMPARE_ROWS.map((row) => (
-                <tr key={row.feature} className="border-t border-rule last:border-b">
-                  <td className="py-4 pr-4 align-top text-base text-ink sm:w-1/3">{row.feature}</td>
-                  <td className="py-4 pr-4 align-top font-mono text-sm text-seal-deep sm:w-1/3">{row.auths}</td>
-                  <td className="hidden py-4 align-top font-mono text-sm text-ink-faint sm:table-cell sm:w-1/3">{row.field}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </motion.div>
-
-        <motion.div {...fadeUp(0.3)} className="mt-8">
-          <InkLink href="/compare">The full comparison — including where the alternatives win</InkLink>
-        </motion.div>
       </div>
     </section>
   );
@@ -508,24 +540,25 @@ export function LedgerCTA() {
           {...fadeUp(0.05)}
           className="mt-16 max-w-2xl font-display text-4xl font-medium tracking-tight text-ink sm:text-5xl"
         >
-          Start with one service, one agent, or one repo.
+          Bound your first agent.
         </motion.h2>
         <motion.p {...fadeUp(0.15)} className="mt-6 max-w-xl text-lg leading-8 text-ink-soft">
           Open source, offline-first, no account required.
         </motion.p>
 
         <motion.div {...fadeUp(0.25)} className="mt-10 max-w-2xl">
-          <InkTerminal label="install">
-            <Prompt>brew install auths-dev/auths-cli/auths</Prompt>
-            <Dim>{'  # or: curl -fsSL https://get.auths.dev | sh'}</Dim>
-            <Prompt>auths init</Prompt>
-            <Tick>identity created — git signing configured</Tick>
+          <InkTerminal label="quickstart">
+            <Dim># wrap any MCP server — the agent keeps working, now bounded</Dim>
+            <Prompt>npx @auths/mcp wrap --budget &apos;$5&apos; --ttl 30m -- my-mcp-server</Prompt>
+            <Dim className="pt-1"># then, as anyone: re-derive the spend from the receipts</Dim>
+            <Prompt>auths-mcp-gateway verify-spend --log spend.jsonl …</Prompt>
+            <Allow>consistent — re-derived from signed costs, offline</Allow>
           </InkTerminal>
         </motion.div>
 
         <motion.div {...fadeUp(0.35)} className="mt-10 flex flex-wrap items-center gap-5">
           <a
-            href="https://docs.auths.dev/getting-started/install/"
+            href="https://docs.auths.dev/"
             className="rounded-sm bg-seal px-6 py-3 text-sm font-semibold text-paper transition-colors hover:bg-seal-deep"
           >
             Read the docs
@@ -543,14 +576,13 @@ export function LedgerCTA() {
 }
 
 const LEDGER_FOOTER_LINKS = [
-  { label: 'Machine auth', href: '#auth' },
-  { label: 'Agents', href: '#agents' },
-  { label: 'Governance', href: '#governance' },
-  { label: 'Supply chain', href: '#supply-chain' },
-  { label: 'Compare', href: '/compare' },
+  { label: 'Check it', href: '#audit' },
+  { label: 'What it bounds', href: '#bound' },
+  { label: 'Wrap a server', href: '#wrap' },
+  { label: 'Revoke', href: '#revoke' },
+  { label: 'How it works', href: '#how' },
+  { label: 'Verify a release', href: 'https://github.com/auths-dev/verify' },
   { label: 'Docs', href: 'https://docs.auths.dev/' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'Community', href: '/community' },
   { label: 'GitHub', href: 'https://github.com/auths-dev/auths' },
 ] as const;
 
@@ -574,7 +606,9 @@ export function LedgerFooter() {
       </div>
       <div className="mx-auto mt-10 flex max-w-5xl flex-col gap-2 border-t border-rule pt-6 sm:flex-row sm:justify-between">
         <p className="font-mono text-xs text-ink-faint">&copy; {currentYear} Auths · Apache-2.0</p>
-        <p className="font-mono text-xs text-ink-faint">No CA. No blockchain. Just Git and cryptography.</p>
+        <p className="font-mono text-xs text-ink-faint">
+          The bounded agent. And a receipt anyone can check.
+        </p>
       </div>
     </footer>
   );
