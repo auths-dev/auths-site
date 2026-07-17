@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { constructMetadata } from '@/lib/metadata';
-import { CodeBlock } from '@/components/code-block';
-import { CopyButton } from '@/components/copy-button';
+import { CodeBlock } from '@auths/ledger-ui';
+import { CopyButton } from '@auths/ledger-ui';
 import {
   SectionMark,
   InkTerminal,
@@ -10,7 +10,7 @@ import {
   Dim,
   Allow,
   Deny,
-} from '@/components/ledger';
+} from '@auths/ledger-ui';
 
 const TITLE = 'Verify — proof your work passed, that anyone can re-check';
 const DESC =

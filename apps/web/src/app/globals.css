@@ -1,107 +1,16 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@import "@auths/ledger-ui/styles.css";
+@source "../../../../packages/ledger-ui/src";
 
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 5rem;
 }
 
-:root {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --border: #27272a;
-  --muted: #71717a;
-  --muted-bg: #18181b;
-  --accent-verified: #10b981;
-  --accent-verified-dim: #064e3b;
-
-  /* The Ledger — light editorial palette (landing + compare) */
-  --paper: #f6f3ec;
-  --paper-deep: #ece7db;
-  --ink: #1c1814;
-  --ink-soft: #5b5448;
-  --ink-faint: #726c5e;
-  --rule: rgba(28, 24, 20, 0.16);
-  --seal: #c2401b;
-  --seal-deep: #9c3214;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-border: var(--border);
-  --color-muted: var(--muted);
-  --color-muted-bg: var(--muted-bg);
-  --color-verified: var(--accent-verified);
-  --color-verified-dim: var(--accent-verified-dim);
-  --color-paper: var(--paper);
-  --color-paper-deep: var(--paper-deep);
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-ink-faint: var(--ink-faint);
-  --color-rule: var(--rule);
-  --color-seal: var(--seal);
-  --color-seal-deep: var(--seal-deep);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-fraunces);
-}
-
-/* The whole site is paper-and-ink. Terminals and code panes are the only
-   dark objects — photographs tipped into a document. */
 body {
   background: var(--paper);
   color: var(--ink);
-}
-
-/* Above-the-fold entrance in pure CSS so the hero paints before hydration —
-   a JS-only entrance holds the LCP element at opacity 0 until the bundle runs. */
-@keyframes ledger-rise {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.rise {
-  animation: ledger-rise 0.65s ease-out both;
-}
-
-.rise-d1 {
-  animation-delay: 0.08s;
-}
-.rise-d2 {
-  animation-delay: 0.2s;
-}
-.rise-d3 {
-  animation-delay: 0.32s;
-}
-
-/* Transform-only entrance for the LCP artifact: translate is free for LCP,
-   an opacity fade is not — the paint only counts once it's visible. */
-@keyframes ledger-settle {
-  from {
-    transform: translateY(18px);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-.rise-flat {
-  animation: ledger-settle 0.7s ease-out both;
-  animation-delay: 0.2s;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .rise,
-  .rise-flat {
-    animation: none;
-  }
 }
 
 /* Prose customization for MDX content pages — the ledger, in long form. */

@@ -18,8 +18,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView, useReducedMotion } from 'motion/react';
-import { CodeBlock } from '@/components/code-block';
-import { CopyButton } from '@/components/copy-button';
+import { CodeBlock } from '@auths/ledger-ui';
+import { CopyButton } from '@auths/ledger-ui';
 import {
   fadeUp,
   DENY,
@@ -32,7 +32,7 @@ import {
   Dim,
   Allow,
   Deny,
-} from '@/components/ledger';
+} from '@auths/ledger-ui';
 
 // ---------------------------------------------------------------------------
 // Hero — one product: the bounded agent. The terminal shows a refusal.

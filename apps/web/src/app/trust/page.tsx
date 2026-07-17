@@ -9,7 +9,7 @@ import {
   Allow,
   Deny,
   DENY,
-} from '@/components/ledger';
+} from '@auths/ledger-ui';
 
 const TITLE = 'Security model — what you have to trust, and what you don’t';
 const DESC =

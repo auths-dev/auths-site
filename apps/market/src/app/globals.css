@@ -1,0 +1,13 @@
+@import "tailwindcss";
+@import "@auths/ledger-ui/styles.css";
+@source "../../../../packages/ledger-ui/src";
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+}

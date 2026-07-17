@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
-  transpilePackages: ["next-mdx-remote"],
+  transpilePackages: ["next-mdx-remote", "@auths/ledger-ui"],
   turbopack: {},
   experimental: {
     optimizeCss: true,

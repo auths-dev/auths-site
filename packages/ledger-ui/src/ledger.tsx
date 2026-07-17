@@ -15,7 +15,7 @@
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
-import { CopyButton } from '@/components/copy-button';
+import { CopyButton } from './copy-button';
 
 export const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 12 } as const,
@@ -147,7 +147,12 @@ export function Deny({ children }: { children: React.ReactNode }) {
   );
 }
 
-const LEDGER_FOOTER_LINKS = [
+export interface FooterLink {
+  label: string;
+  href: string;
+}
+
+const LEDGER_FOOTER_LINKS: readonly FooterLink[] = [
   { label: 'Check it', href: '/#audit' },
   { label: 'What it bounds', href: '/#bound' },
   { label: 'Wrap a server', href: '/#wrap' },
@@ -158,17 +163,17 @@ const LEDGER_FOOTER_LINKS = [
   { label: 'Security', href: '/trust' },
   { label: 'Docs', href: 'https://docs.auths.dev/' },
   { label: 'GitHub', href: 'https://github.com/auths-dev/auths' },
-] as const;
+];
 
 /** One shared footer, applied on every page by the root layout. */
-export function LedgerFooter() {
+export function LedgerFooter({ links = LEDGER_FOOTER_LINKS }: { links?: readonly FooterLink[] } = {}) {
   const currentYear = new Date().getFullYear();
   return (
     <footer className="border-t border-rule px-6 py-12">
       <div className="mx-auto flex max-w-5xl flex-col gap-8 sm:flex-row sm:items-baseline sm:justify-between">
         <span className="font-display text-xl font-medium text-ink">Auths</span>
         <nav className="flex flex-wrap gap-x-6 gap-y-2">
-          {LEDGER_FOOTER_LINKS.map((link) =>
+          {links.map((link) =>
             link.href.startsWith('http') ? (
               <a
                 key={link.label}

@@ -1,5 +1,5 @@
 import { Children, isValidElement, type ComponentPropsWithoutRef, type ReactNode } from 'react';
-import { CodeBlock } from '@/components/code-block';
+import { CodeBlock } from '@auths/ledger-ui';
 import { LifelineDiagram } from '@/components/lifeline-diagram/lifeline-diagram';
 import { SetupCeremonyDiagram } from '@/components/setup-ceremony-diagram';
 import { ApiKeyComparisonDiagram } from '@/components/api-key-comparison-diagram';

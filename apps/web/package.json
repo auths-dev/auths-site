@@ -17,7 +17,8 @@
     "next-mdx-remote": "^6",
     "prism-react-renderer": "^2.4.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "@auths/ledger-ui": "workspace:*"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
