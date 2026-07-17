@@ -277,7 +277,7 @@ export function LedgerAudit() {
                 auths-mcp-gateway verify-spend --log spend.jsonl \
               </Prompt>
               <Prompt className="pl-4">
-                --registry ./registry --agent did:keri:E… --root did:keri:E…
+                --registry ./registry --agent &lt;agent&gt; --root &lt;root&gt;
               </Prompt>
               <Allow>consistent — 2 call(s), $12.00 re-derived from signed costs</Allow>
               <Dim className="pt-2"># now flip one byte of a signed proof and re-run</Dim>
@@ -299,7 +299,7 @@ const VERDICTS = [
   { rule: 'scope ⊆ parent', deny: 'outside-agent-scope', note: 'a call for a capability the grant never gave' },
   { rule: 'budget', deny: 'usage-cap-exceeded', note: 'the reservation refuses before the rail is charged' },
   { rule: 'expiry', deny: 'expired', note: 'the delegation has a TTL; past it, nothing signs' },
-  { rule: 'revocation', deny: 'revoked', note: 'the root anchored a revocation seal in its KEL' },
+  { rule: 'revocation', deny: 'revoked', note: 'the root recorded a revocation; every verifier honors it' },
   { rule: 'authenticity', deny: 'proof-unauthentic', note: 'the signature does not verify against the agent’s key' },
 ];
 
@@ -429,9 +429,8 @@ export function LedgerRevoke() {
           <div>
             <motion.p {...fadeUp(0.1)} className="text-lg leading-8 text-ink-soft">
               A shared key can&apos;t be pulled for one agent without breaking the rest. An Auths
-              agent is a delegated identity of your root &mdash; revoking it anchors a revocation
-              seal in your key event log. Every verifier honors it on the next call. The other agents
-              never notice.
+              agent is a delegated identity of your root &mdash; revoke it once and every verifier
+              refuses it on the next call. The other agents never notice.
             </motion.p>
             <motion.p
               {...fadeUp(0.25)}
@@ -445,7 +444,7 @@ export function LedgerRevoke() {
             <InkTerminal label="revoke one agent">
               <Dim># the deploy bot is compromised — cut it</Dim>
               <Prompt>auths id agent revoke --label deploy-bot</Prompt>
-              <Allow>revocation anchored at seq 7 of did:keri:Eroot…</Allow>
+              <Allow>revocation recorded at seq 7 — every verifier honors it</Allow>
               <Dim className="pt-2"># its very next call, at the gate</Dim>
               <Prompt>payments.charge $4.00</Prompt>
               <Deny>revoked — refused (the downstream tool was never called)</Deny>
@@ -520,7 +519,7 @@ export function LedgerRotation() {
           </p>
         </motion.div>
         <motion.p {...fadeUp(0.25)} className="mt-8 font-mono text-xs text-ink-faint">
-          No CA. No blockchain. The key history proves itself.
+          Verified against the key that signed it. Nothing to refresh, nothing to phone home.
         </motion.p>
       </div>
     </section>
