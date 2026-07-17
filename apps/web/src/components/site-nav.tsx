@@ -46,6 +46,13 @@ export function SiteNav() {
           ))}
 
           <a
+            href="https://market.auths.dev"
+            className="font-mono text-[13px] text-ink-faint transition-colors hover:text-ink sm:text-sm"
+          >
+            Market
+          </a>
+
+          <a
             href="https://docs.auths.dev/"
             className="font-mono text-[13px] text-ink-faint transition-colors hover:text-ink sm:text-sm"
           >

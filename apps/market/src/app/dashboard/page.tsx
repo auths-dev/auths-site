@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { auth } from '@/lib/auth/supabase-github';
-import { getSellerListings } from '@/lib/listings';
+import { getReceiptSummaries, getSellerListings } from '@/lib/listings';
 import { ListingBadges } from '@/components/badges';
 
 export const metadata = { title: 'Dashboard' };
@@ -19,6 +19,15 @@ export default async function DashboardPage({
   const seller = await auth.requireSeller();
   const { submitted } = await searchParams;
   const listings = await getSellerListings(seller.id);
+  const earnings = new Map<string, { calls: number; cents: number; hash?: string }>();
+  for (const l of listings.filter((l) => l.status === 'live')) {
+    const days = await getReceiptSummaries(l.id);
+    earnings.set(l.id, {
+      calls: days.reduce((a, d) => a + d.calls, 0),
+      cents: days.reduce((a, d) => a + d.cents_settled, 0),
+      hash: days.at(-1)?.log_hash,
+    });
+  }
 
   return (
     <section className="px-6 pt-36 pb-24">
@@ -71,10 +80,21 @@ export default async function DashboardPage({
                   </p>
                 ) : null}
                 {l.status === 'live' ? (
-                  <p className="mt-3 font-mono text-[12px] text-ink-faint">
-                    Earnings render here once the receipts worker has
-                    re-derived your published log (US-007/US-008).
-                  </p>
+                  (() => {
+                    const e = earnings.get(l.id);
+                    return e && e.hash ? (
+                      <p className="mt-3 font-mono text-[12px] text-ink-faint">
+                        30d, re-derived: <span className="text-ink">{e.calls} calls</span> ·{' '}
+                        <span className="text-ink">${(e.cents / 100).toFixed(2)} settled</span> · via
+                        verify-spend @ {e.hash.slice(0, 12)}…
+                      </p>
+                    ) : (
+                      <p className="mt-3 font-mono text-[12px] text-ink-faint">
+                        No receipts re-derived yet — earnings appear after the
+                        hourly worker verifies your published log.
+                      </p>
+                    );
+                  })()
                 ) : null}
               </div>
             ))}

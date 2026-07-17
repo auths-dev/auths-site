@@ -161,6 +161,7 @@ const LEDGER_FOOTER_LINKS: readonly FooterLink[] = [
   { label: 'Verify a release', href: '/verify' },
   { label: 'Blog', href: '/blog' },
   { label: 'Security', href: '/trust' },
+  { label: 'Market', href: 'https://market.auths.dev' },
   { label: 'Docs', href: 'https://docs.auths.dev/' },
   { label: 'GitHub', href: 'https://github.com/auths-dev/auths' },
 ];
