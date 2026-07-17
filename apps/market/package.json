@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@auths/ledger-ui": "workspace:*",
+    "@supabase/ssr": "^0.12.3",
+    "@supabase/supabase-js": "^2.110.7",
     "lucide-react": "^0.575.0",
     "motion": "^12",
     "next": "16.1.6",
