@@ -1,0 +1,34 @@
+name: market-cron
+
+# The real worker cadence (15-min probe, hourly receipts). Vercel Hobby caps
+# its own crons at daily, so the vercel.json crons are the backstop and this
+# workflow is the pace-setter. GitHub only runs schedules from the default
+# branch — this activates when the market branch merges to main. Both
+# endpoints are idempotent, so overlap with the Vercel crons is harmless.
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  probe:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '*/15 * * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe pending listings
+        run: |
+          curl -fsS -m 290 \
+            -H "Authorization: Bearer ${{ secrets.MARKET_CRON_SECRET }}" \
+            https://market.auths.dev/api/cron/probe
+
+  receipts:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 * * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-derive receipt summaries
+        run: |
+          curl -fsS -m 290 \
+            -H "Authorization: Bearer ${{ secrets.MARKET_CRON_SECRET }}" \
+            https://market.auths.dev/api/cron/receipts
