@@ -18,18 +18,16 @@ export function SiteNav() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-rule bg-paper/90 backdrop-blur-sm">
-      <nav className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+      <nav className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
         <Link
           href="/"
-          className="flex items-center gap-2 transition-opacity hover:opacity-80"
+          className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/auths_logo.png"
+            src="/images/auths_logo.svg"
             alt=""
-            width={22}
-            height={22}
-            className="shrink-0"
+            className="h-11 w-auto shrink-0"
           />
           <span className="font-display text-lg font-medium tracking-tight text-ink">Auths</span>
         </Link>
