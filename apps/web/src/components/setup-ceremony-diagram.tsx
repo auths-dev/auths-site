@@ -272,7 +272,7 @@ export function SetupCeremonyDiagram({ variant }: { variant: string }) {
   return (
     <div className="not-prose my-8 w-full overflow-hidden rounded-lg bg-[#15130f] shadow-[0_24px_60px_-12px_rgba(28,24,20,0.45)] ring-1 ring-black/20">
       <div className="flex items-center justify-between border-b border-white/5 px-5 py-2.5">
-        <span className="font-mono text-[11px] tracking-wider text-stone-500">{config.title}</span>
+        <span className="font-mono text-[11px] tracking-wider text-[#9a948c]">{config.title}</span>
       </div>
 
       <div className="p-5 sm:p-6">

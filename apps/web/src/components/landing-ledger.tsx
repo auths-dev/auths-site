@@ -23,6 +23,7 @@ import { CopyButton } from '@/components/copy-button';
 import {
   fadeUp,
   DENY,
+  DENY_DARK,
   OK,
   SectionMark,
   InkLink,
@@ -58,28 +59,51 @@ const HERO_LINES: HeroLine[] = [
 
 const HERO_REPLAY_MS = 14000;
 
-function HeroSessionLine({ line }: { line: HeroLine }) {
+type SessionPhase = 'idle' | 'reset' | 'play';
+
+/**
+ * Server-rendered fully visible so the terminal is the first contentful
+ * paint, then the SAME nodes cycle reset → stream. Remounting the lines
+ * (or entering from opacity 0) would hold the largest paint hostage to
+ * hydration + the stagger — a 4s LCP for a 1.3s page.
+ */
+function HeroSessionLine({ line, phase }: { line: HeroLine; phase: SessionPhase }) {
   const pad = line.pad ? 'pt-1' : '';
+  const hidden = { opacity: 0, y: 4 };
+  const shown = { opacity: 1, y: 0 };
 
   if (line.kind === 'deny') {
     return (
       <motion.p
-        initial={{ opacity: 0, y: 4 }}
-        animate={{
-          opacity: 1,
-          y: 0,
-          x: [0, -2, 2, -1, 1, 0],
-          backgroundColor: ['rgba(192,68,46,0.3)', 'rgba(192,68,46,0.3)', 'rgba(192,68,46,0)'],
-        }}
-        transition={{
-          delay: line.delay,
-          duration: 0.35,
-          ease: 'easeOut',
-          x: { delay: line.delay, duration: 0.45, ease: 'easeOut' },
-          backgroundColor: { delay: line.delay, duration: 1.2, ease: 'easeOut' },
-        }}
+        initial={false}
+        animate={
+          phase === 'reset'
+            ? hidden
+            : phase === 'play'
+              ? {
+                  ...shown,
+                  x: [0, -2, 2, -1, 1, 0],
+                  backgroundColor: [
+                    'rgba(226,102,74,0.28)',
+                    'rgba(226,102,74,0.28)',
+                    'rgba(226,102,74,0)',
+                  ],
+                }
+              : shown
+        }
+        transition={
+          phase === 'play'
+            ? {
+                delay: line.delay,
+                duration: 0.35,
+                ease: 'easeOut',
+                x: { delay: line.delay, duration: 0.45, ease: 'easeOut' },
+                backgroundColor: { delay: line.delay, duration: 1.2, ease: 'easeOut' },
+              }
+            : { duration: 0 }
+        }
         className={`-mx-2 rounded-sm px-2 ${pad}`}
-        style={{ color: DENY }}
+        style={{ color: DENY_DARK }}
       >
         {line.text}
       </motion.p>
@@ -88,19 +112,23 @@ function HeroSessionLine({ line }: { line: HeroLine }) {
 
   const color =
     line.kind === 'dim'
-      ? 'text-stone-500'
+      ? 'text-[#9a948c]'
       : line.kind === 'ok'
         ? ''
         : 'text-stone-300';
   return (
     <motion.p
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: line.delay, duration: 0.35, ease: 'easeOut' }}
+      initial={false}
+      animate={phase === 'reset' ? hidden : shown}
+      transition={
+        phase === 'play'
+          ? { delay: line.delay, duration: 0.35, ease: 'easeOut' }
+          : { duration: 0 }
+      }
       className={`${color} ${pad}`}
       style={line.kind === 'ok' ? { color: OK } : undefined}
     >
-      {line.kind === 'cmd' ? <span className="select-none text-stone-500">$ </span> : null}
+      {line.kind === 'cmd' ? <span className="select-none text-[#9a948c]">$ </span> : null}
       {line.text}
     </motion.p>
   );
@@ -110,15 +138,21 @@ function HeroTerminal() {
   const reduced = useReducedMotion();
   const frameRef = useRef<HTMLDivElement>(null);
   const inView = useInView(frameRef, { amount: 0.5 });
-  const [run, setRun] = useState(0);
+  const inViewRef = useRef(inView);
+  inViewRef.current = inView;
+  const [phase, setPhase] = useState<SessionPhase>('idle');
 
   useEffect(() => {
     if (reduced) return;
-    const id = setInterval(() => {
-      if (inView) setRun((r) => r + 1);
+    const play = () => {
+      setPhase('reset');
+      requestAnimationFrame(() => requestAnimationFrame(() => setPhase('play')));
+    };
+    const loop = setInterval(() => {
+      if (inViewRef.current) play();
     }, HERO_REPLAY_MS);
-    return () => clearInterval(id);
-  }, [reduced, inView]);
+    return () => clearInterval(loop);
+  }, [reduced]);
 
   return (
     <div
@@ -126,34 +160,18 @@ function HeroTerminal() {
       className="overflow-hidden rounded-lg bg-[#15130f] shadow-[0_32px_80px_-16px_rgba(28,24,20,0.5)] ring-1 ring-black/20"
     >
       <div className="flex items-center justify-between border-b border-white/5 px-5 py-2.5">
-        <span className="font-mono text-[11px] tracking-wider text-stone-500">
+        <span className="font-mono text-[11px] tracking-wider text-[#9a948c]">
           agent → my-mcp-server
         </span>
         <span className="flex items-center gap-3">
-          <span className="font-mono text-[11px] text-stone-600">budget $20 · ttl 30m</span>
+          <span className="font-mono text-[11px] text-[#9a948c]">budget $20 · ttl 30m</span>
           <CopyButton text="npx @auths/mcp wrap --budget '$20' --ttl 30m -- my-mcp-server" />
         </span>
       </div>
-      <div
-        key={reduced ? 'static' : run}
-        className="space-y-1.5 px-5 py-4 font-mono text-[13px] leading-relaxed text-stone-300"
-      >
-        {HERO_LINES.map((line) =>
-          reduced ? (
-            <p
-              key={line.text}
-              className={`${line.kind === 'dim' ? 'text-stone-500' : ''} ${line.pad ? 'pt-1' : ''}`}
-              style={
-                line.kind === 'ok' ? { color: OK } : line.kind === 'deny' ? { color: DENY } : undefined
-              }
-            >
-              {line.kind === 'cmd' ? <span className="select-none text-stone-500">$ </span> : null}
-              {line.text}
-            </p>
-          ) : (
-            <HeroSessionLine key={line.text} line={line} />
-          ),
-        )}
+      <div className="space-y-1.5 px-5 py-4 font-mono text-[13px] leading-relaxed text-stone-300">
+        {HERO_LINES.map((line) => (
+          <HeroSessionLine key={line.text} line={line} phase={reduced ? 'idle' : phase} />
+        ))}
       </div>
     </div>
   );
@@ -163,39 +181,19 @@ export function LedgerHero() {
   return (
     <section className="px-6 pt-36 pb-24 sm:pt-44 sm:pb-32">
       <div className="mx-auto max-w-5xl">
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-ink-faint"
-        >
+        <p className="rise font-mono text-xs font-semibold uppercase tracking-[0.2em] text-ink-faint">
           The bounded agent
-        </motion.p>
-        <motion.h1
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1, ease: 'easeOut' }}
-          className="mt-6 max-w-3xl font-display text-5xl font-medium leading-[1.05] tracking-tight text-ink sm:text-6xl lg:text-7xl"
-        >
+        </p>
+        <h1 className="rise rise-d1 mt-6 max-w-3xl font-display text-5xl font-medium leading-[1.05] tracking-tight text-ink sm:text-6xl lg:text-7xl">
           Your agent can&rsquo;t exceed its budget. And you can prove it.
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.25, ease: 'easeOut' }}
-          className="mt-8 max-w-xl text-lg leading-8 text-ink-soft"
-        >
+        </h1>
+        <p className="rise rise-d2 mt-8 max-w-xl text-lg leading-8 text-ink-soft">
           One command in front of any MCP server. Every tool call is checked against a scope, a
           budget, and an expiry &mdash; and leaves a receipt anyone can verify. Without trusting you,
           your platform, or your cloud.
-        </motion.p>
+        </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
-          className="mt-10 flex flex-wrap items-center gap-5"
-        >
+        <div className="rise rise-d3 mt-10 flex flex-wrap items-center gap-5">
           <a
             href="#wrap"
             className="rounded-sm bg-seal px-6 py-3 text-sm font-semibold text-paper transition-colors hover:bg-seal-deep"
@@ -208,16 +206,11 @@ export function LedgerHero() {
           >
             See a stranger verify it
           </a>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.5, ease: 'easeOut' }}
-          className="mt-16 max-w-3xl"
-        >
+        <div className="rise-flat mt-16 max-w-3xl">
           <HeroTerminal />
-        </motion.div>
+        </div>
       </div>
     </section>
   );
@@ -256,18 +249,18 @@ function TamperDemo() {
   return (
     <div ref={ref} className="space-y-1.5">
       <p className="break-all">
-        <span className="text-stone-500">&quot;proof&quot;: &quot;</span>
+        <span className="text-[#9a948c]">&quot;proof&quot;: &quot;</span>
         9f2c
         <motion.span
-          animate={{ color: tampered ? DENY : '#d6d3d1' }}
+          animate={{ color: tampered ? DENY_DARK : '#d6d3d1' }}
           transition={{ duration: 0.25 }}
           className={tampered ? 'font-semibold' : ''}
         >
           {tampered ? 'f3' : '4a'}
         </motion.span>
         a7…e8
-        <span className="text-stone-500">&quot;</span>
-        <span className="pl-3 text-stone-600">{tampered ? '← one byte flipped' : ''}</span>
+        <span className="text-[#9a948c]">&quot;</span>
+        <span className="pl-3 text-[#9a948c]">{tampered ? '← one byte flipped' : ''}</span>
       </p>
       <Prompt>auths-mcp-gateway verify-spend --log tampered.jsonl …</Prompt>
       <div
@@ -348,7 +341,7 @@ function BudgetFlip() {
     <InkTerminal label="cause a refusal — drag the charge" tag={`budget $${CAP}.00 · live`}>
       <Dim># the agent asks payments.charge for ${charge}.00</Dim>
       <div className="flex items-center gap-4 py-1">
-        <span className="select-none text-stone-500">$1</span>
+        <span className="select-none text-[#9a948c]">$1</span>
         <input
           type="range"
           min={1}
@@ -358,9 +351,9 @@ function BudgetFlip() {
           onChange={(e) => setCharge(Number(e.target.value))}
           aria-label="Charge amount in dollars"
           aria-valuetext={`$${charge}`}
-          className="flex-1 cursor-pointer accent-[#c2401b]"
+          className="flex-1 cursor-pointer accent-[#c2401b] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e8845c]"
         />
-        <span className="select-none text-stone-500">$40</span>
+        <span className="select-none text-[#9a948c]">$40</span>
       </div>
       <motion.div
         key={over ? 'deny' : 'allow'}
@@ -496,11 +489,11 @@ export function LedgerWrap() {
           <motion.div {...fadeUp(0.2)}>
             <div className="overflow-hidden rounded-lg shadow-[0_24px_60px_-12px_rgba(28,24,20,0.45)] ring-1 ring-black/20 [&_pre]:!m-0 [&_pre]:!rounded-none">
               <div className="flex items-center justify-between bg-[#15130f] px-5 py-2.5">
-                <span className="font-mono text-[11px] tracking-wider text-stone-500">
+                <span className="font-mono text-[11px] tracking-wider text-[#9a948c]">
                   ~/.config/mcp.json
                 </span>
                 <span className="flex items-center gap-3">
-                  <span className="font-mono text-[11px] text-stone-600">before → after</span>
+                  <span className="font-mono text-[11px] text-[#9a948c]">before → after</span>
                   <CopyButton text={MCP_CONFIG_JSON} />
                 </span>
               </div>

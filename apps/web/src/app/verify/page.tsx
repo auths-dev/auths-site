@@ -55,11 +55,11 @@ export default function VerifyPage() {
           <div className="mt-14 max-w-3xl">
             <div className="overflow-hidden rounded-lg shadow-[0_32px_80px_-16px_rgba(28,24,20,0.5)] ring-1 ring-black/20 [&_pre]:!m-0 [&_pre]:!rounded-none [&_pre]:!shadow-none [&_pre]:!ring-0">
               <div className="flex items-center justify-between bg-[#15130f] px-5 py-2.5">
-                <span className="font-mono text-[11px] tracking-wider text-stone-500">
+                <span className="font-mono text-[11px] tracking-wider text-[#9a948c]">
                   .github/workflows/verify.yml
                 </span>
                 <span className="flex items-center gap-3">
-                  <span className="font-mono text-[11px] text-stone-600">
+                  <span className="font-mono text-[11px] text-[#9a948c]">
                     the whole integration
                   </span>
                   <CopyButton text={WORKFLOW_YAML} />

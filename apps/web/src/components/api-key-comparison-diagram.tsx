@@ -112,10 +112,10 @@ function TraditionalDiagram() {
             className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2"
           >
             <KeyIcon size={14} className="shrink-0 text-[#c0442e]/60" />
-            <span className="w-20 shrink-0 font-mono text-xs text-stone-500">{row.file}</span>
-            <ArrowRightIcon size={12} className="shrink-0 text-stone-600" />
+            <span className="w-20 shrink-0 font-mono text-xs text-[#9a948c]">{row.file}</span>
+            <ArrowRightIcon size={12} className="shrink-0 text-[#9a948c]" />
             <span className="font-mono text-xs text-[#c0442e]/80">{row.token}</span>
-            <ArrowRightIcon size={12} className="shrink-0 text-stone-600" />
+            <ArrowRightIcon size={12} className="shrink-0 text-[#9a948c]" />
             <span className="font-mono text-xs text-stone-400">{row.target}</span>
           </motion.div>
         ))}
@@ -125,7 +125,7 @@ function TraditionalDiagram() {
         {LEAK_VECTORS.map((v) => (
           <div key={v} className="flex items-center gap-2 pl-1">
             <span className="h-1 w-1 shrink-0 rounded-full bg-[#c0442e]/40" />
-            <span className="text-xs text-stone-500">{v}</span>
+            <span className="text-xs text-[#9a948c]">{v}</span>
           </div>
         ))}
       </motion.div>
@@ -163,7 +163,7 @@ function AuthsDiagram() {
             <BiometricIcon size={16} className="text-[#e8845c]" />
             <span className="font-mono text-xs font-medium text-[#e8845c]">Device Keychain</span>
           </div>
-          <p className="mt-1 text-xs text-stone-500">
+          <p className="mt-1 text-xs text-[#9a948c]">
             Private key (Ed25519) — never leaves this device
           </p>
         </motion.div>
@@ -209,7 +209,7 @@ function AuthsDiagram() {
         ].map((v) => (
           <div key={v} className="flex items-center gap-2 pl-1">
             <span className="h-1 w-1 shrink-0 rounded-full bg-[#e8845c]/40" />
-            <span className="text-xs text-stone-500">{v}</span>
+            <span className="text-xs text-[#9a948c]">{v}</span>
           </div>
         ))}
       </motion.div>
@@ -225,8 +225,8 @@ function ArtifactFrame({ label, tag, children }: { label: string; tag?: string; 
   return (
     <div className="not-prose my-8 overflow-hidden rounded-lg bg-[#15130f] shadow-[0_24px_60px_-12px_rgba(28,24,20,0.45)] ring-1 ring-black/20">
       <div className="flex items-center justify-between border-b border-white/5 px-5 py-2.5">
-        <span className="font-mono text-[11px] tracking-wider text-stone-500">{label}</span>
-        {tag ? <span className="font-mono text-[11px] text-stone-600">{tag}</span> : null}
+        <span className="font-mono text-[11px] tracking-wider text-[#9a948c]">{label}</span>
+        {tag ? <span className="font-mono text-[11px] text-[#9a948c]">{tag}</span> : null}
       </div>
       {children}
     </div>

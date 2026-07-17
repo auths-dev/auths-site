@@ -9,7 +9,7 @@ const INK_SOFT = '#5b5448';
 const INK_FAINT = '#8a8275';
 const SEAL = '#c2401b';
 const TERMINAL = '#15130f';
-const DENY = '#c0442e';
+const DENY = '#e2664a';
 const OK = '#e8845c';
 
 export async function GET(req: NextRequest) {
@@ -92,12 +92,32 @@ export async function GET(req: NextRequest) {
             gap: '10px',
           }}
         >
-          <span style={{ color: DENY }}>
-            ✗ payments.charge $940.00 → usage-cap-exceeded · refused · rcpt_8f2a
-          </span>
-          <span style={{ color: OK }}>
-            ✓ verify-spend → consistent — re-derived from signed costs, offline
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                backgroundColor: DENY,
+              }}
+            />
+            <span style={{ color: DENY }}>
+              payments.charge $940.00 → usage-cap-exceeded · refused · rcpt_8f2a
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                backgroundColor: OK,
+              }}
+            />
+            <span style={{ color: OK }}>
+              verify-spend → consistent — re-derived from signed costs, offline
+            </span>
+          </div>
         </div>
       </div>
     ),

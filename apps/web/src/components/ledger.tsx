@@ -24,7 +24,8 @@ export const fadeUp = (delay = 0) => ({
   transition: { duration: 0.55, delay, ease: 'easeOut' as const },
 });
 
-export const DENY = '#c0442e'; // the only red on the page — a refusal
+export const DENY = '#c0442e'; // the only red on the page — a refusal (on paper)
+export const DENY_DARK = '#e2664a'; // the same refusal, brightened to hold AA contrast on #15130f
 export const OK = '#e8845c'; // warm accent — an allow / a tick
 
 /**
@@ -90,9 +91,9 @@ export function InkTerminal({
   return (
     <div className="overflow-hidden rounded-lg bg-[#15130f] shadow-[0_24px_60px_-12px_rgba(28,24,20,0.45)] ring-1 ring-black/20">
       <div className="flex items-center justify-between border-b border-white/5 px-5 py-2.5">
-        <span className="font-mono text-[11px] tracking-wider text-stone-500">{label}</span>
+        <span className="font-mono text-[11px] tracking-wider text-[#9a948c]">{label}</span>
         <span className="flex items-center gap-3">
-          {tag ? <span className="font-mono text-[11px] text-stone-600">{tag}</span> : null}
+          {tag ? <span className="font-mono text-[11px] text-[#9a948c]">{tag}</span> : null}
           {copy ? <CopyButton text={copy} /> : null}
         </span>
       </div>
@@ -112,7 +113,7 @@ export function Prompt({
 }) {
   return (
     <p className={`break-all ${className}`}>
-      <span className="select-none text-stone-500">$ </span>
+      <span className="select-none text-[#9a948c]">$ </span>
       {children}
     </p>
   );
@@ -125,7 +126,7 @@ export function Dim({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <p className={`text-stone-500 ${className}`}>{children}</p>;
+  return <p className={`text-[#9a948c] ${className}`}>{children}</p>;
 }
 
 export function Allow({ children }: { children: React.ReactNode }) {
@@ -139,7 +140,7 @@ export function Allow({ children }: { children: React.ReactNode }) {
 
 export function Deny({ children }: { children: React.ReactNode }) {
   return (
-    <p style={{ color: DENY }}>
+    <p style={{ color: DENY_DARK }}>
       <span className="select-none">✗ </span>
       {children}
     </p>

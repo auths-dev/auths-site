@@ -93,7 +93,7 @@ function Connector() {
     <motion.div variants={itemVariants} className="flex justify-center py-1">
       <div className="flex flex-col items-center gap-0.5">
         <div className="h-3 w-px bg-gradient-to-b from-white/15 to-white/5" />
-        <ArrowDownIcon size={12} className="text-stone-600" />
+        <ArrowDownIcon size={12} className="text-[#9a948c]" />
       </div>
     </motion.div>
   );
@@ -103,8 +103,8 @@ export function ThreeLayerDiagram() {
   return (
     <div className="not-prose my-8 overflow-hidden rounded-lg bg-[#15130f] shadow-[0_24px_60px_-12px_rgba(28,24,20,0.45)] ring-1 ring-black/20">
       <div className="flex items-center justify-between border-b border-white/5 px-5 py-2.5">
-        <span className="font-mono text-[11px] tracking-wider text-stone-500">capability security</span>
-        <span className="font-mono text-[11px] text-stone-600">three layers</span>
+        <span className="font-mono text-[11px] tracking-wider text-[#9a948c]">capability security</span>
+        <span className="font-mono text-[11px] text-[#9a948c]">three layers</span>
       </div>
 
       <motion.div

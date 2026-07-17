@@ -22,7 +22,7 @@ export function CopyButton({ text }: { text: string }) {
       onClick={handleCopy}
       aria-label="Copy command"
       className={`rounded-sm px-1.5 py-0.5 font-mono text-[11px] transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-stone-400 ${
-        copied ? 'text-[#e8845c]' : 'text-stone-500 hover:text-stone-300'
+        copied ? 'text-[#e8845c]' : 'text-[#9a948c] hover:text-stone-300'
       }`}
     >
       {copied ? 'copied' : 'copy'}
