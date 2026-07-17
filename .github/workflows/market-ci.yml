@@ -1,0 +1,48 @@
+name: market-ci
+
+on:
+  push:
+    branches: [main, market]
+    paths:
+      - 'apps/market/**'
+      - 'packages/ledger-ui/**'
+      - 'bun.lock'
+      - '.github/workflows/market-ci.yml'
+  pull_request:
+    paths:
+      - 'apps/market/**'
+      - 'packages/ledger-ui/**'
+      - 'bun.lock'
+      - '.github/workflows/market-ci.yml'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install --frozen-lockfile
+
+      - name: Copy audit (banned vocab, exact verdicts, test-mode first, auth fence)
+        run: bun run --filter @auths/market check
+
+      - name: Auth fence (ESLint + the raw grep, belt and suspenders)
+        run: |
+          bun run --filter @auths/market lint
+          violations=$(grep -rln "from ['\"]@supabase/" apps/market/src --include='*.ts' --include='*.tsx' \
+            | grep -v 'src/lib/auth/' | grep -v 'src/lib/supabase/' || true)
+          if [ -n "$violations" ]; then
+            echo "@supabase/* imported outside the fence:"; echo "$violations"; exit 1
+          fi
+
+      - name: Typecheck
+        run: |
+          bun run --filter @auths/ledger-ui typecheck
+          bun run --filter @auths/market typecheck
+
+      - name: Build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: bun run --filter @auths/market build
