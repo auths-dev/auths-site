@@ -48,7 +48,7 @@ type HeroLine =
  */
 const HERO_LINES: HeroLine[] = [
   { kind: 'dim', text: '# one command in front of any MCP server', delay: 0.6 },
-  { kind: 'cmd', text: "npx @auths/mcp wrap --budget '$20' --ttl 30m -- my-mcp-server", delay: 1.15 },
+  { kind: 'cmd', text: "npx @auths-dev/mcp wrap --budget '$20' --ttl 30m -- my-mcp-server", delay: 1.15 },
   { kind: 'dim', text: '# the agent runs. every tool call is checked and gets a receipt.', delay: 1.95, pad: true },
   { kind: 'ok', text: '✓ payments.charge $12.00 → allowed · spent $12.00 / $20.00 · rcpt_1a2b', delay: 2.5 },
   { kind: 'deny', text: '✗ payments.charge $940.00 → usage-cap-exceeded · refused · rcpt_8f2a', delay: 3.4 },
@@ -165,7 +165,7 @@ function HeroTerminal() {
         </span>
         <span className="flex items-center gap-3">
           <span className="font-mono text-[11px] text-[#9a948c]">budget $20 · ttl 30m</span>
-          <CopyButton text="npx @auths/mcp wrap --budget '$20' --ttl 30m -- my-mcp-server" />
+          <CopyButton text="npx @auths-dev/mcp wrap --budget '$20' --ttl 30m -- my-mcp-server" />
         </span>
       </div>
       <div className="space-y-1.5 px-5 py-4 font-mono text-[13px] leading-relaxed text-stone-300">
@@ -450,7 +450,7 @@ const MCP_CONFIG_JSON = `{
     "filesystem": {
       "command": "npx",
       "args": [
-        "@auths/mcp", "wrap",
+        "@auths-dev/mcp", "wrap",
         "--scope", "fs.read",
         "--budget", "$5",
         "--ttl", "30m",
@@ -639,10 +639,10 @@ export function LedgerCTA() {
         <motion.div {...fadeUp(0.25)} className="mt-10 max-w-2xl">
           <InkTerminal
             label="quickstart"
-            copy="npx @auths/mcp wrap --budget '$5' --ttl 30m -- my-mcp-server"
+            copy="npx @auths-dev/mcp wrap --budget '$5' --ttl 30m -- my-mcp-server"
           >
             <Dim># wrap any MCP server — the agent keeps working, now bounded</Dim>
-            <Prompt>npx @auths/mcp wrap --budget &apos;$5&apos; --ttl 30m -- my-mcp-server</Prompt>
+            <Prompt>npx @auths-dev/mcp wrap --budget &apos;$5&apos; --ttl 30m -- my-mcp-server</Prompt>
             <Dim className="pt-1"># then, as anyone: re-derive the spend from the receipts</Dim>
             <Prompt>auths-mcp-gateway verify-spend --log spend.jsonl …</Prompt>
             <Allow>consistent — re-derived from signed costs, offline</Allow>
