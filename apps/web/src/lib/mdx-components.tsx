@@ -1,23 +1,15 @@
 import { Children, isValidElement, type ComponentPropsWithoutRef, type ReactNode } from 'react';
-import { Mermaid } from '@/components/mermaid';
 import { CodeBlock } from '@/components/code-block';
-import { EcosystemAnimation } from '@/components/ecosystem-animation';
-import { SetupCeremonyDiagram } from '@/components/setup-ceremony-diagram';
-import { SequenceFlowDiagram } from '@/components/sequence-flow-diagram';
 import { LifelineDiagram } from '@/components/lifeline-diagram/lifeline-diagram';
+import { SetupCeremonyDiagram } from '@/components/setup-ceremony-diagram';
 import { ApiKeyComparisonDiagram } from '@/components/api-key-comparison-diagram';
 import { ThreeLayerDiagram } from '@/components/three-layer-diagram';
 
-type HeadingProps = ComponentPropsWithoutRef<'h1'>;
-type ParagraphProps = ComponentPropsWithoutRef<'p'>;
-type CodeProps = ComponentPropsWithoutRef<'code'>;
 type PreProps = ComponentPropsWithoutRef<'pre'>;
-type AnchorProps = ComponentPropsWithoutRef<'a'>;
-type BlockquoteProps = ComponentPropsWithoutRef<'blockquote'>;
 
 /**
  * Extracts the text content and className from a <pre> element's child
- * <code> tag so we can detect language-mermaid blocks and syntax highlighting.
+ * <code> tag so fenced blocks can be syntax highlighted.
  */
 function getCodeChild(children: ReactNode): { text: string; className?: string } | null {
   const child = Children.only(children);
@@ -27,56 +19,22 @@ function getCodeChild(children: ReactNode): { text: string; className?: string }
   return { text: props.children, className: props.className };
 }
 
+/**
+ * Long-form typography defers to the `.prose` ledger styles in globals.css.
+ * Only code panes need components: fenced blocks become dark artifacts —
+ * the one dark object the paper page allows.
+ */
 export const mdxComponents = {
-  h1: (props: HeadingProps) => (
-    <h1 className="font-mono text-2xl font-bold text-white" {...props} />
-  ),
-  h2: (props: HeadingProps) => (
-    <h2 className="font-mono text-xl font-semibold text-white" {...props} />
-  ),
-  h3: (props: HeadingProps) => (
-    <h3 className="font-mono text-lg font-medium text-zinc-200" {...props} />
-  ),
-  p: (props: ParagraphProps) => (
-    <p className="text-zinc-300" {...props} />
-  ),
-  code: (props: CodeProps) => (
-    <code
-      className="rounded bg-zinc-900 px-1.5 py-0.5 font-mono text-sm text-emerald-300"
-      {...props}
-    />
-  ),
   pre: ({ children, ...rest }: PreProps) => {
     const codeChild = getCodeChild(children);
-    if (codeChild?.className?.includes('language-mermaid')) {
-      return <Mermaid chart={codeChild.text} />;
-    }
     if (codeChild) {
       const lang = codeChild.className?.replace('language-', '') ?? '';
       return <CodeBlock code={codeChild.text} language={lang} />;
     }
-    return (
-      <pre
-        className="overflow-auto rounded-lg bg-zinc-900 p-4 font-mono text-sm text-zinc-200"
-        {...rest}
-      >
-        {children}
-      </pre>
-    );
+    return <pre {...rest}>{children}</pre>;
   },
-  a: (props: AnchorProps) => (
-    <a className="text-emerald-400 hover:text-emerald-300 transition-colors" {...props} />
-  ),
-  blockquote: (props: BlockquoteProps) => (
-    <blockquote
-      className="border-l-2 border-zinc-700 pl-4 text-zinc-400 italic"
-      {...props}
-    />
-  ),
-  EcosystemAnimation,
-  SetupCeremonyDiagram,
-  SequenceFlowDiagram,
   LifelineDiagram,
+  SetupCeremonyDiagram,
   ApiKeyComparisonDiagram,
   ThreeLayerDiagram,
 };
