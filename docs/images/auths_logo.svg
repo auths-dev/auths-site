@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="18 44 710 590" role="img" aria-label="Auths logo">
+  <defs>
+    <linearGradient id="auths-g" gradientUnits="userSpaceOnUse" x1="150" y1="180" x2="690" y2="560">
+      <stop offset="0" stop-color="#58C287"/>
+      <stop offset="0.55" stop-color="#4B9078"/>
+      <stop offset="1" stop-color="#3E4A5E"/>
+    </linearGradient>
+  </defs>
+  <g stroke="url(#auths-g)" stroke-width="10" stroke-linecap="round" fill="none">
+    <path d="M296 83 L450 83"/>
+    <path d="M296 83 L373 157"/>
+    <path d="M296 83 L218 243"/>
+    <path d="M296 83 L278 179"/>
+    <path d="M450 83 L373 157"/>
+    <path d="M450 83 L528 243"/>
+    <path d="M450 83 L468 179"/>
+    <path d="M301 322 L332 267"/>
+    <path d="M301 322 L218 243"/>
+    <path d="M445 322 L414 267"/>
+    <path d="M445 322 L528 243"/>
+    <path d="M373 157 L373 250"/>
+    <path d="M59 585 L238 586"/>
+    <path d="M59 585 L167 505"/>
+    <path d="M59 585 L80 535"/>
+    <path d="M687 585 L508 586"/>
+    <path d="M687 585 L579 505"/>
+    <path d="M687 585 L666 535"/>
+    <path d="M373 250 L332 267"/>
+    <path d="M373 250 L414 267"/>
+    <path d="M238 586 L275 515"/>
+    <path d="M238 586 L198 540"/>
+    <path d="M508 586 L471 515"/>
+    <path d="M508 586 L548 540"/>
+    <path d="M243 396 L167 505"/>
+    <path d="M243 396 L158 369"/>
+    <path d="M243 396 L218 243"/>
+    <path d="M243 396 L300 469"/>
+    <path d="M243 396 L272 213"/>
+    <path d="M503 396 L579 505"/>
+    <path d="M503 396 L588 369"/>
+    <path d="M503 396 L528 243"/>
+    <path d="M503 396 L446 469"/>
+    <path d="M503 396 L474 213"/>
+    <path d="M167 505 L158 369"/>
+    <path d="M167 505 L300 469"/>
+    <path d="M167 505 L198 540"/>
+    <path d="M579 505 L588 369"/>
+    <path d="M579 505 L446 469"/>
+    <path d="M579 505 L548 540"/>
+    <path d="M158 369 L218 243"/>
+    <path d="M158 369 L102 488"/>
+    <path d="M588 369 L528 243"/>
+    <path d="M588 369 L644 488"/>
+    <path d="M300 469 L446 469"/>
+    <path d="M300 469 L275 515"/>
+    <path d="M446 469 L471 515"/>
+    <path d="M102 488 L80 535"/>
+    <path d="M644 488 L666 535"/>
+    <path d="M278 179 L272 213"/>
+    <path d="M468 179 L474 213"/>
+    <path d="M300 469 L342 352.6"/>
+    <path d="M446 469 L404 352.6"/>
+    <circle cx="373" cy="306" r="56"/>
+  </g>
+  <g fill="url(#auths-g)">
+    <circle cx="296" cy="83" r="22"/>
+    <circle cx="450" cy="83" r="22"/>
+    <circle cx="301" cy="322" r="17"/>
+    <circle cx="445" cy="322" r="17"/>
+    <circle cx="373" cy="157" r="22"/>
+    <circle cx="59" cy="585" r="24"/>
+    <circle cx="687" cy="585" r="24"/>
+    <circle cx="373" cy="250" r="10"/>
+    <circle cx="238" cy="586" r="22"/>
+    <circle cx="508" cy="586" r="22"/>
+    <circle cx="243" cy="396" r="22"/>
+    <circle cx="503" cy="396" r="22"/>
+    <circle cx="167" cy="505" r="22"/>
+    <circle cx="579" cy="505" r="22"/>
+    <circle cx="158" cy="369" r="22"/>
+    <circle cx="588" cy="369" r="22"/>
+    <circle cx="332" cy="267" r="10"/>
+    <circle cx="414" cy="267" r="10"/>
+    <circle cx="218" cy="243" r="22"/>
+    <circle cx="528" cy="243" r="22"/>
+    <circle cx="300" cy="469" r="22"/>
+    <circle cx="446" cy="469" r="22"/>
+    <circle cx="102" cy="488" r="10"/>
+    <circle cx="644" cy="488" r="10"/>
+    <circle cx="80" cy="535" r="10"/>
+    <circle cx="666" cy="535" r="10"/>
+    <circle cx="275" cy="515" r="10"/>
+    <circle cx="471" cy="515" r="10"/>
+    <circle cx="198" cy="540" r="10"/>
+    <circle cx="548" cy="540" r="10"/>
+    <circle cx="278" cy="179" r="10"/>
+    <circle cx="468" cy="179" r="10"/>
+    <circle cx="272" cy="213" r="10"/>
+    <circle cx="474" cy="213" r="10"/>
+  </g>
+</svg>
