@@ -2,9 +2,14 @@ import type { Metadata } from 'next';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://auths.dev';
 
+/** The one thing the site sells — every share card defaults to it. */
+export const SITE_TITLE = 'Auths — Your agent can’t exceed its budget. And you can prove it.';
+export const SITE_DESC =
+  'One command in front of any MCP server bounds an AI agent to a scope, a budget, and an expiry — and leaves a signed receipt anyone can verify offline, without trusting the operator.';
+
 export function constructMetadata({
-  title = 'Auths — Secure Software Supply Chain Identity',
-  description = 'One cryptographic identity to sign npm, PyPI, Cargo, and Docker artifacts. Replace API keys with device-bound credentials. Open source.',
+  title = SITE_TITLE,
+  description = SITE_DESC,
   image = `${BASE_URL}/api/og`,
   noIndex = false,
 }: {

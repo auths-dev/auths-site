@@ -3,7 +3,7 @@ import { Fraunces, Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { SiteNav } from '@/components/site-nav';
 import { LedgerFooter } from '@/components/ledger';
-import { constructMetadata } from '@/lib/metadata';
+import { constructMetadata, SITE_TITLE } from '@/lib/metadata';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   ...constructMetadata(),
   title: {
     template: '%s | Auths',
-    default: 'Auths — Cryptographic Trust, Decentralized',
+    default: SITE_TITLE,
   },
 };
 

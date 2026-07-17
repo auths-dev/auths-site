@@ -212,7 +212,7 @@ export function LedgerAudit() {
 const VERDICTS = [
   { rule: 'scope ⊆ parent', deny: 'outside-agent-scope', note: 'a call for a capability the grant never gave' },
   { rule: 'budget', deny: 'usage-cap-exceeded', note: 'the reservation refuses before the rail is charged' },
-  { rule: 'expiry', deny: 'expired', note: 'the delegation has a TTL; past it, nothing signs' },
+  { rule: 'expiry', deny: 'agent-expired', note: 'the delegation has a TTL; past it, nothing signs' },
   { rule: 'revocation', deny: 'revoked', note: 'the root recorded a revocation; every verifier honors it' },
   { rule: 'authenticity', deny: 'proof-unauthentic', note: 'the signature does not verify against the agent’s key' },
 ];
