@@ -3,6 +3,7 @@ import { Fraunces, Geist, Geist_Mono } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import { SiteNav } from '@/components/site-nav';
+import { LedgerFooter } from '@/components/ledger';
 import { Providers } from './providers';
 import { constructMetadata } from '@/lib/metadata';
 
@@ -41,11 +42,12 @@ export default function RootLayout({
         <Script src="/auths-verify.js" strategy="beforeInteractive" type="module" crossOrigin="anonymous" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} antialiased bg-[var(--background)] text-[var(--foreground)]`}
+        className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} bg-paper text-ink antialiased selection:bg-seal/20`}
       >
         <Providers>
           <SiteNav />
           <main>{children}</main>
+          <LedgerFooter />
         </Providers>
       </body>
     </html>

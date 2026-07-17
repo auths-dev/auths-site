@@ -9,7 +9,6 @@ import {
   LedgerHowItWorks,
   LedgerRotation,
   LedgerCTA,
-  LedgerFooter,
 } from '@/components/landing-ledger';
 
 const HOME_TITLE = 'Auths — Your agent can’t exceed its budget. And you can prove it.';
@@ -38,7 +37,6 @@ export default function HomePage() {
       <LedgerHowItWorks /> {/* 05 — How it works. */}
       <LedgerRotation /> {/* 06 — Why the receipt survives a rotation. */}
       <LedgerCTA />
-      <LedgerFooter />
     </main>
   );
 }

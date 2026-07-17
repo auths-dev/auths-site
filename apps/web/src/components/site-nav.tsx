@@ -1,181 +1,64 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const ABOUT_LINKS = [
-  { label: 'Introduction', href: '/docs/intro' },
-  { label: 'How It Works', href: '/docs/how-it-works' },
-  { label: 'Getting Started', href: '/docs/getting-started' },
-  { label: 'Security Model', href: '/trust' },
-  { label: 'Blog', href: '/blog' },
-];
-
-const ABOUT_HREFS = new Set(ABOUT_LINKS.map((l) => l.href));
-
 const NAV_LINKS = [
-  { label: 'Overview', href: '/' },
-  { label: 'Compare', href: '/compare' },
-  // { label: 'Registry', href: '/registry' },
-  { label: 'Network', href: '/network' },
-];
+  { label: 'Product', href: '/' },
+  { label: 'Verify', href: '/verify' },
+  { label: 'Blog', href: '/blog' },
+] as const;
 
-/** Light (paper) chrome on the editorial pages; dark chrome everywhere else. */
-const LIGHT_ROUTES = new Set(['/', '/compare']);
-
-interface NavTone {
-  header: string;
-  brand: string;
-  active: string;
-  muted: string;
-  panel: string;
-  itemActive: string;
-  itemMuted: string;
-}
-
-const DARK_TONE: NavTone = {
-  header: 'border-[var(--border)] bg-[var(--background)]/90',
-  brand: 'text-white',
-  active: 'text-white font-medium',
-  muted: 'text-[var(--muted)] hover:text-white',
-  panel: 'border-[var(--border)] bg-[var(--background)]',
-  itemActive: 'text-white bg-zinc-900',
-  itemMuted: 'text-zinc-400 hover:text-white hover:bg-zinc-900',
-};
-
-const LIGHT_TONE: NavTone = {
-  header: 'border-rule bg-paper/90',
-  brand: 'text-ink',
-  active: 'text-ink font-medium',
-  muted: 'text-ink-faint hover:text-ink',
-  panel: 'border-rule bg-paper',
-  itemActive: 'text-ink bg-paper-deep',
-  itemMuted: 'text-ink-soft hover:text-ink hover:bg-paper-deep',
-};
-
-function useNavTone(): NavTone {
-  const pathname = usePathname();
-  return LIGHT_ROUTES.has(pathname) ? LIGHT_TONE : DARK_TONE;
-}
-
-function AboutDropdown({ tone }: { tone: NavTone }) {
-  const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  const isActive =
-    ABOUT_HREFS.has(pathname) ||
-    [...ABOUT_HREFS].some((href) => pathname.startsWith(href + '/'));
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className={`flex items-center gap-1 text-sm transition-colors ${
-          isActive ? tone.active : tone.muted
-        }`}
-      >
-        About
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`transition-transform ${open ? 'rotate-180' : ''}`}
-        >
-          <path d="m6 9 6 6 6-6" />
-        </svg>
-      </button>
-
-      {open && (
-        <div className={`absolute left-0 top-full mt-2 min-w-[180px] rounded-lg border py-1 shadow-xl ${tone.panel}`}>
-          {ABOUT_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setOpen(false)}
-              className={`block px-4 py-2 text-sm transition-colors ${
-                pathname === link.href ? tone.itemActive : tone.itemMuted
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
+/** One nav, one tone — the ledger's paper chrome on every page. */
 export function SiteNav() {
   const pathname = usePathname();
-  const tone = useNavTone();
+
+  const isActive = (href: string) =>
+    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-sm ${tone.header}`}>
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        {/* Logo */}
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-rule bg-paper/90 backdrop-blur-sm">
+      <nav className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         <Link
           href="/"
-          className={`flex items-center gap-2 text-sm font-semibold tracking-tight transition-opacity hover:opacity-80 ${tone.brand}`}
+          className="flex items-center gap-2 transition-opacity hover:opacity-80"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/auths_logo.png" alt="Auths" width={24} height={24} className="shrink-0" />
-          <span>Auths</span>
+          <img
+            src="/images/auths_logo.png"
+            alt=""
+            width={22}
+            height={22}
+            className="shrink-0"
+          />
+          <span className="font-display text-lg font-medium tracking-tight text-ink">Auths</span>
         </Link>
 
-        {/* Nav links */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`text-sm transition-colors ${
-                pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href + '/'))
-                  ? tone.active
-                  : tone.muted
+              className={`font-mono text-[13px] transition-colors sm:text-sm ${
+                isActive(link.href) ? 'text-ink' : 'text-ink-faint hover:text-ink'
               }`}
             >
               {link.label}
             </Link>
           ))}
 
-          <AboutDropdown tone={tone} />
-
-          <Link
-            href="/community"
-            className={`text-sm transition-colors ${
-              pathname === '/community' || pathname.startsWith('/community/')
-                ? tone.active
-                : tone.muted
-            }`}
-          >
-            Community
-          </Link>
-
-          {/* GitHub icon */}
           <a
-            href="https://github.com/auths-dev"
+            href="https://docs.auths.dev/"
+            className="font-mono text-[13px] text-ink-faint transition-colors hover:text-ink sm:text-sm"
+          >
+            Docs
+          </a>
+
+          <a
+            href="https://github.com/auths-dev/auths"
             target="_blank"
             rel="noopener noreferrer"
-            className={`transition-colors ${tone.muted}`}
+            className="text-ink-faint transition-colors hover:text-ink"
             aria-label="GitHub"
           >
             <svg
