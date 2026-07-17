@@ -80,7 +80,7 @@ function OriginArrow({
   return (
     <>
       <span
-        className={`absolute bottom-[calc(50%+2px)] max-w-[180px] font-mono text-[10px] leading-tight text-zinc-300 ${
+        className={`absolute bottom-[calc(50%+2px)] max-w-[180px] font-mono text-[10px] leading-tight text-stone-300 ${
           direction === 'right' ? 'left-1/2 pl-1' : 'right-1/2 pr-1 text-right'
         }`}
         style={{ zIndex: 10 }}
@@ -160,7 +160,7 @@ function SelfActionArrow({
   return (
     <>
       <span
-        className="absolute bottom-[calc(50%+6px)] left-[calc(50%+6px)] max-w-[180px] font-mono text-[10px] leading-tight text-zinc-300"
+        className="absolute bottom-[calc(50%+6px)] left-[calc(50%+6px)] max-w-[180px] font-mono text-[10px] leading-tight text-stone-300"
         style={{ zIndex: 10 }}
       >
         {label}
@@ -262,10 +262,10 @@ function ActorHeader({
         dimmed ? 'opacity-30' : 'opacity-100'
       }`}
     >
-      <div className={`flex items-center justify-center rounded-lg border bg-zinc-900 p-2 ${colors.border}`}>
+      <div className={`flex items-center justify-center rounded-lg border bg-white/[0.04] p-2 ${colors.border}`}>
         <Icon size={16} className={colors.accent} />
       </div>
-      <span className="font-mono text-[10px] font-medium text-zinc-400 text-center leading-tight">
+      <span className="font-mono text-[10px] font-medium text-stone-400 text-center leading-tight">
         {actor.name}
       </span>
     </motion.div>
@@ -368,7 +368,7 @@ export function LifelineDiagram({ variant }: { variant: string }) {
   const minWidth = Math.max(420, actors.length * 110);
 
   return (
-    <div className="my-8 w-full overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950/50 p-5 pr-8 sm:p-6 sm:pr-10">
+    <div className="not-prose my-8 w-full overflow-x-auto rounded-lg bg-[#15130f] p-5 pr-8 shadow-[0_24px_60px_-12px_rgba(28,24,20,0.45)] ring-1 ring-black/20 sm:p-6 sm:pr-10">
       <motion.div
         initial="hidden"
         whileInView="visible"

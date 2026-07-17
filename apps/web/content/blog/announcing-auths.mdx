@@ -1,12 +1,12 @@
 ---
 title: Announcing Auths
-description: Introducing Auths — decentralized cryptographic identity for software supply chains, powered by KERI and WebAssembly.
+description: Introducing Auths — cryptographic identity for software supply chains, stored in your own repository and verifiable anywhere WebAssembly runs.
 date: "2026-02-22"
 ---
 
 # Announcing Auths
 
-Today we're releasing Auths — a decentralized cryptographic identity and signing protocol for software supply chains.
+Today we're releasing Auths — a cryptographic identity and signing protocol for software supply chains. Your identity lives in your own repository and travels with you.
 
 ## Why We Built This
 
@@ -16,7 +16,7 @@ Software signing is broken. The tools available today force you to choose betwee
 2. **Manual GPG key management** that nobody does correctly
 
 We believe cryptographic trust should be:
-- **Self-sovereign**: anchored in keys you control, stored in your own repository
+- **Yours**: anchored in keys you control, stored in your own repository
 - **Verifiable without trust**: anyone can verify without depending on your infrastructure
 - **Practical**: a single command to sign, a browser widget to verify
 
@@ -25,16 +25,16 @@ We believe cryptographic trust should be:
 - **`auths` CLI** — initialize identity, pair devices, sign artifacts, verify
 - **`<auths-verify>` web component** — drop-in WASM-powered verification in any browser
 - **Identity Explorer** — explore any repository's cryptographic identity chain
-- **Open protocol** — the KERI-based identity format is fully documented and open
+- **Open protocol** — the identity format is fully documented and open
 
 ## The Technology
 
 Auths is built on:
 
-- **KERI** (Key Event Receipt Infrastructure) for self-sovereign identity
+- **A key event log** — an append-only, self-certifying history of your key — as the anchor of identity
 - **Ed25519** for all cryptographic operations
 - **WebAssembly** for in-browser, zero-trust verification
-- **Git refs** as a decentralized, tamper-evident storage layer
+- **Git refs** as a tamper-evident storage layer you clone, push, and pull like any repository
 
 ## Try It
 

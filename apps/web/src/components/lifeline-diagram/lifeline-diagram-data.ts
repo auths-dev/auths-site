@@ -2,7 +2,7 @@
  * Variant configuration data for the lifeline sequence diagram.
  *
  * Each variant defines the actors (column headers), steps (arrow rows),
- * and color tokens for one signing or verification flow.
+ * a chrome-bar title, and color tokens for one signing or verification flow.
  *
  * Icon references use string IDs resolved at render time by the icon module,
  * keeping this file free of React imports.
@@ -35,38 +35,21 @@ export interface FlowColors {
 export interface FlowConfig {
   actors: Actor[];
   steps: Step[];
+  title: string;
   colors: FlowColors;
 }
 
 // ---------------------------------------------------------------------------
-// Shared color palettes
+// Shared color palette — the ledger's single warm accent over dark paper
 // ---------------------------------------------------------------------------
 
-const AMBER: FlowColors = {
-  accent: 'text-amber-400',
-  accentBg: 'bg-amber-400',
-  accentFill: 'fill-amber-400',
-  accentBorder: 'border-amber-400',
-  border: 'border-amber-500/20',
-  line: 'bg-amber-500/20',
-};
-
-const SKY: FlowColors = {
-  accent: 'text-sky-400',
-  accentBg: 'bg-sky-400',
-  accentFill: 'fill-sky-400',
-  accentBorder: 'border-sky-400',
-  border: 'border-sky-500/20',
-  line: 'bg-sky-500/20',
-};
-
-const EMERALD: FlowColors = {
-  accent: 'text-emerald-400',
-  accentBg: 'bg-emerald-400',
-  accentFill: 'fill-emerald-400',
-  accentBorder: 'border-emerald-400',
-  border: 'border-emerald-500/20',
-  line: 'bg-emerald-500/20',
+const LEDGER: FlowColors = {
+  accent: 'text-[#e8845c]',
+  accentBg: 'bg-[#e8845c]',
+  accentFill: 'fill-[#e8845c]',
+  accentBorder: 'border-[#e8845c]',
+  border: 'border-[#e8845c]/25',
+  line: 'bg-white/10',
 };
 
 // ---------------------------------------------------------------------------
@@ -87,7 +70,8 @@ export const VARIANTS: Record<string, FlowConfig> = {
       { from: 2, to: 1, label: 'return signature' },
       { from: 1, to: 0, label: 'commit stored (signature in header)' },
     ],
-    colors: AMBER,
+    title: 'sequence — gpg sign',
+    colors: LEDGER,
   },
   'gpg-verify': {
     actors: [
@@ -101,7 +85,8 @@ export const VARIANTS: Record<string, FlowConfig> = {
       { from: 2, to: 2, label: 'key found? verify signature, check trust level' },
       { from: 1, to: 0, label: 'GOOD / WARNING / BAD / "no public key"' },
     ],
-    colors: AMBER,
+    title: 'sequence — gpg verify',
+    colors: LEDGER,
   },
   'sigstore-sign': {
     actors: [
@@ -123,7 +108,8 @@ export const VARIANTS: Record<string, FlowConfig> = {
       { from: 1, to: 1, label: 'discard key' },
       { from: 1, to: 0, label: 'commit stored' },
     ],
-    colors: SKY,
+    title: 'sequence — sigstore sign',
+    colors: LEDGER,
   },
   'sigstore-verify': {
     actors: [
@@ -141,7 +127,8 @@ export const VARIANTS: Record<string, FlowConfig> = {
       { from: 1, to: 1, label: 'verify signature with cert key' },
       { from: 1, to: 0, label: 'GOOD' },
     ],
-    colors: SKY,
+    title: 'sequence — sigstore verify',
+    colors: LEDGER,
   },
   'auths-sign': {
     actors: [
@@ -156,7 +143,8 @@ export const VARIANTS: Record<string, FlowConfig> = {
       { from: 2, to: 1, label: 'signature' },
       { from: 1, to: 0, label: 'commit stored' },
     ],
-    colors: EMERALD,
+    title: 'sequence — auths sign',
+    colors: LEDGER,
   },
   'auths-sigstore-sign': {
     actors: [
@@ -177,7 +165,8 @@ export const VARIANTS: Record<string, FlowConfig> = {
       { from: 1, to: 1, label: 'embed transparency section in .auths.json' },
       { from: 1, to: 0, label: 'file.tar.gz.auths.json written (logged at index N)' },
     ],
-    colors: EMERALD,
+    title: 'sequence — auths + sigstore sign',
+    colors: LEDGER,
   },
   'auths-verify': {
     actors: [
@@ -188,10 +177,11 @@ export const VARIANTS: Record<string, FlowConfig> = {
     steps: [
       { from: 0, to: 1, label: 'auths verify <SHA>' },
       { from: 1, to: 2, label: 'read KEL from refs/did/keri/' },
-      { from: 2, to: 2, label: 'replay log: inception \u2192 rotations \u2192 pre-rotation \u2192 current key' },
+      { from: 2, to: 2, label: 'replay log: inception → rotations → pre-rotation → current key' },
       { from: 2, to: 2, label: 'verify commit signature against derived key' },
       { from: 2, to: 0, label: 'GOOD (+ full key history chain)' },
     ],
-    colors: EMERALD,
+    title: 'sequence — auths verify',
+    colors: LEDGER,
   },
 };

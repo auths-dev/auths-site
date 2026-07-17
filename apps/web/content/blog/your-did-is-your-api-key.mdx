@@ -16,7 +16,7 @@ We built something different. One cryptographic identity — a DID — that work
 
 ```bash
 $ auths init
-[OK] Identity ready: did:keri:EXTfn3SEWKMagjCKQ1ewDBG94a11JAhboYnMwQvwC-3I
+[OK] Identity ready: <root>
 [OK] Device linked: did:key:z6Mkjj12ctRQPhtRf1Aeuf6Kf54E5GxRDHPEJPhXSrtQivKm
 
 $ auths artifact sign release.tar.gz
@@ -24,13 +24,13 @@ Signed "release.tar.gz" -> "release.tar.gz.auths.json"
   Digest: sha256:4c3dccfae6316b9ef...
 ```
 
-That DID — `did:keri:EXTfn3...` — is now your identity everywhere. Query the registry with it:
+That DID — `<root>` in the output above — is now your identity everywhere. Query the registry with it:
 
 ```bash
-$ curl -s https://auths.dev/v1/identities/did:keri:EXTfn3SEWKMagjCKQ1ewDBG94a11JAhboYnMwQvwC-3I
+$ curl -s https://auths.dev/v1/identities/<root>
 {
   "status": "active",
-  "did": "did:keri:EXTfn3SEWKMagjCKQ1ewDBG94a11JAhboYnMwQvwC-3I",
+  "did": "<root>",
   "public_keys": [...],
   "platform_claims": [{"platform": "github", "namespace": "your-username", "verified": true}]
 }
@@ -63,11 +63,11 @@ The backdoor was discovered by accident. Andres Freund, a Postgres developer, no
 **With Auths:** The public audit log would have shown the full authorization chain:
 
 ```
-[NAMESPACE] did:keri:EKVn... claimed cargo:xz-utils     #20
-[ORG]       did:keri:EKVn... added did:keri:EJia...      #25
-[DEVICE]    did:keri:EJia... bound did:key:z6Mk...       #28
-[ATTEST]    did:keri:EJia... signed cargo:xz-utils 5.6.0 #31
-[ATTEST]    did:keri:EJia... signed cargo:xz-utils 5.6.1 #32
+[NAMESPACE] <maintainer> claimed cargo:xz-utils          #20
+[ORG]       <maintainer> added <jia-tan>                 #25
+[DEVICE]    <jia-tan> bound did:key:z6Mk...              #28
+[ATTEST]    <jia-tan> signed cargo:xz-utils 5.6.0        #31
+[ATTEST]    <jia-tan> signed cargo:xz-utils 5.6.1        #32
 ```
 
 Anyone monitoring the log — and the whole point of a transparency log is that anyone *can* — would see a relatively new identity signing critical releases. The identity's full history is public: when it was created, which platforms it claimed, which devices it controls, which artifacts it has signed. That's not a guarantee of catching the attack. But it shifts the burden from "one person notices latency" to "anyone auditing the log notices a pattern."
@@ -79,7 +79,7 @@ After discovery, the response was chaotic. Which versions were affected? Who had
 **With Auths:** Revocation is one operation:
 
 ```
-[REVOKE] did:keri:EKVn... revoked did:keri:EJia...    #35
+[REVOKE] <maintainer> revoked <jia-tan>    #35
 ```
 
 Every artifact ever signed by that DID is now flagged. Every package registry that checks the transparency log knows immediately. The DID connects everything — every release, every platform, every device. You don't have to audit npm separately from cargo separately from Docker. It's one identity, one revocation, one audit trail.
@@ -100,7 +100,7 @@ Four credentials. Four rotation policies. Four attack surfaces. Zero connection 
 The Auths model:
 
 ```
-did:keri:E... → npm, PyPI, Docker, GitHub, any registry
+<root> → npm, PyPI, Docker, GitHub, any registry
 ```
 
 One identity. One set of devices. One audit log. One place to revoke.
@@ -108,7 +108,7 @@ One identity. One set of devices. One audit log. One place to revoke.
 This isn't just convenience. It's a fundamentally different security posture. When your credential is a cryptographic identity rather than a bearer token:
 
 - **Leaking it doesn't compromise you.** A DID is a public identifier. Knowing someone's DID doesn't let you impersonate them — you'd need their private key.
-- **Rotation doesn't break history.** KERI pre-rotation means you can rotate to a new key without invalidating past signatures. The DID stays the same. The verification chain is unbroken.
+- **Rotation doesn't break history.** Pre-rotation — committing to the hash of your next key in advance — means you can rotate to a new key without invalidating past signatures. The DID stays the same. The verification chain is unbroken.
 - **Revocation is instant and global.** Revoke a device key in the transparency log and every verifier sees it immediately. No waiting for token expiry. No hoping the attacker hasn't already cached the credential.
 
 ## The public audit log
@@ -141,7 +141,7 @@ We [ran a test](/registry) — 250 requests in under a second. The first 182 suc
 
 This isn't a replacement for Sigstore in all cases. Sigstore's keyless signing is excellent for CI/CD workflows where OIDC tokens are already available. We wrote about the [honest tradeoffs](/blog/developer-identity-without-a-ca) between the two approaches.
 
-This isn't a blockchain. There's no token, no consensus mechanism, no gas fees. It's KERI — Key Event Receipt Infrastructure — which uses hash-chained event logs and a witness network for consistency. If you want the deep technical comparison, we covered [how KERI key event logs work](/blog/developer-identity-without-a-ca) in a previous post.
+This isn't a crypto network. There's no token, no consensus mechanism, no gas fees. It's a key event log — an append-only, self-certifying history of your key — with a witness network for consistency. If you want the deep technical comparison, we covered [how key event logs work](/blog/developer-identity-without-a-ca) in a previous post.
 
 This isn't theoretical. The CLI is shipped, the SDKs exist for Python and Node, and the hosted registry is on the way.
 

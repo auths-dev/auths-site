@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
-import type { SVGProps } from 'react';
+import type { ReactNode, SVGProps } from 'react';
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -95,11 +95,11 @@ function TraditionalDiagram() {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: '-40px' }}
-      className="rounded-xl border border-red-500/20 bg-red-950/5 p-6"
+      className="p-6"
     >
       <div className="mb-4 flex items-center gap-2">
-        <AlertIcon size={16} className="text-red-400" />
-        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-red-400">
+        <AlertIcon size={16} className="text-[#c0442e]" />
+        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-[#c0442e]">
           Traditional: Bearer Tokens
         </span>
       </div>
@@ -109,14 +109,14 @@ function TraditionalDiagram() {
           <motion.div
             key={row.file}
             variants={itemVariants}
-            className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/60 px-3 py-2"
+            className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2"
           >
-            <KeyIcon size={14} className="shrink-0 text-red-400/60" />
-            <span className="w-20 shrink-0 font-mono text-xs text-zinc-500">{row.file}</span>
-            <ArrowRightIcon size={12} className="shrink-0 text-zinc-700" />
-            <span className="font-mono text-xs text-red-300/80">{row.token}</span>
-            <ArrowRightIcon size={12} className="shrink-0 text-zinc-700" />
-            <span className="font-mono text-xs text-zinc-400">{row.target}</span>
+            <KeyIcon size={14} className="shrink-0 text-[#c0442e]/60" />
+            <span className="w-20 shrink-0 font-mono text-xs text-stone-500">{row.file}</span>
+            <ArrowRightIcon size={12} className="shrink-0 text-stone-600" />
+            <span className="font-mono text-xs text-[#c0442e]/80">{row.token}</span>
+            <ArrowRightIcon size={12} className="shrink-0 text-stone-600" />
+            <span className="font-mono text-xs text-stone-400">{row.target}</span>
           </motion.div>
         ))}
       </div>
@@ -124,13 +124,13 @@ function TraditionalDiagram() {
       <motion.div variants={itemVariants} className="mt-4 space-y-1">
         {LEAK_VECTORS.map((v) => (
           <div key={v} className="flex items-center gap-2 pl-1">
-            <span className="h-1 w-1 shrink-0 rounded-full bg-red-500/40" />
-            <span className="text-xs text-zinc-600">{v}</span>
+            <span className="h-1 w-1 shrink-0 rounded-full bg-[#c0442e]/40" />
+            <span className="text-xs text-stone-500">{v}</span>
           </div>
         ))}
       </motion.div>
 
-      <motion.p variants={itemVariants} className="mt-4 text-xs text-red-400/70">
+      <motion.p variants={itemVariants} className="mt-4 text-xs text-[#c0442e]/80">
         4 credentials. 4 rotation policies. 4 attack surfaces. Zero connection between them.
       </motion.p>
     </motion.div>
@@ -144,11 +144,11 @@ function AuthsDiagram() {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: '-40px' }}
-      className="rounded-xl border border-emerald-500/30 bg-emerald-950/5 p-6"
+      className="p-6"
     >
       <div className="mb-4 flex items-center gap-2">
-        <ShieldIcon size={16} className="text-emerald-400" />
-        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-emerald-400">
+        <ShieldIcon size={16} className="text-[#e8845c]" />
+        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-[#e8845c]">
           Auths: Device-Bound Identity
         </span>
       </div>
@@ -157,13 +157,13 @@ function AuthsDiagram() {
         {/* Device keychain */}
         <motion.div
           variants={itemVariants}
-          className="rounded-lg border border-emerald-800/30 bg-emerald-950/20 px-4 py-3"
+          className="rounded-lg border border-[#e8845c]/20 bg-[#e8845c]/5 px-4 py-3"
         >
           <div className="flex items-center gap-2">
-            <FingerprintIcon size={16} className="text-emerald-400" />
-            <span className="font-mono text-xs font-medium text-emerald-300">Device Keychain</span>
+            <FingerprintIcon size={16} className="text-[#e8845c]" />
+            <span className="font-mono text-xs font-medium text-[#e8845c]">Device Keychain</span>
           </div>
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-stone-500">
             Private key (Ed25519) — never leaves this device
           </p>
         </motion.div>
@@ -171,20 +171,20 @@ function AuthsDiagram() {
         {/* Arrow down */}
         <motion.div variants={itemVariants} className="flex justify-center">
           <div className="flex flex-col items-center gap-1">
-            <div className="h-4 w-px bg-gradient-to-b from-emerald-500/50 to-emerald-500/20" />
-            <span className="text-[10px] text-emerald-500/60">signs</span>
-            <div className="h-4 w-px bg-gradient-to-b from-emerald-500/20 to-emerald-500/50" />
+            <div className="h-4 w-px bg-gradient-to-b from-[#e8845c]/50 to-[#e8845c]/20" />
+            <span className="text-[10px] text-[#e8845c]/60">signs</span>
+            <div className="h-4 w-px bg-gradient-to-b from-[#e8845c]/20 to-[#e8845c]/50" />
           </div>
         </motion.div>
 
         {/* DID identity */}
         <motion.div
           variants={itemVariants}
-          className="rounded-lg border border-emerald-500/40 bg-emerald-950/30 px-4 py-3 shadow-[0_0_30px_rgba(16,185,129,0.08)]"
+          className="rounded-lg border border-[#e8845c]/40 bg-[#e8845c]/10 px-4 py-3 shadow-[0_0_30px_rgba(232,132,92,0.08)]"
         >
           <div className="flex items-center gap-2">
-            <ShieldIcon size={16} className="text-emerald-400" />
-            <span className="font-mono text-xs font-medium text-emerald-300">
+            <ShieldIcon size={16} className="text-[#e8845c]" />
+            <span className="font-mono text-xs font-medium text-[#e8845c]">
               did:keri:EXTfn3SEW...
             </span>
           </div>
@@ -192,7 +192,7 @@ function AuthsDiagram() {
             {['npm', 'PyPI', 'Docker', 'GitHub', 'any registry'].map((target) => (
               <span
                 key={target}
-                className="rounded-full border border-emerald-800/30 bg-emerald-950/40 px-2 py-0.5 text-[10px] text-emerald-400/80"
+                className="rounded-full border border-[#e8845c]/20 bg-[#e8845c]/10 px-2 py-0.5 text-[10px] text-[#e8845c]/80"
               >
                 {target}
               </span>
@@ -208,27 +208,54 @@ function AuthsDiagram() {
           'Rotatable without losing history (KERI pre-rotation)',
         ].map((v) => (
           <div key={v} className="flex items-center gap-2 pl-1">
-            <span className="h-1 w-1 shrink-0 rounded-full bg-emerald-500/40" />
-            <span className="text-xs text-zinc-500">{v}</span>
+            <span className="h-1 w-1 shrink-0 rounded-full bg-[#e8845c]/40" />
+            <span className="text-xs text-stone-500">{v}</span>
           </div>
         ))}
       </motion.div>
 
-      <motion.p variants={itemVariants} className="mt-4 text-xs text-emerald-400/70">
+      <motion.p variants={itemVariants} className="mt-4 text-xs text-[#e8845c]/80">
         1 identity. 1 device-bound key. Zero copyable secrets.
       </motion.p>
     </motion.div>
   );
 }
 
+function ArtifactFrame({ label, tag, children }: { label: string; tag?: string; children: ReactNode }) {
+  return (
+    <div className="not-prose my-8 overflow-hidden rounded-lg bg-[#15130f] shadow-[0_24px_60px_-12px_rgba(28,24,20,0.45)] ring-1 ring-black/20">
+      <div className="flex items-center justify-between border-b border-white/5 px-5 py-2.5">
+        <span className="font-mono text-[11px] tracking-wider text-stone-500">{label}</span>
+        {tag ? <span className="font-mono text-[11px] text-stone-600">{tag}</span> : null}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 export function ApiKeyComparisonDiagram({ variant }: { variant: 'traditional' | 'auths' | 'both' }) {
-  if (variant === 'traditional') return <TraditionalDiagram />;
-  if (variant === 'auths') return <AuthsDiagram />;
+  if (variant === 'traditional') {
+    return (
+      <ArtifactFrame label="credentials" tag="bearer tokens">
+        <TraditionalDiagram />
+      </ArtifactFrame>
+    );
+  }
+
+  if (variant === 'auths') {
+    return (
+      <ArtifactFrame label="credentials" tag="device-bound identity">
+        <AuthsDiagram />
+      </ArtifactFrame>
+    );
+  }
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-      <TraditionalDiagram />
-      <AuthsDiagram />
-    </div>
+    <ArtifactFrame label="credentials" tag="bearer tokens vs device-bound">
+      <div className="grid grid-cols-1 divide-y divide-white/5 md:grid-cols-2 md:divide-x md:divide-y-0">
+        <TraditionalDiagram />
+        <AuthsDiagram />
+      </div>
+    </ArtifactFrame>
   );
 }

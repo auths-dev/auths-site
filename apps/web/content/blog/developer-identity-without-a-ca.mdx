@@ -1,6 +1,6 @@
 ---
 title: "Developer Identity Without a Certificate Authority"
-description: "How KERI key event logs handle algorithm migration, key rotation, and post-quantum readiness compared to CA-dependent systems like Sigstore — and the honest tradeoffs between both approaches."
+description: "How key event logs handle algorithm migration, key rotation, and post-quantum readiness compared to CA-dependent systems like Sigstore — and the honest tradeoffs between both approaches."
 date: "2026-03-07"
 ---
 
@@ -30,7 +30,7 @@ As one HN commenter [put it plainly](https://news.ycombinator.com/item?id=427848
 
 > I am uncomfortable with a central CA and central log. And I trust OIDC providers about as far as I can throw them.
 
-Auths takes a different position: your identity is *derived* from cryptographic material you control. There is no CA. There is no OIDC login flow. Your identity is a KERI Key Event Log — a hash-chained, append-only sequence of key lifecycle events stored in your own Git repository.
+Auths takes a different position: your identity is *derived* from cryptographic material you control. Verification checks the key that signed, not a certificate chain — there's no trust root to refresh and no OIDC login flow. Your identity is a key event log (KEL) — a hash-chained, append-only, self-certifying sequence of key lifecycle events stored in your own Git repository.
 
 ## What a Key Event Log actually looks like
 
@@ -57,13 +57,13 @@ let icp = IcpEvent {
 
 The critical field is `n` — the next-key commitment. At inception, you don't just generate a signing key. You generate the *next* signing key, hash it with [Blake3](https://www.ietf.org/archive/id/draft-aumasson-blake3-00.html), and embed that hash in the inception event. This is pre-rotation.
 
-The inception event is then hashed to produce a Self-Addressing Identifier (SAID), which becomes both the event's `d` field and the identity's permanent prefix (`i`). Your DID looks like `did:keri:E<44-char-base64url>`. That identifier is derived purely from the content of your inception event — it's not assigned by any authority.
+The inception event is then hashed to produce a Self-Addressing Identifier (SAID), which becomes both the event's `d` field and the identity's permanent prefix (`i`). Your identifier is a 44-character string derived purely from the content of your inception event — it's not assigned by any authority.
 
 ## Pre-rotation: the key insight
 
 Key rotation in most systems is a moment of vulnerability. You generate a new key, publish it, and hope the transition goes smoothly. If an attacker compromises your old key during the transition window, they can publish their own "rotation" first.
 
-KERI's pre-rotation eliminates this window. When you rotate, the system verifies that your new key matches the commitment made in the *previous* event:
+Pre-rotation eliminates this window. When you rotate, the system verifies that your new key matches the commitment made in the *previous* event:
 
 ```rust
 // From auths-id/src/keri/rotation.rs
@@ -103,7 +103,7 @@ pub struct RotEvent {
 
 ## Git as the storage layer
 
-Auths stores the KEL as a chain of Git commits under `refs/did/keri/<prefix>/kel`. Each commit contains a single `event.json`. The Git commit chain mirrors the KERI event chain:
+Auths stores the KEL as a chain of Git commits under `refs/did/keri/<prefix>/kel`. Each commit contains a single `event.json`. The Git commit chain mirrors the event chain:
 
 ```rust
 // From auths-id/src/keri/kel.rs
@@ -117,7 +117,7 @@ pub struct GitKel<'a> {
 
 This is a deliberate choice with real tradeoffs. Git gives you:
 
-- **Decentralized replication** — clone, push, pull. No special infrastructure.
+- **Replication anywhere Git goes** — clone, push, pull. No special infrastructure.
 - **Tamper evidence** — Git's own content-addressed storage provides a second layer of integrity checking.
 - **Familiarity** — developers already have Git. No new daemon, no new service.
 
@@ -173,7 +173,7 @@ Another HN commenter, [remram](https://news.ycombinator.com/item?id=42784892), c
 
 > You're just replacing a "mystery meat" PGP key with a "mystery meat" email address or OIDC handle.
 
-That's a fair critique of Sigstore — and it's the exact problem that self-sovereign identity resolves. Your `did:keri:` isn't an email address someone else controls. It's a cryptographic identifier derived from your own key material.
+That's a fair critique of Sigstore — and it's the exact problem an identity you carry with you resolves. Your identifier isn't an email address someone else controls. It's derived from your own key material.
 
 ## The post-quantum question
 
@@ -208,7 +208,7 @@ Today this is Ed25519-specific. The path to post-quantum support is extending th
 
 The KEL is already designed for key lifecycle transitions — that's literally what pre-rotation is for. A post-quantum migration is just another rotation, albeit one where the key type changes.
 
-We should be honest: this migration path exists in theory but hasn't been implemented yet. The trait needs to be generalized, new derivation codes need to be defined for post-quantum key types in KERI's CESR encoding, and the commitment scheme needs to be upgraded to a post-quantum hash (though Blake3 is already considered quantum-resistant for preimage attacks). This is real engineering work, not a flip of a switch. But the architecture doesn't need to change. That matters.
+We should be honest: this migration path exists in theory but hasn't been implemented yet. The trait needs to be generalized, the key-encoding scheme needs new codes for post-quantum key types, and the commitment scheme needs to be upgraded to a post-quantum hash (though Blake3 is already considered quantum-resistant for preimage attacks). This is real engineering work, not a flip of a switch. But the architecture doesn't need to change. That matters.
 
 ## Where Sigstore wins
 
@@ -218,7 +218,7 @@ We'd be doing you a disservice if we didn't acknowledge where Sigstore is genuin
 
 **Zero key management for simple cases.** If you just want your GitHub Actions workflow to sign artifacts without thinking about keys at all, Sigstore's keyless signing is remarkably low-friction. You don't manage keys, you don't rotate keys, you don't think about keys. For many teams, that's exactly right.
 
-**Transparency log auditability.** Rekor provides a public, append-only, globally consistent log that anyone can monitor for unauthorized signing events. Auths' approach of storing KELs in Git repos is decentralized by design, but "decentralized" also means you have to go find the log to audit it.
+**Transparency log auditability.** Rekor provides a public, append-only, globally consistent log that anyone can monitor for unauthorized signing events. Auths stores each identity's log in its own Git repo — which also means there's no single place to watch; you have to go find the log to audit it.
 
 **Organizational identity.** Sigstore's OIDC integration means an organization's existing identity infrastructure (Google Workspace, GitHub org membership) directly maps to signing authority. With Auths, you're building organizational identity from scratch using attestation chains.
 
@@ -232,23 +232,23 @@ But there are cases where the tradeoffs point the other way:
 
 **Offline-first verification.** If you're verifying artifacts in air-gapped environments, on embedded devices, or in contexts where you can't reach Sigstore's infrastructure, the KEL's self-contained nature is an advantage. The WASM verifier runs anywhere a browser runs.
 
-**Key lifecycle durability.** KERI identifiers survive key rotations, device changes, and algorithm migrations. Your `did:keri:` identifier is permanent — it's derived from your inception event, not from any particular key. Sigstore's identity is your email address or CI identity, which is durable in a different sense (tied to your account) but not cryptographically self-sovereign.
+**Key lifecycle durability.** Auths identifiers survive key rotations, device changes, and algorithm migrations. Your identifier is permanent — it's derived from your inception event, not from any particular key. Sigstore's identity is your email address or CI identity, which is durable in a different sense (tied to your account) but not something you cryptographically own.
 
 **Algorithm agility without infrastructure changes.** When the post-quantum transition happens — and it will — systems that separate identity from key material will have an easier time than systems where the key *is* the identity or where the log format assumes specific key sizes.
 
 ## The honest assessment
 
-Software signing infrastructure is in a genuinely difficult design space. You're balancing ease of adoption against depth of security guarantees, centralized convenience against decentralized resilience, and present-day pragmatism against future-proofing.
+Software signing infrastructure is in a genuinely difficult design space. You're balancing ease of adoption against depth of security guarantees, the convenience of central services against resilience that doesn't depend on them, and present-day pragmatism against future-proofing.
 
 Sigstore made a set of choices that optimize for adoption and ease of use, and those choices have paid off enormously. More software is signed today because of Sigstore. That's an unambiguous good.
 
-Auths makes a different bet: that the foundation of developer identity should be self-sovereign cryptographic material, not borrowed claims from identity providers. That you should own your keys, control your rotations, and verify without trusting anyone's infrastructure. That the right time to build for algorithm agility is before you need it.
+Auths makes a different bet: that the foundation of developer identity should be cryptographic material you own, not borrowed claims from identity providers. That you should own your keys, control your rotations, and verify without trusting anyone's infrastructure. That the right time to build for algorithm agility is before you need it.
 
 Both of these can be true at the same time.
 
-We're building Auths because we believe the self-sovereign approach will matter more over time — as post-quantum deadlines approach, as supply chain attacks become more sophisticated, and as developers and organizations increasingly want to own their identity rather than rent it. But we're doing it with open eyes about the adoption gap and the infrastructure work still ahead.
+We're building Auths because we believe this bet will matter more over time — as post-quantum deadlines approach, as supply chain attacks become more sophisticated, and as developers and organizations increasingly want to own their identity rather than rent it. But we're doing it with open eyes about the adoption gap and the infrastructure work still ahead.
 
-If you want to explore what a KERI-based identity looks like in practice, you can try it now:
+If you want to explore what a key-event-log identity looks like in practice, you can try it now:
 
 ```bash
 brew install auths-dev/auths-cli/auths

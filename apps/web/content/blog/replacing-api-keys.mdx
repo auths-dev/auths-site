@@ -32,7 +32,7 @@ Every location is a separate leak vector. Every token is a bearer credential —
 
 <ApiKeyComparisonDiagram variant="auths" />
 
-The DID — `did:keri:EXTfn3...` — is a public identifier. You can print it on a billboard. Knowing it doesn't let anyone impersonate you, because authentication requires a signature from the private key that's locked in your device's keychain (macOS Keychain, Windows Credential Manager, or a hardware token).
+Your DID is a public identifier. You can print it on a billboard. Knowing it doesn't let anyone impersonate you, because authentication requires a signature from the private key that's locked in your device's keychain (macOS Keychain, Windows Credential Manager, or a hardware token).
 
 ## What changes, concretely
 
@@ -46,7 +46,7 @@ npm_a3f8Kx9mP2...
 
 # Auths: the key never leaves your device
 $ auths init
-[OK] Identity ready: did:keri:EXTfn3SEWKMagjCKQ1ewDBG94a11JAhboYnMwQvwC-3I
+[OK] Identity ready: <root>
 [OK] Device linked: did:key:z6Mkjj12ctRQPhtRf1Aeuf6Kf54E5GxRDHPEJPhXSrtQivKm
 # Nothing to copy. Nothing to paste. The private key is in your OS keychain.
 ```
@@ -70,11 +70,11 @@ $ auths artifact publish package.tar.gz --package pypi:my-package --registry <re
 
 This is the part that GPG and traditional API keys get fundamentally wrong. When you rotate a GPG key, your old signatures can't be verified without the old public key. When you rotate an npm token, there's no connection between the old token and the new one.
 
-KERI pre-rotation solves this. When you create your identity, you also commit to what your *next* key will be (via a hash commitment). When you rotate, the new key matches the commitment, proving continuity. Your DID stays the same. Your old signatures remain valid. Your reputation carries forward.
+Pre-rotation solves this. When you create your identity, you also commit to what your *next* key will be (via a hash commitment). When you rotate, the new key matches the commitment, proving continuity. Your DID stays the same. Your old signatures remain valid. Your reputation carries forward.
 
 ```bash
 $ auths id rotate
-[OK] Key rotated. DID unchanged: did:keri:EXTfn3SEWKMagjCKQ1ewDBG94a11JAhboYnMwQvwC-3I
+[OK] Key rotated. DID unchanged: <root>
 # Every previous signature is still verifiable.
 # Every future signature uses the new key.
 # The DID — your identity — never changes.
@@ -87,7 +87,7 @@ When an API key leaks, you revoke it on one service. Then you remember you used 
 With Auths, you revoke a device key once in the transparency log. Every verifier that checks the log sees it immediately.
 
 ```
-[REVOKE] did:keri:EXTfn3... revoked did:key:z6Mkjj...    #35
+[REVOKE] <root> revoked did:key:z6Mkjj...    #35
 ```
 
 One operation. Every artifact signed by that device key is now flagged. Every registry that checks the transparency log knows. No chasing tokens across services.
@@ -100,7 +100,7 @@ Auths handles this natively. The CLI has a `ci` profile designed for ephemeral e
 
 ```bash
 $ auths init --profile ci
-[OK] Identity ready: did:keri:ECI_Runner_...
+[OK] Identity ready: <ci-root>
 [OK] File-based keychain initialized
 ```
 

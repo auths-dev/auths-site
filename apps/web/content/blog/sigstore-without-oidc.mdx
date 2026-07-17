@@ -10,11 +10,11 @@ Today we landed our first entry on Sigstore's production Rekor transparency log.
 
 No OIDC token was involved. No Fulcio certificate was requested. No browser window opened. No corporate account was consulted.
 
-This post explains what happened, why it matters, and what it means for the relationship between decentralized identity and the supply chain security infrastructure the industry is converging on.
+This post explains what happened, why it matters, and what it means for the relationship between an identity you control and the supply chain security infrastructure the industry is converging on.
 
 ## What Auths is (30-second version)
 
-Auths is a code signing tool that gives developers a cryptographic identity without relying on any third party. You run `auths init`, a P-256 key goes into your OS keychain, a KERI Key Event Log is created in Git, and your commits are signed. No accounts, no servers, no ceremony.
+Auths is a code signing tool that gives developers a cryptographic identity without relying on any third party. You run `auths init`, a P-256 key goes into your OS keychain, a key event log — an append-only, self-certifying history of your key — is created in Git, and your commits are signed. No accounts, no servers, no ceremony.
 
 <SetupCeremonyDiagram variant="auths-sigstore-setup" />
 
@@ -52,7 +52,7 @@ This is the architectural assumption the entire Sigstore ecosystem is built on: 
 
 ## What we did instead
 
-We skipped Fulcio and OIDC entirely. Auths has its own identity model (KERI key event logs), its own keys (P-256 in your OS keychain), and its own attestation format. We only needed Rekor for one thing: a public, append-only record that the signing event occurred.
+We skipped Fulcio and OIDC entirely. Auths has its own identity model (key event logs), its own keys (P-256 in your OS keychain), and its own attestation format. We only needed Rekor for one thing: a public, append-only record that the signing event occurred.
 
 The signing flow with Rekor:
 
@@ -98,7 +98,7 @@ Ilm9Sb+9Fo0VDmTrJES8sgnA6YAjuJ9z2hpNZ0s5b8kP9/HcDMNGE0TI1Q==
 -----END PUBLIC KEY-----
 ```
 
-That's a P-256 public key. The same key that's in the developer's OS keychain and referenced in their KERI key event log. No certificate wrapping it. No OIDC claim binding it to an email address. Just a key and a signature.
+That's a P-256 public key. The same key that's in the developer's OS keychain and referenced in their key event log. No certificate wrapping it. No OIDC claim binding it to an email address. Just a key and a signature.
 
 ## Why this matters
 

@@ -115,6 +115,7 @@ interface StepDef {
 
 interface VariantConfig {
   rows: StepDef[][];
+  title: string;
   accent: string;
   border: string;
   glow: string;
@@ -139,12 +140,13 @@ const VARIANTS: Record<string, VariantConfig> = {
         { icon: GlobeIcon, title: 'Keyserver', detail: 'Optional' },
       ],
     ],
-    accent: 'text-amber-400',
-    border: 'border-amber-500/30',
-    glow: 'shadow-[0_0_20px_rgba(245,158,11,0.08)]',
-    line: 'from-amber-600/50 to-amber-500/30',
-    badge: 'text-amber-400',
-    badgeBg: 'bg-amber-500/10 border-amber-500/20',
+    title: 'setup — gpg',
+    accent: 'text-[#e8845c]',
+    border: 'border-[#e8845c]/25',
+    glow: 'shadow-[0_0_20px_rgba(232,132,92,0.06)]',
+    line: 'from-[#e8845c]/40 to-[#e8845c]/20',
+    badge: 'text-[#e8845c]',
+    badgeBg: 'bg-[#e8845c]/10 border-[#e8845c]/20',
     label: '7 steps',
   },
   sigstore: {
@@ -156,12 +158,13 @@ const VARIANTS: Record<string, VariantConfig> = {
         { icon: SettingsIcon, title: 'Enable Sign', detail: 'gpgsign true' },
       ],
     ],
-    accent: 'text-sky-400',
-    border: 'border-sky-500/30',
-    glow: 'shadow-[0_0_20px_rgba(14,165,233,0.08)]',
-    line: 'from-sky-600/50 to-sky-500/30',
-    badge: 'text-sky-400',
-    badgeBg: 'bg-sky-500/10 border-sky-500/20',
+    title: 'setup — sigstore',
+    accent: 'text-[#e8845c]',
+    border: 'border-[#e8845c]/25',
+    glow: 'shadow-[0_0_20px_rgba(232,132,92,0.06)]',
+    line: 'from-[#e8845c]/40 to-[#e8845c]/20',
+    badge: 'text-[#e8845c]',
+    badgeBg: 'bg-[#e8845c]/10 border-[#e8845c]/20',
     label: '4 steps',
   },
   auths: {
@@ -170,12 +173,13 @@ const VARIANTS: Record<string, VariantConfig> = {
         { icon: ShieldCheckIcon, title: 'auths init', detail: 'Keys + config + keychain' },
       ],
     ],
-    accent: 'text-emerald-400',
-    border: 'border-emerald-500/40',
-    glow: 'shadow-[0_0_30px_rgba(16,185,129,0.15)]',
-    line: 'from-emerald-600/50 to-emerald-500/30',
-    badge: 'text-emerald-400',
-    badgeBg: 'bg-emerald-500/10 border-emerald-500/20',
+    title: 'setup — auths',
+    accent: 'text-[#e8845c]',
+    border: 'border-[#e8845c]/40',
+    glow: 'shadow-[0_0_30px_rgba(232,132,92,0.15)]',
+    line: 'from-[#e8845c]/40 to-[#e8845c]/20',
+    badge: 'text-[#e8845c]',
+    badgeBg: 'bg-[#e8845c]/10 border-[#e8845c]/20',
     label: '1 command',
   },
   'auths-sigstore-setup': {
@@ -186,12 +190,13 @@ const VARIANTS: Record<string, VariantConfig> = {
         { icon: UploadIcon, title: '--log sigstore-rekor', detail: 'Record on Rekor' },
       ],
     ],
-    accent: 'text-emerald-400',
-    border: 'border-emerald-500/40',
-    glow: 'shadow-[0_0_30px_rgba(16,185,129,0.15)]',
-    line: 'from-emerald-600/50 to-emerald-500/30',
-    badge: 'text-emerald-400',
-    badgeBg: 'bg-emerald-500/10 border-emerald-500/20',
+    title: 'setup — auths + sigstore',
+    accent: 'text-[#e8845c]',
+    border: 'border-[#e8845c]/40',
+    glow: 'shadow-[0_0_30px_rgba(232,132,92,0.15)]',
+    line: 'from-[#e8845c]/40 to-[#e8845c]/20',
+    badge: 'text-[#e8845c]',
+    badgeBg: 'bg-[#e8845c]/10 border-[#e8845c]/20',
     label: '3 steps',
   },
 };
@@ -217,15 +222,15 @@ function StepRow({
           <Fragment key={i}>
             <motion.div
               variants={nodeVariants}
-              className={`relative z-10 flex shrink-0 flex-col items-center justify-center rounded-xl border bg-zinc-900 ${config.border} ${config.glow} ${
+              className={`relative z-10 flex shrink-0 flex-col items-center justify-center rounded-lg border bg-white/[0.04] ${config.border} ${config.glow} ${
                 isOnlyStep ? 'h-24 w-44' : 'h-[80px] w-[140px]'
               }`}
             >
               <Icon size={isOnlyStep ? 22 : 18} className={`mb-1 ${config.accent}`} />
-              <span className={`font-mono font-semibold text-zinc-100 ${isOnlyStep ? 'text-xs' : 'text-[11px]'}`}>
+              <span className={`font-mono font-semibold text-stone-200 ${isOnlyStep ? 'text-xs' : 'text-[11px]'}`}>
                 {step.title}
               </span>
-              <span className={`text-zinc-400 ${isOnlyStep ? 'text-[11px]' : 'text-[10px]'}`}>
+              <span className={`text-stone-400 ${isOnlyStep ? 'text-[11px]' : 'text-[10px]'}`}>
                 {step.detail}
               </span>
             </motion.div>
@@ -265,37 +270,43 @@ export function SetupCeremonyDiagram({ variant }: { variant: string }) {
   const isOnlyStep = config.rows.length === 1 && config.rows[0].length === 1;
 
   return (
-    <div className="my-8 w-full rounded-xl border border-zinc-800 bg-zinc-950/50 p-5 sm:p-6">
-      {/* Badge */}
-      <div className="mb-4 flex justify-center">
-        <span className={`rounded-full border px-3 py-1 font-mono text-xs font-medium ${config.badge} ${config.badgeBg}`}>
-          {config.label}
-        </span>
+    <div className="not-prose my-8 w-full overflow-hidden rounded-lg bg-[#15130f] shadow-[0_24px_60px_-12px_rgba(28,24,20,0.45)] ring-1 ring-black/20">
+      <div className="flex items-center justify-between border-b border-white/5 px-5 py-2.5">
+        <span className="font-mono text-[11px] tracking-wider text-stone-500">{config.title}</span>
       </div>
 
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: '-60px' }}
-        transition={{ staggerChildren: 0.15 }}
-      >
-        {config.rows.map((row, rowIdx) => (
-          <Fragment key={rowIdx}>
-            <StepRow steps={row} config={config} isOnlyStep={isOnlyStep} />
+      <div className="p-5 sm:p-6">
+        {/* Badge */}
+        <div className="mb-4 flex justify-center">
+          <span className={`rounded-full border px-3 py-1 font-mono text-xs font-medium ${config.badge} ${config.badgeBg}`}>
+            {config.label}
+          </span>
+        </div>
 
-            {/* Vertical connector between rows (desktop) */}
-            {rowIdx < config.rows.length - 1 && (
-              <div className="flex justify-center">
-                <motion.div
-                  variants={vLineVariants}
-                  className={`my-2 h-6 w-[2px] origin-top bg-gradient-to-b ${config.line}`}
-                  aria-hidden="true"
-                />
-              </div>
-            )}
-          </Fragment>
-        ))}
-      </motion.div>
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ staggerChildren: 0.15 }}
+        >
+          {config.rows.map((row, rowIdx) => (
+            <Fragment key={rowIdx}>
+              <StepRow steps={row} config={config} isOnlyStep={isOnlyStep} />
+
+              {/* Vertical connector between rows (desktop) */}
+              {rowIdx < config.rows.length - 1 && (
+                <div className="flex justify-center">
+                  <motion.div
+                    variants={vLineVariants}
+                    className={`my-2 h-6 w-[2px] origin-top bg-gradient-to-b ${config.line}`}
+                    aria-hidden="true"
+                  />
+                </div>
+              )}
+            </Fragment>
+          ))}
+        </motion.div>
+      </div>
     </div>
   );
 }

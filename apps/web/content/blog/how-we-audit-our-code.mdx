@@ -72,7 +72,7 @@ fn load_event(path: &str, cap: &impl Has<FsRead>) -> Result<String, CapSecError>
 }
 
 fn derive_said(data: &[u8]) -> String {
-    blake3::hash(data).to_hex().to_string()  // no capability parameter — no I/O possible
+    blake3::hash(data).to_hex().to_string()  // without a capability parameter, no I/O is possible
 }
 ```
 

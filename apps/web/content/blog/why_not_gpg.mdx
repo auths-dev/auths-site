@@ -100,7 +100,7 @@ Five participants in the signing flow. One of them opens your browser.
 
 ## Path 3: Auths
 
-Auths uses KERI Key Event Logs for self-sovereign identity stored in Git refs.
+Auths anchors your identity in a key event log (KEL) — an append-only, self-certifying history of your keys — stored in Git refs.
 
 ### The setup ceremony
 
@@ -118,15 +118,15 @@ Three participants. No network calls. No browser redirects. No external services
 
 <LifelineDiagram variant="auths-verify" />
 
-No network calls. No certificate authority to contact. No transparency log to query. The verifier replays the key event log — a purely mathematical operation — and checks the commit signature against the derived current key.
+No network calls. No trust root to refresh. No transparency log to query. The verifier replays the key event log — a purely mathematical operation — and checks the commit signature against the derived current key.
 
 ### What breaks
 
 **No ecosystem integration yet.** Sigstore is in npm, PyPI, Homebrew, and Kubernetes. Auths is new. The verification widget works in browsers (WASM), and there's a GitHub Action, but the ecosystem gap is real.
 
-**Discovery requires the KEL.** To verify someone's identity, you need their key event log. If their repo is public, you clone it. If it's private, they need to export an identity bundle. There's no global directory like Sigstore's Rekor where you can look up anyone's signing history. This is by design (decentralization), but it's a UX tradeoff.
+**Discovery requires the KEL.** To verify someone's identity, you need their key event log. If their repo is public, you clone it. If it's private, they need to export an identity bundle. There's no global directory like Sigstore's Rekor where you can look up anyone's signing history. That's by design — the log travels with the identity — but it's a UX tradeoff.
 
-**Younger codebase.** Sigstore has years of production hardening across major package registries. Auths has been in development for months. The cryptographic primitives are proven (Ed25519, KERI, Blake3), but the implementation is young.
+**Younger codebase.** Sigstore has years of production hardening across major package registries. Auths has been in development for months. The cryptographic primitives are proven (Ed25519, Blake3, hash-chained logs), but the implementation is young.
 
 ### The actual numbers
 
@@ -154,7 +154,7 @@ No network calls. No certificate authority to contact. No transparency log to qu
 <tr><td>Network required to sign</td><td>no</td><td>yes (3 services)</td><td>no</td></tr>
 <tr><td>Network required to verify</td><td>no (if you have the key)</td><td>no (bundle embedded; Rekor fallback)</td><td>no</td></tr>
 <tr><td>Key rotation</td><td>breaks history</td><td>N/A (no keys)</td><td>preserves history (pre-rotation)</td></tr>
-<tr><td>Identity model</td><td>key = identity (fragile)</td><td>email = identity (borrowed)</td><td>KEL = identity (self-sovereign)</td></tr>
+<tr><td>Identity model</td><td>key = identity (fragile)</td><td>email = identity (borrowed)</td><td>KEL = identity (yours)</td></tr>
 <tr><td>Multi-device</td><td>copy key or agent forward</td><td>login on each device</td><td>cryptographic device pairing</td></tr>
 <tr><td>CI/CD</td><td>secret injection</td><td>OIDC token (great fit)</td><td>scoped credential (time + capability bounded)</td></tr>
 <tr><td>Post-quantum</td><td>new key = new identity</td><td>redesign log format</td><td>rotate key, same identity</td></tr>
