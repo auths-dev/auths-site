@@ -16,7 +16,18 @@ if [ -z "${GITHUB_OAUTH_CLIENT_ID:-}" ] || [ -z "${GITHUB_OAUTH_CLIENT_SECRET:-}
   exit 1
 fi
 
-TOKEN="${SUPABASE_ACCESS_TOKEN:-$(cat "$HOME/.supabase/access-token" 2>/dev/null || true)}"
+resolve_token() {
+  if [ -n "${SUPABASE_ACCESS_TOKEN:-}" ]; then echo "$SUPABASE_ACCESS_TOKEN"; return; fi
+  if [ -f "$HOME/.supabase/access-token" ]; then cat "$HOME/.supabase/access-token"; return; fi
+  # macOS: the CLI stores the token in the keychain via go-keyring, which
+  # wraps values >~128B as "go-keyring-base64:<b64>".
+  raw="$(security find-generic-password -s "Supabase CLI" -w 2>/dev/null || true)"
+  case "$raw" in
+    go-keyring-base64:*) printf '%s' "${raw#go-keyring-base64:}" | base64 -d ;;
+    *) printf '%s' "$raw" ;;
+  esac
+}
+TOKEN="$(resolve_token)"
 if [ -z "$TOKEN" ]; then
   echo "No Supabase access token (supabase login, or export SUPABASE_ACCESS_TOKEN)" >&2
   exit 1
