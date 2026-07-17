@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { constructMetadata } from '@/lib/metadata';
 import { CodeBlock } from '@/components/code-block';
+import { CopyButton } from '@/components/copy-button';
 import {
   SectionMark,
   InkTerminal,
@@ -57,8 +58,11 @@ export default function VerifyPage() {
                 <span className="font-mono text-[11px] tracking-wider text-stone-500">
                   .github/workflows/verify.yml
                 </span>
-                <span className="font-mono text-[11px] text-stone-600">
-                  the whole integration
+                <span className="flex items-center gap-3">
+                  <span className="font-mono text-[11px] text-stone-600">
+                    the whole integration
+                  </span>
+                  <CopyButton text={WORKFLOW_YAML} />
                 </span>
               </div>
               <CodeBlock language="yaml" code={WORKFLOW_YAML} />
@@ -89,7 +93,7 @@ export default function VerifyPage() {
               </div>
             </div>
 
-            <InkTerminal label="the same check, on your machine" tag="offline">
+            <InkTerminal label="the same check, on your machine" tag="offline" copy="auths verify HEAD">
               <Dim># any commit, any clone — no CI required</Dim>
               <Prompt>auths verify HEAD</Prompt>
               <Allow>Commit 51017ad… verified: signed by &lt;root&gt;</Allow>
@@ -119,7 +123,11 @@ export default function VerifyPage() {
               </div>
             </div>
 
-            <InkTerminal label="an auditor who does not operate the agent" tag="offline">
+            <InkTerminal
+              label="an auditor who does not operate the agent"
+              tag="offline"
+              copy="auths-mcp-gateway verify-spend --log spend.jsonl --registry ./registry --agent <agent> --root <root>"
+            >
               <Prompt>auths-mcp-gateway verify-spend --log spend.jsonl \</Prompt>
               <Prompt className="pl-4">
                 --registry ./registry --agent &lt;agent&gt; --root &lt;root&gt;

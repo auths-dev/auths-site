@@ -3,6 +3,7 @@ import { Fraunces, Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { SiteNav } from '@/components/site-nav';
 import { LedgerFooter } from '@/components/ledger';
+import { MotionProvider } from '@/components/motion-provider';
 import { constructMetadata, SITE_TITLE } from '@/lib/metadata';
 
 const geistSans = Geist({
@@ -39,9 +40,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} bg-paper text-ink antialiased selection:bg-seal/20`}
       >
-        <SiteNav />
-        <main>{children}</main>
-        <LedgerFooter />
+        <MotionProvider>
+          <SiteNav />
+          <main>{children}</main>
+          <LedgerFooter />
+        </MotionProvider>
       </body>
     </html>
   );

@@ -87,7 +87,11 @@ export default function TrustPage() {
             </ol>
 
             <div>
-              <InkTerminal label="a relying party who never ran the agent" tag="offline">
+              <InkTerminal
+                label="a relying party who never ran the agent"
+                tag="offline"
+                copy="auths-mcp-gateway verify-spend --log spend.jsonl --registry ./registry --agent <agent> --root <root>"
+              >
                 <Dim># re-derive the spend from the signed receipts alone</Dim>
                 <Prompt>auths-mcp-gateway verify-spend --log spend.jsonl \</Prompt>
                 <Prompt className="pl-4">

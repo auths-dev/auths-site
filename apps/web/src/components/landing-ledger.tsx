@@ -16,8 +16,10 @@
  * - Every command on this page is one a visitor can actually run.
  */
 
-import { motion } from 'motion/react';
+import { useEffect, useRef, useState } from 'react';
+import { motion, useInView, useReducedMotion } from 'motion/react';
 import { CodeBlock } from '@/components/code-block';
+import { CopyButton } from '@/components/copy-button';
 import {
   fadeUp,
   DENY,
@@ -35,57 +37,124 @@ import {
 // Hero — one product: the bounded agent. The terminal shows a refusal.
 // ---------------------------------------------------------------------------
 
-const heroSession = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.5, delayChildren: 0.7 } },
-};
-const heroLine = {
-  hidden: { opacity: 0, y: 4 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } },
-};
+type HeroLine =
+  | { kind: 'dim' | 'cmd' | 'ok'; text: string; delay: number; pad?: boolean }
+  | { kind: 'deny'; text: string; delay: number; pad?: boolean };
+
+/**
+ * The session, paced like a keynote: the refusal gets a beat before it
+ * appears and lands with a flash and a settle — the denial IS the product.
+ */
+const HERO_LINES: HeroLine[] = [
+  { kind: 'dim', text: '# one command in front of any MCP server', delay: 0.6 },
+  { kind: 'cmd', text: "npx @auths/mcp wrap --budget '$20' --ttl 30m -- my-mcp-server", delay: 1.15 },
+  { kind: 'dim', text: '# the agent runs. every tool call is checked and gets a receipt.', delay: 1.95, pad: true },
+  { kind: 'ok', text: '✓ payments.charge $12.00 → allowed · spent $12.00 / $20.00 · rcpt_1a2b', delay: 2.5 },
+  { kind: 'deny', text: '✗ payments.charge $940.00 → usage-cap-exceeded · refused · rcpt_8f2a', delay: 3.4 },
+  { kind: 'dim', text: '# the receipt is signed — anyone can re-derive the spend, offline', delay: 4.55, pad: true },
+  { kind: 'cmd', text: 'auths-mcp-gateway verify-spend --log spend.jsonl …', delay: 5.1 },
+  { kind: 'ok', text: '✓ consistent — 2 call(s), $12.00 re-derived from signed costs', delay: 5.7 },
+];
+
+const HERO_REPLAY_MS = 14000;
+
+function HeroSessionLine({ line }: { line: HeroLine }) {
+  const pad = line.pad ? 'pt-1' : '';
+
+  if (line.kind === 'deny') {
+    return (
+      <motion.p
+        initial={{ opacity: 0, y: 4 }}
+        animate={{
+          opacity: 1,
+          y: 0,
+          x: [0, -2, 2, -1, 1, 0],
+          backgroundColor: ['rgba(192,68,46,0.3)', 'rgba(192,68,46,0.3)', 'rgba(192,68,46,0)'],
+        }}
+        transition={{
+          delay: line.delay,
+          duration: 0.35,
+          ease: 'easeOut',
+          x: { delay: line.delay, duration: 0.45, ease: 'easeOut' },
+          backgroundColor: { delay: line.delay, duration: 1.2, ease: 'easeOut' },
+        }}
+        className={`-mx-2 rounded-sm px-2 ${pad}`}
+        style={{ color: DENY }}
+      >
+        {line.text}
+      </motion.p>
+    );
+  }
+
+  const color =
+    line.kind === 'dim'
+      ? 'text-stone-500'
+      : line.kind === 'ok'
+        ? ''
+        : 'text-stone-300';
+  return (
+    <motion.p
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: line.delay, duration: 0.35, ease: 'easeOut' }}
+      className={`${color} ${pad}`}
+      style={line.kind === 'ok' ? { color: OK } : undefined}
+    >
+      {line.kind === 'cmd' ? <span className="select-none text-stone-500">$ </span> : null}
+      {line.text}
+    </motion.p>
+  );
+}
 
 function HeroTerminal() {
+  const reduced = useReducedMotion();
+  const frameRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(frameRef, { amount: 0.5 });
+  const [run, setRun] = useState(0);
+
+  useEffect(() => {
+    if (reduced) return;
+    const id = setInterval(() => {
+      if (inView) setRun((r) => r + 1);
+    }, HERO_REPLAY_MS);
+    return () => clearInterval(id);
+  }, [reduced, inView]);
+
   return (
-    <div className="overflow-hidden rounded-lg bg-[#15130f] shadow-[0_32px_80px_-16px_rgba(28,24,20,0.5)] ring-1 ring-black/20">
+    <div
+      ref={frameRef}
+      className="overflow-hidden rounded-lg bg-[#15130f] shadow-[0_32px_80px_-16px_rgba(28,24,20,0.5)] ring-1 ring-black/20"
+    >
       <div className="flex items-center justify-between border-b border-white/5 px-5 py-2.5">
         <span className="font-mono text-[11px] tracking-wider text-stone-500">
           agent → my-mcp-server
         </span>
-        <span className="font-mono text-[11px] text-stone-600">budget $20 · ttl 30m</span>
+        <span className="flex items-center gap-3">
+          <span className="font-mono text-[11px] text-stone-600">budget $20 · ttl 30m</span>
+          <CopyButton text="npx @auths/mcp wrap --budget '$20' --ttl 30m -- my-mcp-server" />
+        </span>
       </div>
-      <motion.div
+      <div
+        key={reduced ? 'static' : run}
         className="space-y-1.5 px-5 py-4 font-mono text-[13px] leading-relaxed text-stone-300"
-        variants={heroSession}
-        initial="hidden"
-        animate="visible"
       >
-        <motion.p variants={heroLine} className="text-stone-500">
-          # one command in front of any MCP server
-        </motion.p>
-        <motion.p variants={heroLine}>
-          <span className="select-none text-stone-500">$ </span>
-          npx @auths/mcp wrap --budget &apos;$20&apos; --ttl 30m -- my-mcp-server
-        </motion.p>
-        <motion.p variants={heroLine} className="pt-1 text-stone-500">
-          # the agent runs. every tool call is checked and gets a receipt.
-        </motion.p>
-        <motion.p variants={heroLine} style={{ color: OK }}>
-          ✓ payments.charge $12.00 → allowed · spent $12.00 / $20.00 · rcpt_1a2b
-        </motion.p>
-        <motion.p variants={heroLine} style={{ color: DENY }}>
-          ✗ payments.charge $940.00 → usage-cap-exceeded · refused · rcpt_8f2a
-        </motion.p>
-        <motion.p variants={heroLine} className="pt-1 text-stone-500">
-          # the receipt is signed — anyone can re-derive the spend, offline
-        </motion.p>
-        <motion.p variants={heroLine}>
-          <span className="select-none text-stone-500">$ </span>
-          auths-mcp-gateway verify-spend --log spend.jsonl …
-        </motion.p>
-        <motion.p variants={heroLine} style={{ color: OK }}>
-          ✓ consistent — 2 call(s), $12.00 re-derived from signed costs
-        </motion.p>
-      </motion.div>
+        {HERO_LINES.map((line) =>
+          reduced ? (
+            <p
+              key={line.text}
+              className={`${line.kind === 'dim' ? 'text-stone-500' : ''} ${line.pad ? 'pt-1' : ''}`}
+              style={
+                line.kind === 'ok' ? { color: OK } : line.kind === 'deny' ? { color: DENY } : undefined
+              }
+            >
+              {line.kind === 'cmd' ? <span className="select-none text-stone-500">$ </span> : null}
+              {line.text}
+            </p>
+          ) : (
+            <HeroSessionLine key={line.text} line={line} />
+          ),
+        )}
+      </div>
     </div>
   );
 }
@@ -158,6 +227,59 @@ export function LedgerHero() {
 // 01 — Don't trust us. Check.  (verify-spend — the whole company)
 // ---------------------------------------------------------------------------
 
+/**
+ * Proof you can watch break: one byte of the signed proof flips red on
+ * scroll, and the verdict beneath it turns from consistent to tampered-proof.
+ */
+function TamperDemo() {
+  const reduced = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-80px' });
+  const [stage, setStage] = useState<'clean' | 'flipped' | 'verdict'>('clean');
+
+  useEffect(() => {
+    if (!inView) return;
+    if (reduced) {
+      setStage('verdict');
+      return;
+    }
+    const flip = setTimeout(() => setStage('flipped'), 1100);
+    const verdict = setTimeout(() => setStage('verdict'), 1900);
+    return () => {
+      clearTimeout(flip);
+      clearTimeout(verdict);
+    };
+  }, [inView, reduced]);
+
+  const tampered = stage !== 'clean';
+
+  return (
+    <div ref={ref} className="space-y-1.5">
+      <p className="break-all">
+        <span className="text-stone-500">&quot;proof&quot;: &quot;</span>
+        9f2c
+        <motion.span
+          animate={{ color: tampered ? DENY : '#d6d3d1' }}
+          transition={{ duration: 0.25 }}
+          className={tampered ? 'font-semibold' : ''}
+        >
+          {tampered ? 'f3' : '4a'}
+        </motion.span>
+        a7…e8
+        <span className="text-stone-500">&quot;</span>
+        <span className="pl-3 text-stone-600">{tampered ? '← one byte flipped' : ''}</span>
+      </p>
+      <Prompt>auths-mcp-gateway verify-spend --log tampered.jsonl …</Prompt>
+      <div
+        className={`transition-opacity duration-300 ${stage === 'verdict' ? 'opacity-100' : 'opacity-0'}`}
+        aria-hidden={stage !== 'verdict'}
+      >
+        <Deny>tampered-proof — 51017ad1… failed verification (exit 1)</Deny>
+      </div>
+    </div>
+  );
+}
+
 export function LedgerAudit() {
   return (
     <section className="px-6 py-24 sm:py-32">
@@ -185,7 +307,11 @@ export function LedgerAudit() {
           </div>
 
           <motion.div {...fadeUp(0.2)}>
-            <InkTerminal label="an auditor who does not operate the agent" tag="offline">
+            <InkTerminal
+              label="an auditor who does not operate the agent"
+              tag="offline"
+              copy="auths-mcp-gateway verify-spend --log spend.jsonl --registry ./registry --agent <agent> --root <root>"
+            >
               <Dim># re-derive the spend from the signed receipts alone</Dim>
               <Prompt>
                 auths-mcp-gateway verify-spend --log spend.jsonl \
@@ -195,8 +321,7 @@ export function LedgerAudit() {
               </Prompt>
               <Allow>consistent — 2 call(s), $12.00 re-derived from signed costs</Allow>
               <Dim className="pt-2"># now flip one byte of a signed proof and re-run</Dim>
-              <Prompt>auths-mcp-gateway verify-spend --log tampered.jsonl …</Prompt>
-              <Deny>tampered-proof — 51017ad1… failed verification (exit 1)</Deny>
+              <TamperDemo />
             </InkTerminal>
           </motion.div>
         </div>
@@ -208,6 +333,59 @@ export function LedgerAudit() {
 // ---------------------------------------------------------------------------
 // 02 — It bounds, it doesn't just watch.
 // ---------------------------------------------------------------------------
+
+/**
+ * The page does the thing it claims: drag the charge past the cap and the
+ * live verdict flips from allowed to usage-cap-exceeded, receipt and all.
+ */
+function BudgetFlip() {
+  const CAP = 20;
+  const [charge, setCharge] = useState(12);
+  const over = charge > CAP;
+  const rcpt = `rcpt_${(0x1a2b + charge * 0x9d).toString(16)}`;
+
+  return (
+    <InkTerminal label="cause a refusal — drag the charge" tag={`budget $${CAP}.00 · live`}>
+      <Dim># the agent asks payments.charge for ${charge}.00</Dim>
+      <div className="flex items-center gap-4 py-1">
+        <span className="select-none text-stone-500">$1</span>
+        <input
+          type="range"
+          min={1}
+          max={40}
+          step={1}
+          value={charge}
+          onChange={(e) => setCharge(Number(e.target.value))}
+          aria-label="Charge amount in dollars"
+          aria-valuetext={`$${charge}`}
+          className="flex-1 cursor-pointer accent-[#c2401b]"
+        />
+        <span className="select-none text-stone-500">$40</span>
+      </div>
+      <motion.div
+        key={over ? 'deny' : 'allow'}
+        initial={{ opacity: 0.4 }}
+        animate={over ? { opacity: 1, x: [0, -2, 2, 0] } : { opacity: 1 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+      >
+        {over ? (
+          <Deny>
+            payments.charge ${charge}.00 → usage-cap-exceeded · refused · {rcpt}
+          </Deny>
+        ) : (
+          <Allow>
+            payments.charge ${charge}.00 → allowed · spent ${charge}.00 / $20.00 · {rcpt}
+          </Allow>
+        )}
+      </motion.div>
+      <Dim>
+        {over
+          ? '# the downstream tool was never invoked. the refusal is signed.'
+          : '# under the cap — the call goes through, with a signed receipt.'}
+      </Dim>
+    </InkTerminal>
+  );
+}
 
 const VERDICTS = [
   { rule: 'scope ⊆ parent', deny: 'outside-agent-scope', note: 'a call for a capability the grant never gave' },
@@ -261,6 +439,10 @@ export function LedgerBound() {
           Scope is <span className="text-ink">⊆ parent</span>: an agent can only ever narrow what it
           was delegated, never widen it.
         </motion.p>
+
+        <motion.div {...fadeUp(0.35)} className="mt-14 max-w-2xl">
+          <BudgetFlip />
+        </motion.div>
       </div>
     </section>
   );
@@ -269,6 +451,24 @@ export function LedgerBound() {
 // ---------------------------------------------------------------------------
 // 03 — Works with what you have.
 // ---------------------------------------------------------------------------
+
+const MCP_CONFIG_JSON = `{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "@auths/mcp", "wrap",
+        "--scope", "fs.read",
+        "--budget", "$5",
+        "--ttl", "30m",
+        "--",
+        "npx", "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/path/to/project"
+      ]
+    }
+  }
+}`;
 
 export function LedgerWrap() {
   return (
@@ -299,28 +499,12 @@ export function LedgerWrap() {
                 <span className="font-mono text-[11px] tracking-wider text-stone-500">
                   ~/.config/mcp.json
                 </span>
-                <span className="font-mono text-[11px] text-stone-600">before → after</span>
+                <span className="flex items-center gap-3">
+                  <span className="font-mono text-[11px] text-stone-600">before → after</span>
+                  <CopyButton text={MCP_CONFIG_JSON} />
+                </span>
               </div>
-              <CodeBlock
-                language="json"
-                code={`{
-  "mcpServers": {
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "@auths/mcp", "wrap",
-        "--scope", "fs.read",
-        "--budget", "$5",
-        "--ttl", "30m",
-        "--",
-        "npx", "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "/path/to/project"
-      ]
-    }
-  }
-}`}
-              />
+              <CodeBlock language="json" code={MCP_CONFIG_JSON} />
             </div>
           </motion.div>
         </div>
@@ -355,7 +539,7 @@ export function LedgerRevoke() {
           </div>
 
           <motion.div {...fadeUp(0.2)}>
-            <InkTerminal label="revoke one agent">
+            <InkTerminal label="revoke one agent" copy="auths id agent revoke --label deploy-bot">
               <Dim># the deploy bot is compromised — cut it</Dim>
               <Prompt>auths id agent revoke --label deploy-bot</Prompt>
               <Allow>revocation recorded at seq 7 — every verifier honors it</Allow>
@@ -460,7 +644,10 @@ export function LedgerCTA() {
         </motion.p>
 
         <motion.div {...fadeUp(0.25)} className="mt-10 max-w-2xl">
-          <InkTerminal label="quickstart">
+          <InkTerminal
+            label="quickstart"
+            copy="npx @auths/mcp wrap --budget '$5' --ttl 30m -- my-mcp-server"
+          >
             <Dim># wrap any MCP server — the agent keeps working, now bounded</Dim>
             <Prompt>npx @auths/mcp wrap --budget &apos;$5&apos; --ttl 30m -- my-mcp-server</Prompt>
             <Dim className="pt-1"># then, as anyone: re-derive the spend from the receipts</Dim>

@@ -15,6 +15,7 @@
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
+import { CopyButton } from '@/components/copy-button';
 
 export const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 12 } as const,
@@ -26,13 +27,29 @@ export const fadeUp = (delay = 0) => ({
 export const DENY = '#c0442e'; // the only red on the page — a refusal
 export const OK = '#e8845c'; // warm accent — an allow / a tick
 
+/**
+ * The section beat, uniform on every page: the number ticks in, the rule
+ * draws left to right, the headline rises.
+ */
 export function SectionMark({ n, title, id }: { n: string; title: string; id?: string }) {
   return (
     <div id={id} className="scroll-mt-24">
-      <motion.div {...fadeUp(0)} className="flex items-baseline gap-4">
-        <span className="font-mono text-sm font-semibold tracking-widest text-seal">{n}</span>
-        <span className="h-px flex-1 bg-rule" aria-hidden="true" />
-      </motion.div>
+      <div className="flex items-baseline gap-4">
+        <motion.span
+          {...fadeUp(0)}
+          className="font-mono text-sm font-semibold tracking-widest text-seal"
+        >
+          {n}
+        </motion.span>
+        <motion.span
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.7, delay: 0.1, ease: 'easeOut' }}
+          className="h-px flex-1 origin-left bg-rule"
+          aria-hidden="true"
+        />
+      </div>
       <motion.h2
         {...fadeUp(0.05)}
         className="mt-6 font-display text-4xl font-medium tracking-tight text-ink sm:text-5xl"
@@ -55,21 +72,29 @@ export function InkLink({ href, children }: { href: string; children: React.Reac
   );
 }
 
-/** Dark terminal — the only dark object on the paper page. */
+/**
+ * Dark terminal — the only dark object on the paper page. Pass `copy` to
+ * offer the pane's primary command for one-click lifting.
+ */
 export function InkTerminal({
   label,
   tag,
+  copy,
   children,
 }: {
   label: string;
   tag?: string;
+  copy?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="overflow-hidden rounded-lg bg-[#15130f] shadow-[0_24px_60px_-12px_rgba(28,24,20,0.45)] ring-1 ring-black/20">
       <div className="flex items-center justify-between border-b border-white/5 px-5 py-2.5">
         <span className="font-mono text-[11px] tracking-wider text-stone-500">{label}</span>
-        {tag ? <span className="font-mono text-[11px] text-stone-600">{tag}</span> : null}
+        <span className="flex items-center gap-3">
+          {tag ? <span className="font-mono text-[11px] text-stone-600">{tag}</span> : null}
+          {copy ? <CopyButton text={copy} /> : null}
+        </span>
       </div>
       <div className="space-y-1.5 px-5 py-4 font-mono text-[13px] leading-relaxed text-stone-300">
         {children}
