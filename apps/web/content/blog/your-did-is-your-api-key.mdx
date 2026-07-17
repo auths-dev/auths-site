@@ -120,7 +120,7 @@ Every operation is recorded:
 - `[NAMESPACE]` — a package namespace was claimed
 - `[ORG]` — an organization member was added or removed
 
-You can see this live at [auths.dev/registry](/registry). The audit log section shows real operations from real identities. This isn't a mockup — it's the actual transparency log data.
+These land in the audit log as real operations from real identities — actual transparency-log data, not a mockup.
 
 The network activity feed shows artifacts and identities. The audit log shows the governance operations — the key lifecycle events that make the whole system auditable.
 
@@ -135,7 +135,7 @@ $ curl https://auths.dev/v1/audit/feed
 
 No Bearer token. No API key header. Your identity is already known to the network. The rate limiter applies to your requests just like any API. But there's nothing to rotate, nothing to store in a `.env` file, nothing to paste into a CI dashboard.
 
-We [ran a test](/registry) — 250 requests in under a second. The first 182 succeeded. The next 68 got rate-limited. The rate limiter is working. And at no point did we configure an API key.
+We ran a test — 250 requests in under a second. The first 182 succeeded. The next 68 got rate-limited. The rate limiter is working. And at no point did we configure an API key.
 
 ## What this is not
 
@@ -151,8 +151,6 @@ This isn't theoretical. The CLI is shipped, the SDKs exist for Python and Node, 
 brew install auths-dev/auths-cli/auths
 auths init
 ```
-
-Preview the registry: [auths.dev/registry](/registry)
 
 Read the code: [github.com/auths-dev/auths](https://github.com/auths-dev/auths)
 

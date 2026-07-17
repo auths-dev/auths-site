@@ -112,9 +112,9 @@ For AI agents, there's an `agent` profile with capability restrictions — scope
 
 ## What this looks like on a registry
 
-Preview it at [auths.dev/registry](/registry). The network activity feed shows identity registrations, artifact attestations, and key lifecycle events. Each entry links to a DID. Each DID links to platform claims, device keys, and signed artifacts.
+A registry here is a log you can host yourself. Its activity feed shows identity registrations, artifact attestations, and key lifecycle events. Each entry links to an identity; each identity links to platform claims, device keys, and signed artifacts.
 
-Underneath, every operation is append-only, Merkle-tree-backed, and independently verifiable. The hosted public registry is coming soon — self-hosted registries work today.
+Underneath, every operation is append-only, Merkle-tree-backed, and independently verifiable. Self-hosted registries work today.
 
 ## Try it
 
@@ -122,8 +122,6 @@ Underneath, every operation is append-only, Merkle-tree-backed, and independentl
 brew install auths-dev/auths-cli/auths
 auths init
 ```
-
-Preview the registry: [auths.dev/registry](/registry)
 
 Read the code: [github.com/auths-dev/auths](https://github.com/auths-dev/auths)
 

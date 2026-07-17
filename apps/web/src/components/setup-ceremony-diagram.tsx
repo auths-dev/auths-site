@@ -132,7 +132,7 @@ const VARIANTS: Record<string, VariantConfig> = {
         { icon: KeyIcon, title: 'Generate Key', detail: 'Interactive prompt' },
         { icon: SearchIcon, title: 'Find Key ID', detail: 'list-secret-keys' },
         { icon: SettingsIcon, title: 'Signing Key', detail: 'git config' },
-        { icon: SettingsIcon, title: 'Enable Sign', detail: 'gpgsign true' },
+        { icon: SettingsIcon, title: 'Turn on Sign', detail: 'gpgsign true' },
       ],
       [
         { icon: TerminalIcon, title: 'Export Key', detail: '--armor --export' },
@@ -155,7 +155,7 @@ const VARIANTS: Record<string, VariantConfig> = {
         { icon: DownloadIcon, title: 'Install', detail: 'brew install gitsign' },
         { icon: SettingsIcon, title: 'Set Program', detail: 'gpg.x509.program' },
         { icon: SettingsIcon, title: 'Set Format', detail: 'gpg.format x509' },
-        { icon: SettingsIcon, title: 'Enable Sign', detail: 'gpgsign true' },
+        { icon: SettingsIcon, title: 'Turn on Sign', detail: 'gpgsign true' },
       ],
     ],
     title: 'setup — sigstore',

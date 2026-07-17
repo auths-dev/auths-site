@@ -42,7 +42,7 @@ function ArrowRightIcon({ size = 14, className, ...props }: IconProps) {
   );
 }
 
-function FingerprintIcon({ size = 18, className, ...props }: IconProps) {
+function BiometricIcon({ size = 18, className, ...props }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
       <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" />
@@ -160,7 +160,7 @@ function AuthsDiagram() {
           className="rounded-lg border border-[#e8845c]/20 bg-[#e8845c]/5 px-4 py-3"
         >
           <div className="flex items-center gap-2">
-            <FingerprintIcon size={16} className="text-[#e8845c]" />
+            <BiometricIcon size={16} className="text-[#e8845c]" />
             <span className="font-mono text-xs font-medium text-[#e8845c]">Device Keychain</span>
           </div>
           <p className="mt-1 text-xs text-stone-500">
@@ -185,7 +185,7 @@ function AuthsDiagram() {
           <div className="flex items-center gap-2">
             <ShieldIcon size={16} className="text-[#e8845c]" />
             <span className="font-mono text-xs font-medium text-[#e8845c]">
-              did:keri:EXTfn3SEW...
+              id: &lt;root&gt; · yours
             </span>
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -205,7 +205,7 @@ function AuthsDiagram() {
         {[
           'Verifiable by anyone (public identifier)',
           'Revocable instantly (one operation, global effect)',
-          'Rotatable without losing history (KERI pre-rotation)',
+          'Rotatable without losing history (pre-rotation built in)',
         ].map((v) => (
           <div key={v} className="flex items-center gap-2 pl-1">
             <span className="h-1 w-1 shrink-0 rounded-full bg-[#e8845c]/40" />
