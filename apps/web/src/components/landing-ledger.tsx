@@ -137,13 +137,21 @@ function HeroTerminal() {
         <motion.p variants={heroLine} className="text-[#e8845c]">
           ✓ signed — the private key never left the keychain
         </motion.p>
-        <motion.p variants={heroLine} className="pt-1 text-stone-500"># the signature is the credential</motion.p>
+        <motion.p variants={heroLine} className="pt-1 text-stone-500"># the signature is the credential — in scope, it&rsquo;s allowed</motion.p>
         <motion.p variants={heroLine} className="break-all">
           <span className="select-none text-stone-500">$ </span>
           curl -H &quot;Authorization: Auths-Presentation eyJ…&quot; …/v1/deploy
         </motion.p>
         <motion.p variants={heroLine} className="text-[#e8845c]">
           {'{ "deployedBy": "did:keri:EBf2cE…", "caps": ["acme:deploy"] }'}
+        </motion.p>
+        <motion.p variants={heroLine} className="pt-1 text-stone-500"># the same credential, one step past its scope</motion.p>
+        <motion.p variants={heroLine} className="break-all">
+          <span className="select-none text-stone-500">$ </span>
+          curl -H &quot;Authorization: Auths-Presentation eyJ…&quot; …/v1/<span className="text-[#d9694e]">databases/drop</span>
+        </motion.p>
+        <motion.p variants={heroLine} className="text-[#d9694e]">
+          403 · {'{ "denied": "outside-agent-scope", "cap": "acme:db.drop", "granted": ["acme:deploy"] }'}
         </motion.p>
       </motion.div>
     </div>
