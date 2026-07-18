@@ -4,11 +4,11 @@
   covers: ['1']
   title: both market plans are closed, proven, and fleet-guarded
   class: missing-surface
-  status: open
+  status: closed
   severity: headline
   evidence:
   - probes/mc-1.sh:1
-  observed: 'RED at baseline 2026-07-18: ready-items-remaining=14 oracle=0; fleet test absent'
+  observed: 'CLOSED 2026-07-18: zero ready items; merchant 20/20 exit 0; fleet 21/21 exit 0 at 391 calls/s; every child closed except MC-4 (parked).'
   smallest_fix: 'Too big for one cycle: decompose per docs/PRD.md epics with covers_claim: [MC-1],
     sculpt-first (auths, then target, then docs); the merchant-loop harness plus the new fleet
     test prove each slice.

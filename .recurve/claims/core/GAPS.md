@@ -45,24 +45,22 @@
     Smallest fix: <the minimal honest change that closes this>.
 -->
 
-## 1. Both market plans are closed, proven, and fleet-guarded
+## 1. Both market plans are closed, proven, and fleet-guarded (CLOSED)
 
-What is observable today: `docs/plans/market/merchant-loop-improvements.md`
-carries 14 open [ready] items (probe output 2026-07-18: `ready-items-remaining=14
-oracle=0`), `tests/e2e/fleet-throughput.mjs` does not exist, and the suite
-harness runs only the merchant-loop test. The goal (docs/PRD.md, admitted
-41/41): every ready item in both market plans closed on the `merchant-close`
-branches, a headless-fleet throughput test (8+ delegated agents, one shared
-cap refused fleet-wide with the exact `usage-cap-exceeded` string, calls/sec
-and p50/p95 reported, 20 cps floor, logs re-deriving `consistent`) present and
-wired into this suite's harness so the gate itself runs it. Negative space: a
-plan with any [ready] marker left, a missing fleet test, or a fleet test not
-wired into the gate keeps this claim RED — and the trap fixture (a plan copy
-with [ready] markers) must always evaluate RED. Too big for one cycle by
-construction: cycles decompose it via `covers_claim: [MC-1]` per the PRD's
-epics, sculpt-first (auths contract changes land in the auths sculpt, then the
-target consumes them, then docs).
+Closed 2026-07-18, discharged through MC-ASM once its children closed. The
+merchant-loop plan carries zero `[ready]` markers — every item is
+`[fixed: repo@sha]`, `[owner-release]`, `[documented]`, or `[parked]` with its
+reason — and the monetization epics M-A1/M-A2/M-S1/M-S2 shipped (channels, the
+fleet treasury with signed checkpoints, the root-keyed billing schema with
+log_hash-cited fees, the re-derived fleet dashboard). The proof is behavioral
+and gate-wired: `full-merchant-loop.mjs` (20 checks, exit 0) and
+`fleet-throughput.mjs` (21 checks, exit 0 — 8 agents under ONE root and ONE $1
+cap at ~390 calls/s, p50 4 ms, fleet-wide `usage-cap-exceeded`, logs + signed
+checkpoint trail re-derived equal).
 
+Residual, stated: MC-4 (the x402-adapter facilitator `errorReason`) is PARKED —
+its honest fix lives in ../auths-mcp, outside the declared sculpt trees; the
+plan names the park and the owner sanction it needs.
 
 ## MC-2 — A1.1 export-spend-bundle emits spend.jsonl plus audit.json and leaves the registry committed (CLOSED)
 
