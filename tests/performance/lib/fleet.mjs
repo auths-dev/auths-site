@@ -64,7 +64,7 @@ export async function startTreasury({ port, fleetId, capCents, stateDir, checkpo
  * spawn ceiling — we return the agents that came up plus a `failures` count, so "could not
  * reach N" becomes measured data rather than a crash.
  */
-export async function spawnAgents(lab, { n, treasury, spawnConcurrency = 24 }) {
+export async function spawnAgents(lab, { n, treasury, spawnConcurrency = 24, metricsBasePort }) {
   const agents = [];
   let failures = 0;
   await pool(Array.from({ length: n }, (_, i) => i + 1), Math.min(spawnConcurrency, n), async (i) => {
@@ -73,6 +73,9 @@ export async function spawnAgents(lab, { n, treasury, spawnConcurrency = 24 }) {
       lab: paths.home, liveDir: paths.liveDir, keyfile: paths.keyfile, label: `agent-${i}`,
       treasury: treasury ? { url: `tcp://127.0.0.1:${treasury.port}`, fleet: treasury.fleetId } : undefined,
     });
+    // #7 dogfood: give each agent its own opt-in Prometheus /metrics port.
+    const metricsPort = metricsBasePort ? metricsBasePort + i - 1 : undefined;
+    if (metricsPort) env.AUTHS_MCP_METRICS_ADDR = `127.0.0.1:${metricsPort}`;
     try {
       const mcp = new StdioMcp(GATEWAY_BIN, [
         'wrap', '--scope', 'paid.call', '--budget', HUGE_BUDGET, '--ttl', '30m',
@@ -83,7 +86,7 @@ export async function spawnAgents(lab, { n, treasury, spawnConcurrency = 24 }) {
       }, 120_000);
       if (init.error) { mcp.kill(); failures += 1; return; }
       mcp.notify('notifications/initialized');
-      agents.push({ mcp, label: `agent-${i}`, paths, env });
+      agents.push({ mcp, label: `agent-${i}`, paths, env, metricsPort });
     } catch { failures += 1; }
   });
   return { agents, failures };

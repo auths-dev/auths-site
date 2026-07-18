@@ -342,8 +342,30 @@ function APP() {
     tableView(psec, ['stage', 'calls/s', 'note'], M.projection.map((p) => [p.label, fmt(p.value), p.note]));
   }
 
+  // ── Observability dogfood (#7) ──
+  function metricsDogfood() {
+    const mx = S.metrics; if (!mx || mx.error) return;
+    const sec = section('metrics', 'Observability — /metrics dogfood',
+      'The gateway now emits Prometheus metrics on the payment hot path (#7). The harness drove a known number of calls, then scraped each gateway’s own <code>/metrics</code> and cross-checked — matching counts prove the surface is load-bearing, not decorative (the study previously had to reconstruct these from the outside).');
+    sec.appendChild(E('p', { class: 'verify', html:
+      `<span class="badge ${mx.dogfood_match ? 'ok' : 'bad'}">${mx.dogfood_match ? '✓ match' : '✗ mismatch'}</span> `
+      + `the harness drove <b>${fmt(mx.external_total)}</b> calls; the gateway’s own <code>auths_mcp_calls_total</code> counted `
+      + `<b>${fmt(mx.internal.callsTotal)}</b> across ${mx.internal.scraped} agents.` }));
+    tableView(sec, ['metric (scraped from /metrics)', 'value'], [
+      ['auths_mcp_calls_total{verdict="granted"}', fmt(mx.internal.granted)],
+      ['auths_mcp_calls_total{verdict="refused"}', fmt(mx.internal.refused)],
+      ['auths_mcp_sign_total{path="inproc"}', fmt(mx.internal.signInproc)],
+      ['auths_mcp_sign_total{path="subprocess"}', fmt(mx.internal.signSubprocess)],
+      ['auths_mcp_settle_total', fmt(mx.internal.settle)],
+      ['auths_mcp_call_latency_seconds (samples)', fmt(mx.internal.latencyCount)],
+    ]);
+    sec.appendChild(E('p', { class: 'cap', html:
+      `The signing breakdown independently confirms <b>#5</b>: only ${fmt(mx.internal.signSubprocess)} subprocess signs (the agent warm-ups) vs `
+      + `<b>${fmt(mx.internal.signInproc)}</b> in-process — the metered hot path never forks git.` }));
+  }
+
   // build
-  kpis(); ramp(); soak(); burst(); micro();
+  kpis(); ramp(); soak(); burst(); micro(); metricsDogfood();
   // theme toggle
   const root = document.documentElement;
   document.getElementById('theme').addEventListener('click', () => {

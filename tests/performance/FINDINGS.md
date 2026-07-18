@@ -56,6 +56,11 @@ same harness (`auths@7c08f225` → `auths@a1052b5a`):
   tests pass against a live Postgres**, including that concurrent onboarding of different
   identities no longer serializes. Opt-in `backend-postgres`; git stays default; not wired into
   the gateway.
+- **#7** put Prometheus metrics on the payment hot path (calls/latency/signing/settle) behind
+  an opt-in `/metrics` endpoint, and the harness now **dogfoods** it — the gateway's own
+  `auths_mcp_calls_total` exactly matched the harness's driven count (**1,604 = 1,604**), and
+  the `sign{inproc}=1604` vs `sign{subprocess}=4` split independently confirms #5 (only the 4
+  agent warm-ups fork git; every metered call is in-process).
 - **#4** (keepalive treasury connection vs connect-per-reserve) cut the fleet tax from ~30%
   to single digits and lifted the fleet **peak** 35%.
 - **#2** (in-memory authoritative counter, default per-settle durability) trimmed warm
