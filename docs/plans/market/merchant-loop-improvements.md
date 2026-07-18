@@ -41,15 +41,13 @@ close it the same way.
   `git add -A && git commit` on the org repo. Lives beside `verify-spend` in
   `auths-mcp-gateway/src/main.rs`.
 
-- **A1.2 [decide] The budget counter's storage home.** The durable cross-rail counter
-  lives at `<registry>/budget-ledger/<agent>` as an *uncommitted working file*, while
-  everything else the verifier needs lives under `refs/auths/*`. That made "publish
-  your registry" ill-defined by the contract itself — the e2e's `budget-mismatch` was
-  this exact gap.
-  **Open question:** move the counter under git-as-storage (`refs/auths/budget/…`,
-  consistent, atomic-ref semantics, but a write-amplification cost per settled call) or
-  keep it a file and make A1.1's commit step the documented contract? A1.1 works either
-  way; the refactor is about long-term coherence.
+- **A1.2 [decided 2026-07-18] The budget counter stays a file.** The durable
+  cross-rail counter lives at `<registry>/budget-ledger/<agent>` as a working file;
+  `export-spend-bundle` (A1.1) commits a snapshot of it at publish time, making the
+  commit step the documented contract. Resolved by the scaling analysis (P3.1 and its
+  Redis note): refs-based storage pays blob+tree+commit+ref per settled call and grows
+  forever, while integrity is carried by the agent-signed running cumulative plus
+  eventual external anchoring — never by commit frequency. Nothing blocks A1.1.
 
 - **A1.3 [ready] The gateway sets its own git identity.** Chain builds die on clean
   machines ("unable to auto-detect email address") — precisely the machines autonomous
@@ -100,8 +98,10 @@ close it the same way.
   semantics, the counter). Run `full-merchant-loop.mjs` against the release candidates
   (local CLI + local addon via `AUTHS_CLI` / `AUTHS_SDK_PATH`) before publishing —
   manual is fine; skipping it is how the seams rot.
-  **Open question:** does this live in the auths release runbook (`just release`) or as
-  an auths-site invocation documented in both places?
+  **Open question (non-blocking, later):** does this live in the auths release runbook
+  (`just release`) or as an auths-site invocation documented in both places? Until
+  decided, running it from either checkout works — the loop takes `AUTHS_CLI` /
+  `AUTHS_SDK_PATH` overrides precisely so release candidates can be pointed at it.
 
 ---
 
@@ -151,8 +151,10 @@ close it the same way.
   (check b) is skipped in production: `PROBER_X402_WALLET_PRIVATE_KEY` is unset. With a
   funded base-sepolia wallet, the platform genuinely becomes every listing's first
   paying customer and the Verified tooltip gets stronger.
-  **Open question:** who custodies the prober wallet, and is the per-probe testnet
-  spend acceptable ops overhead? (Same wallet could serve `X402_LIVE=1` e2e runs.)
+  **Open question (non-blocking, later):** who custodies the prober wallet, and is the
+  per-probe testnet spend acceptable ops overhead? (Same wallet could serve
+  `X402_LIVE=1` e2e runs.) Until decided the metered leg stays honestly soft — probe
+  detail records the skip and the Verified tooltip claims only what ran.
 
 - **S2.3 [ready] True day-bucketing for receipt summaries.** v0 writes one all-time
   row per run-day. The spend log's records carry timestamps; bucket them:
@@ -195,9 +197,10 @@ close it the same way.
   real (it skips cleanly today), so a contract-drifting SDK bump fails the build
   instead of the first agent.
 
-- **S4.3 [decide] Challenge-table hygiene.** Expired nonces are pruned opportunistically
-  on each mint; under zero traffic rows linger.
-  **Open question:** good enough (rows are inert), or add a cleanup to the daily cron?
+- **S4.3 [decide — non-blocking, later] Challenge-table hygiene.** Expired nonces are
+  pruned opportunistically on each mint; under zero traffic rows linger.
+  **Open question:** good enough (rows are inert — an expired nonce can never consume),
+  or add a cleanup to the daily cron? Default posture until decided: leave it.
 
 ---
 
@@ -216,7 +219,8 @@ every historical counter value stays reachable. Git-as-storage is right for
 low-frequency identity events; it is the wrong store for a high-frequency monotonic
 counter. **Recommendation: close A1.2 as "counter stays a file; `export-spend-bundle`
 commits a snapshot of it at publish time"** — the audit only ever needs the counter's
-value at verification, not a committed value per call.
+value at verification, not a committed value per call. *(Adopted — A1.2 above is
+decided accordingly, 2026-07-18.)*
 
 On "just put Redis in front" (the relay already uses Redis for shared state across
 stateless processes): that solves *distribution*, not the write-path model — the
