@@ -10,3 +10,6 @@ dist/
 .flow/
 my-artifact.txt
 my-artifact.txt.auths.json
+
+# recurve run state (parked gaps, records, receipts)
+.recurve/state/

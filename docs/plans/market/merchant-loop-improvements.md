@@ -9,6 +9,9 @@ where a task needs an owner decision first.
 Status codes: **[fixed]** landed during the e2e session · **[ready]** buildable now ·
 **[decide]** blocked on an open question.
 
+You will be working in auths, so you must read this first:
+/Users/bordumb/workspace/repositories/auths-base/auths/CLAUDE.md
+
 ---
 
 ## Part 1 — `auths` (SDK / gateway / CLI)
