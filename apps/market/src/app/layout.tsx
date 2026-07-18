@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Fraunces, Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import { LedgerFooter, MotionProvider, type FooterLink } from '@auths/ledger-ui';
+import { LedgerFooter, MotionProvider } from '@auths/ledger-ui';
 import { MarketNav } from '@/components/market-nav';
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
@@ -23,15 +23,6 @@ export const metadata: Metadata = {
   openGraph: { title: TITLE, description: DESC, siteName: 'Auths Market', type: 'website' },
 };
 
-const FOOTER_LINKS: readonly FooterLink[] = [
-  { label: 'Browse', href: '/' },
-  { label: 'Sell an endpoint', href: '/sell' },
-  { label: 'How verification works', href: '/verification' },
-  { label: 'auths.dev', href: 'https://auths.dev' },
-  { label: 'Docs', href: 'https://docs.auths.dev/' },
-  { label: 'GitHub', href: 'https://github.com/auths-dev/auths' },
-];
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -41,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MotionProvider>
           <MarketNav />
           <main>{children}</main>
-          <LedgerFooter links={FOOTER_LINKS} />
+          <LedgerFooter />
         </MotionProvider>
       </body>
     </html>

@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation';
 
 const NAV_LINKS = [
   { label: 'Product', href: '/' },
-  { label: 'Verify', href: '/verify' },
-  { label: 'Blog', href: '/blog' },
+  // { label: 'Verify', href: '/verify' }, // hidden for now — may return later
+  // Blog lives only in the footer now — see LedgerFooter defaults.
 ] as const;
 
 /** One nav, one tone — the ledger's paper chrome on every page. */
@@ -46,7 +46,7 @@ export function SiteNav() {
           ))}
 
           <a
-            href="https://market.auths.dev"
+            href="https://market.auths.dev/"
             className="font-mono text-[13px] text-ink-faint transition-colors hover:text-ink sm:text-sm"
           >
             Market

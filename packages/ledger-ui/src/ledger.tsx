@@ -152,16 +152,14 @@ export interface FooterLink {
   href: string;
 }
 
+// One shared footer nav for every Auths surface (auths.dev and market.auths.dev).
+// The auths.dev-only pages are absolute so the identical footer resolves from
+// either domain.
 const LEDGER_FOOTER_LINKS: readonly FooterLink[] = [
-  { label: 'Check it', href: '/#audit' },
-  { label: 'What it bounds', href: '/#bound' },
-  { label: 'Wrap a server', href: '/#wrap' },
-  { label: 'Revoke', href: '/#revoke' },
-  { label: 'How it works', href: '/#how' },
-  { label: 'Verify a release', href: '/verify' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'Security', href: '/trust' },
-  { label: 'Market', href: 'https://market.auths.dev' },
+  { label: 'Verify a release', href: 'https://auths.dev/verify' },
+  { label: 'Blog', href: 'https://auths.dev/blog' },
+  { label: 'Security', href: 'https://auths.dev/trust' },
+  { label: 'Market', href: 'https://market.auths.dev/' },
   { label: 'Docs', href: 'https://docs.auths.dev/' },
   { label: 'GitHub', href: 'https://github.com/auths-dev/auths' },
 ];
