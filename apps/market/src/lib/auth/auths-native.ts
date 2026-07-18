@@ -19,6 +19,11 @@ import { createServiceClient } from '@/lib/supabase/service';
 
 const SCHEME = 'Auths-Presentation ';
 
+/** The capability a seller credential must grant (colon-namespaced — the
+ *  capability grammar has no dots). Any valid credential without it is a real
+ *  identity with the wrong grant: 403, not 401. */
+export const SELL_CAPABILITY = 'market:sell';
+
 export type AgentAuthResult =
   | { ok: true; seller: { id: string; subject: string; authsRoot: string | null; caps: string[] } }
   | { ok: false; status: 401 | 403 | 503; code: string; detail?: string };
@@ -134,8 +139,8 @@ export async function authenticateAgent(
   }
 
   const caps = report.caps ?? [];
-  if (caps.length === 0) {
-    return { ok: false, status: 403, code: 'no-capabilities-granted' };
+  if (!caps.includes(SELL_CAPABILITY)) {
+    return { ok: false, status: 403, code: 'missing-sell-capability' };
   }
 
   // The proven root comes from the verdict itself (the verifier validated the

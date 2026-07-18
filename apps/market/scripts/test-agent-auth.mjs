@@ -56,9 +56,17 @@ function authsJson(...args) {
 }
 
 async function api(path, options = {}) {
-  const res = await fetch(`${MARKET}${path}`, options);
-  const body = await res.json().catch(() => ({}));
-  return { status: res.status, body };
+  // The in-process napi call (delegateAgent) can sever undici's pooled
+  // keep-alive socket; one retry on a reset keeps the loop honest.
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const res = await fetch(`${MARKET}${path}`, options);
+      const body = await res.json().catch(() => ({}));
+      return { status: res.status, body };
+    } catch (err) {
+      if (attempt >= 1 || err?.cause?.code !== 'ECONNRESET') throw err;
+    }
+  }
 }
 
 let passed = 0;
@@ -81,7 +89,7 @@ const did = idInfo.did ?? idInfo.identity_did ?? idInfo.controller_did;
 check('agent minted an identity', typeof did === 'string' && did.length > 10, idInfo);
 
 // ── 2. self-issued capability credential (root issues to itself) ────────────────
-const issued = authsJson('credential', 'issue', '--issuer', 'main', '--to', did, '--cap', 'sign');
+const issued = authsJson('credential', 'issue', '--issuer', 'main', '--to', did, '--cap', 'market:sell');
 const said = issued.credential_said;
 check('capability credential issued', typeof said === 'string' && said.length > 10, issued);
 
@@ -169,21 +177,37 @@ check('forged presentation signature is refused (401)',
   badSig.status === 401 && badSig.body.error?.code?.startsWith('presentation-'),
   badSig);
 
-// ── 9. a DELEGATED identity sells, and the market credits its proven root ──────
-// The device identity `auths init` authorized is a real delegated AID (its KEL
-// opens with a delegation the root anchored, key alias `main-device`). Its
-// presentation carries the delegator KEL, and the verdict's subjectRoot — not
-// anything parsed from evidence — names the root.
-const deviceList = authsJson('device', 'list');
-const agent = {
-  agentDid: deviceList.devices?.[0]?.id,
-  keyAlias: 'main-device',
-};
-check('delegated device identity anchored under the root',
-  agent.agentDid?.startsWith('did:keri:') && agent.agentDid !== did && deviceList.devices?.[0]?.anchored === true,
-  deviceList);
+// ── 9. a valid credential with the WRONG grant is a 403, not a 401 ─────────────
+const signOnly = authsJson('credential', 'issue', '--issuer', 'main', '--to', did, '--cap', 'sign');
+const c5 = await api('/api/v1/challenge', { method: 'POST' });
+const p5 = authsJson('credential', 'present', '--subject', 'main', '--said', signOnly.credential_said,
+  '--audience', AUDIENCE, '--nonce', c5.body.nonce, '--with-evidence');
+const wrongGrant = await api('/api/v1/listings', {
+  method: 'POST',
+  headers: { authorization: p5.authorization, 'content-type': 'application/json' },
+  body: JSON.stringify({ evidence: p5.evidence, listing: { ...listing, slug: listing.slug + '-e' } }),
+});
+check('a proven identity without market:sell is refused (403)',
+  wrongGrant.status === 403 && wrongGrant.body.error?.code === 'missing-sell-capability',
+  wrongGrant);
 
-const issuedD = authsJson('credential', 'issue', '--issuer', 'main', '--to', agent.agentDid, '--cap', 'sign');
+// ── 10. a DELEGATED agent sells, and the market credits its proven root ────────
+// The SDK's delegateAgent (same napi addon the market's verifier uses) mints a
+// real KERI-delegated agent under the root: its own dip-rooted KEL, anchored by
+// the parent. Its presentation carries the delegator KEL, and the verdict's
+// subjectRoot — not anything parsed from evidence — names the root.
+const { createRequire } = await import('node:module');
+const require2 = createRequire(import.meta.url);
+const SDK_PATH = process.env.AUTHS_SDK_PATH
+  ?? resolve(import.meta.dirname, '../../../../auths/packages/auths-node');
+const sdk = require2(SDK_PATH);
+Object.assign(process.env, env);
+const agent = sdk.delegateAgent('listing-bot', ['sign'], env.AUTHS_HOME, env.AUTHS_PASSPHRASE);
+check('delegateAgent mints a KERI-delegated agent AID',
+  agent.agentDid?.startsWith('did:keri:') && agent.agentDid !== did && !!agent.agentPrefix,
+  agent);
+
+const issuedD = authsJson('credential', 'issue', '--issuer', 'main', '--to', agent.agentDid, '--cap', 'market:sell');
 const c4 = await api('/api/v1/challenge', { method: 'POST' });
 const p4 = authsJson('credential', 'present',
   '--subject', agent.keyAlias,
