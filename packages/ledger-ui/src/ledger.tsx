@@ -111,10 +111,13 @@ export function Prompt({
   children: React.ReactNode;
   className?: string;
 }) {
+  // The `$` gutter is always flush-left. Any caller className (e.g. a `pl-*`
+  // continuation indent) applies to the command text only, never the prompt —
+  // so every `$` down a multi-line `\` command stays aligned to the left edge.
   return (
-    <p className={`break-all ${className}`}>
+    <p className="break-all">
       <span className="select-none text-[#9a948c]">$ </span>
-      {children}
+      <span className={className}>{children}</span>
     </p>
   );
 }

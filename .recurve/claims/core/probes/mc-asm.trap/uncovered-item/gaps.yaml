@@ -1,0 +1,17 @@
+# gaps.yaml — the live ledger: verified observations only.
+
+- id: MC-1
+  title: both market plans are closed, proven, and fleet-guarded
+  class: missing-surface
+  status: open
+  severity: headline
+  evidence:
+  - probes/mc-1.sh:1
+  observed: 'RED at baseline 2026-07-18: ready-items-remaining=14 oracle=0; fleet test absent'
+  smallest_fix: 'Too big for one cycle: decompose per docs/PRD.md epics with covers_claim: [MC-1],
+    sculpt-first (auths, then target, then docs); the merchant-loop harness plus the new fleet
+    test prove each slice.
+
+    '
+  probe: probes/mc-1.sh
+  unlocks: the market sells, settles, and scales with no human in the loop, provably

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { InkTerminal, Prompt, Dim, Allow, Deny, CodeBlock } from '@auths/ledger-ui';
+import { CodeBlock } from '@auths/ledger-ui';
 import { getListingBySlug, getReceiptSummaries, verifySpendCommand } from '@/lib/listings';
 import { ListingBadges } from '@/components/badges';
 import { IntegrationPane } from '@/components/integration-pane';
@@ -72,21 +72,6 @@ export default async function ListingPage({ params }: Props) {
           </tbody>
         </table>
 
-        <h2 className="mt-14 font-display text-2xl font-medium text-ink">Use it, bounded</h2>
-        <div className="mt-5 max-w-3xl">
-          <div className="mb-5">
-            <InkTerminal label="what your budget does" tag="your cap, not ours">
-              <Allow>
-                {listing.tools[0]?.name ?? 'tool'} {cents(listing.price_cents)} → allowed · spent{' '}
-                {cents(listing.price_cents)} / $1.00
-              </Allow>
-              <Deny>{listing.tools[0]?.name ?? 'tool'} $1.40 → usage-cap-exceeded · refused</Deny>
-              <Dim># the refusal happens at your gateway — this endpoint is never invoked</Dim>
-            </InkTerminal>
-          </div>
-          <IntegrationPane listing={listing} />
-        </div>
-
         <h2 className="mt-14 font-display text-2xl font-medium text-ink">
           Receipts — re-derived, not reported
         </h2>
@@ -115,6 +100,11 @@ export default async function ListingPage({ params }: Props) {
             ? `Every figure re-derived via verify-spend from the seller's published log (hash ${latestHash?.slice(0, 12)}…).`
             : 'No receipts re-derived yet — figures appear once the receipts worker has verified the published log.'}
         </p>
+
+        <h2 className="mt-14 font-display text-2xl font-medium text-ink">Use it, bounded</h2>
+        <div className="mt-5 max-w-3xl">
+          <IntegrationPane listing={listing} />
+        </div>
 
         <h2 className="mt-14 font-display text-2xl font-medium text-ink">Audit this yourself</h2>
         <p className="mt-3 max-w-2xl text-base leading-7 text-ink-soft">

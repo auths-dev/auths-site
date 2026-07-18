@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 const NAV_LINKS = [
   { label: 'Browse', href: '/' },
   { label: 'Sell', href: '/sell' },
+  { label: 'Fleet', href: '/fleet' },
   { label: 'Dashboard', href: '/dashboard' },
 ] as const;
 
@@ -23,7 +24,6 @@ export function MarketNav() {
           href="/"
           className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/auths_logo.svg"
             alt=""

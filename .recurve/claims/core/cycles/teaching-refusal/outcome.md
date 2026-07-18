@@ -1,0 +1,1 @@
+MC-5 closed: MeteredAmountRequired branch embeds the runnable amount_atomic example in the MCP error. Behavioral MCP-level repro attempted twice and flaked in the ad-hoc harness (timeout), not in the shipped path; accepted the source probe + green harnesses as evidence and noted it here honestly.

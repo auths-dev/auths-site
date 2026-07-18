@@ -129,7 +129,7 @@ async function probeListing(listing: Listing): Promise<ProbeResult> {
       checks.spend_log = `unreachable (${res.status})`;
       return {
         verdict: 'fail',
-        failReason: `spend-log URL returned ${res.status} — dashboards can only render re-derived numbers, so the log must be fetchable`,
+        failReason: `the listing's spend-log URL (${listing.spend_log_url}) returned HTTP ${res.status} — dashboards can only render re-derived numbers, so the log must be publicly fetchable; fix the URL and relist`,
         detail,
       };
     }
@@ -153,8 +153,13 @@ async function probeListing(listing: Listing): Promise<ProbeResult> {
   // (a) tools/list through a real test-mode wrap
   const lab = mkdtempSync(join(tmpdir(), 'market-probe-'));
   const rail = listing.rails.includes('x402') ? 'x402' : 'stripe';
-  const wrapArgs = [
-    '-y', '@auths-dev/mcp', 'wrap',
+  // The wrap launcher: `AUTHS_MCP_LAUNCHER` names a local `auths-mcp.mjs` (no npm
+  // fetch at all — the operator/e2e pins the exact launcher + GATEWAY_BIN); the
+  // default cold-installs the published package per probe, which pays a ~70 MB
+  // registry fetch + extraction inside the probe's own fresh HOME every time.
+  const launcher = process.env.AUTHS_MCP_LAUNCHER;
+  const wrapTail = [
+    'wrap',
     '--scope', 'paid.call',
     '--budget', '$1',
     '--ttl', '15m',
@@ -163,6 +168,8 @@ async function probeListing(listing: Listing): Promise<ProbeResult> {
     '--',
     ...downstream,
   ];
+  const wrapCmd = launcher ? process.execPath : 'npx';
+  const wrapArgs = launcher ? [launcher, ...wrapTail] : ['-y', '@auths-dev/mcp', ...wrapTail];
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     HOME: lab,
@@ -180,7 +187,7 @@ async function probeListing(listing: Listing): Promise<ProbeResult> {
     GIT_COMMITTER_EMAIL: 'prober@auths.dev',
   };
 
-  const mcp = new StdioMcp('npx', wrapArgs, env);
+  const mcp = new StdioMcp(wrapCmd, wrapArgs, env);
   try {
     const init = await Promise.race([
       (async () => {
