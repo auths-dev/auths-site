@@ -217,7 +217,7 @@
   covers: ['MC-13']
   title: P3.4 the worker fetches only refs/auths/* and the published branch with a blob filter
   class: wire-mismatch
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1

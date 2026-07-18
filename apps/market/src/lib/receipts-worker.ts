@@ -67,14 +67,28 @@ async function deriveListing(listing: Listing): Promise<
     // The registry lives under refs/auths/* (git-as-storage) with the durable
     // budget counter and spend log as committed working files: a plain clone
     // neither fetches the identity refs nor tolerates a repo with no HEAD, so
-    // init, fetch EVERY ref, and materialize the published branch when one
-    // exists (verify-spend reads the counter from the working tree).
+    // init, fetch ONLY the identity refs plus the published branch (never the
+    // remote's whole refspace), and materialize the branch when one exists
+    // (verify-spend reads the counter from the working tree). A blob filter is
+    // attempted first to skip historical blobs; remotes that cannot serve
+    // partial fetches (dumb HTTP) fall back to the same bounded refspecs,
+    // unfiltered — the boundedness comes from the refspecs either way.
+    const boundedRefspecs = ['refs/auths/*:refs/auths/*', 'refs/heads/*:refs/heads/*'];
     await run('git', ['init', '--quiet', registryPath], { timeout: 15_000 });
-    await run(
-      'git',
-      ['-C', registryPath, 'fetch', '--quiet', manifest.registry_git_url, 'refs/*:refs/*'],
-      { timeout: 60_000 },
-    );
+    try {
+      await run(
+        'git',
+        ['-C', registryPath, 'fetch', '--quiet', '--filter=blob:none',
+          manifest.registry_git_url, ...boundedRefspecs],
+        { timeout: 60_000 },
+      );
+    } catch {
+      await run(
+        'git',
+        ['-C', registryPath, 'fetch', '--quiet', manifest.registry_git_url, ...boundedRefspecs],
+        { timeout: 60_000 },
+      );
+    }
     const { stdout: heads } = await run(
       'git',
       ['-C', registryPath, 'for-each-ref', 'refs/heads', '--format=%(refname:short)'],

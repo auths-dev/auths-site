@@ -136,11 +136,17 @@ What this suite claims should happen: The receipts worker checkpoints `log_hash`
 
 And the negative space: A prefix mutation invalidates the checkpoint and forces full re-verification — the shortcut never trusts a changed history.
 
-## MC-13 — P3.4 the worker fetches only refs/auths/* and the published branch with a blob filter
+## MC-13 — P3.4 the worker fetches only refs/auths/* and the published branch with a blob filter (CLOSED)
 
-What this suite claims should happen: The receipts worker fetches only `refs/auths/*` and the published branch, with a blob filter.
+Closed 2026-07-18. The worker fetches ONLY `refs/auths/*` plus `refs/heads/*`
+(the published branch) — never the remote's whole refspace — attempting
+`--filter=blob:none` first and falling back to the same bounded refspecs
+unfiltered for remotes that cannot serve partial fetches (dumb HTTP): the
+boundedness comes from the refspecs either way. A fetch failure surfaces as
+`receipts_invalid` with the stated derivation error.
 
-And the negative space: A fetch failure marks `receipts_invalid` with a stated reason — never silently green.
+And the negative space: `refs/*:refs/*` never returns, and a fetch failure is
+never silently green.
 
 ## MC-14 — S3.1 the MCP directory gains create_listing and my_listings write tools
 
