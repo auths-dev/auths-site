@@ -67,7 +67,7 @@ export async function authenticateAgent(
   const consumed = await consumeChallenge(peek.nonce);
   if (!consumed) return { ok: false, status: 401, code: 'challenge-unknown-or-consumed' };
 
-  const report = sdk.authenticatePresentation(
+  const report = await sdk.authenticatePresentation(
     authorization,
     JSON.stringify(evidence),
     CHALLENGE_AUDIENCE,

@@ -40,7 +40,7 @@ interface SdkModule {
     expectedAudience: string,
     expectedNonce: string,
     nowIso?: string | null,
-  ): AgentAuthReport;
+  ): Promise<AgentAuthReport>;
   /** Mint a single-use 32-byte base64url challenge nonce. */
   mintChallengeNonce(): string;
   /** Raw verifier entrypoint — used by the conformance-vector check, not the adapter. */

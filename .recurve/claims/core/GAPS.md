@@ -103,11 +103,16 @@ What this suite claims should happen: Spend logs rotate by period under `spend-l
 
 And the negative space: A missing middle file breaks the back-link chain and re-derivation reports it — rotation never weakens tamper evidence.
 
-## MC-7 — P3.5 authenticatePresentation runs async off the Node event loop
+## MC-7 — P3.5 authenticatePresentation runs async off the Node event loop (CLOSED)
 
-What this suite claims should happen: `authenticatePresentation` is an async napi export; verification runs via spawn_blocking off the Node event loop.
+Closed 2026-07-18. `authenticatePresentation` is `pub async fn` (a Promise on the
+JS side); the CPU-bound KEL replay + signature verification runs inside
+`tokio::task::spawn_blocking`, off the Node event loop. Wire parse, binding and
+nonce checks stay synchronous ahead of it. `index.d.ts` regenerated
+(`Promise<NapiAgentAuthReport>`); the market adapter awaits it.
 
-And the negative space: Denial semantics are unchanged: same kebab denial codes, same verdicts — only the scheduling moved.
+And the negative space: denial semantics are unchanged — same kebab denial codes,
+same verdicts; only the scheduling moved.
 
 ## MC-8 — P3.5 agent-login evidence over 64 KB is refused with a typed 401
 

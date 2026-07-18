@@ -113,7 +113,7 @@
   covers: ['MC-7']
   title: P3.5 authenticatePresentation runs async off the Node event loop
   class: friction
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1
