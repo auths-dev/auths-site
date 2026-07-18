@@ -66,7 +66,7 @@ close it the same way.
 
 ### Epic A2: Honest, actionable failure surfaces
 
-- **A2.1 [parked: lives in auths-mcp, outside the overnight sculpt trees — needs owner sanction] The x402 adapter surfaces the facilitator's reason.** A live settle
+- **A2.1 [fixed: auths-mcp@7eb9ad5 — owner sanctioned the fourth repo; adapter suite is now a sculpt gate] The x402 adapter surfaces the facilitator's reason.** A live settle
   against an unfunded wallet fails as `x402 facilitator settle failed: HTTP 200` — the
   facilitator's 200-with-`success:false` body carries an `errorReason` that gets
   swallowed. One debugging cycle for me; more for an agent.

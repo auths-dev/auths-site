@@ -1,11 +1,3 @@
 # Parked gaps — run state, not claim truth (the ledger never records
 # parking). Attempt journals are observations, never conclusions.
-- gap: MC-4
-  reason: the honest fix lives in ../auths-mcp (x402-adapter server.mjs), outside
-    the declared sculpt trees; touching a fourth repo needs owner sanction
-  parked_at: '2026-07-18'
-  attempts:
-  - at: '2026-07-18'
-    tried: confirmed errorReason absent from the adapter settle error path; probe
-      + trap armed against the real file
-    observed: settle-error-omits-errorReason oracle=facilitator reason text in error
+[]

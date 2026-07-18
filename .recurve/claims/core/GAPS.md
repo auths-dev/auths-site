@@ -85,11 +85,19 @@ after).
 
 And the negative space: an operator-supplied identity is never overridden.
 
-## MC-4 — A2.1 a declined x402 settle surfaces the facilitator errorReason
+## MC-4 — A2.1 a declined x402 settle surfaces the facilitator errorReason (CLOSED)
 
-What this suite claims should happen: A declined x402 facilitator settle surfaces the facilitator's `errorReason` text in the adapter's error.
+Closed 2026-07-18 (owner sanctioned the fourth repo; auths-mcp is now a declared
+sculpt whose gate runs the adapter's own test suite). A declined facilitator
+settle throws the facilitator's OWN reason — the x402 SettleResponse
+`errorReason` (falling back to `error`, then the raw body) with the HTTP status
+as context only, never the whole error; a non-JSON decline body no longer loses
+the reason to a parse crash. Proven by a live mock-facilitator repro
+(`insufficient_funds [HTTP 402]`) and a permanent regression test in the
+adapter suite (auths-mcp@7eb9ad5).
 
-And the negative space: A bare HTTP status alone is never the whole error. NOTE: the honest fix lives in ../auths-mcp, outside the declared sculpt trees — park unless sanctioned.
+And the negative space: a failed settle is never fabricated, and the private key
+never appears in the /settle body (the suite's leak checks still hold).
 
 ## MC-5 — A2.2 the metered-amount-required refusal teaches an amount_atomic tools/call (CLOSED)
 

@@ -55,6 +55,13 @@ forbidden_strings = ["GAP-", "recurve"]
 rebuild = "cargo build -p auths-cli -p auths-mcp-gateway && cd packages/auths-node && npx napi build --platform && node scripts/sync-conformance.mjs"
 gate = "cargo run -p xtask -- check-binding-boundary && cargo run -p xtask -- check-verify-path-completeness && cargo check -p auths-cli -p auths-verifier"
 
+[sculpts.mcp]
+tree = "../auths-mcp"
+branch = "merchant-close"
+forbidden_strings = ["GAP-", "recurve"]
+rebuild = ""
+gate = "cd examples/payments/adapters/x402-adapter && npm test"
+
 [sculpts.docs]
 tree = "../auths-docs"
 kind = "docs"

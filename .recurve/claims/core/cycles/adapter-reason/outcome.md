@@ -1,0 +1,1 @@
+MC-4 closed with owner sanction: auths-mcp declared as a sculpt (branch merchant-close, gate = adapter npm test); errorReason surfaced with regression test; mock-facilitator repro PASS; merchant e2e 20/20.
