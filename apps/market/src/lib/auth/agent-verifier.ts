@@ -16,6 +16,8 @@ export interface PresentationReport {
   status: string;
   issuer?: string;
   subject?: string;
+  /** The subject's proven root: its delegator when delegated, itself otherwise. */
+  subjectRoot?: string;
   caps?: string[];
   message?: string;
   field?: string;

@@ -169,5 +169,46 @@ check('forged presentation signature is refused (401)',
   badSig.status === 401 && badSig.body.error?.code?.startsWith('presentation-'),
   badSig);
 
-console.log(`\nagent-native loop proven — ${passed} checks green (identity ${did.slice(0, 24)}…)`);
+// ── 9. a DELEGATED identity sells, and the market credits its proven root ──────
+// The device identity `auths init` authorized is a real delegated AID (its KEL
+// opens with a delegation the root anchored, key alias `main-device`). Its
+// presentation carries the delegator KEL, and the verdict's subjectRoot — not
+// anything parsed from evidence — names the root.
+const deviceList = authsJson('device', 'list');
+const agent = {
+  agentDid: deviceList.devices?.[0]?.id,
+  keyAlias: 'main-device',
+};
+check('delegated device identity anchored under the root',
+  agent.agentDid?.startsWith('did:keri:') && agent.agentDid !== did && deviceList.devices?.[0]?.anchored === true,
+  deviceList);
+
+const issuedD = authsJson('credential', 'issue', '--issuer', 'main', '--to', agent.agentDid, '--cap', 'sign');
+const c4 = await api('/api/v1/challenge', { method: 'POST' });
+const p4 = authsJson('credential', 'present',
+  '--subject', agent.keyAlias,
+  '--said', issuedD.credential_said,
+  '--audience', AUDIENCE,
+  '--nonce', c4.body.nonce,
+  '--with-evidence');
+check('delegated presentation carries the delegator KEL',
+  p4.evidence?.delegatorKel?.length > 0 && p4.evidence?.delegatorKelAttachmentsB64?.length > 0,
+  Object.keys(p4.evidence ?? {}));
+
+const createdD = await api('/api/v1/listings', {
+  method: 'POST',
+  headers: { authorization: p4.authorization, 'content-type': 'application/json' },
+  body: JSON.stringify({
+    evidence: p4.evidence,
+    listing: { ...listing, slug: listing.slug + '-delegated' },
+  }),
+});
+check('delegated agent created a listing (201)',
+  createdD.status === 201 && createdD.body.status === 'pending_verification',
+  createdD);
+check('seller subject is the agent, root credit goes to the PROVEN delegator',
+  createdD.body.seller?.subject === agent.agentDid && createdD.body.seller?.authsRoot === did,
+  { seller: createdD.body.seller, expectedRoot: did });
+
+console.log(`\nagent-native loop proven — ${passed} checks green (root ${did.slice(0, 24)}…, delegated ${String(agent.agentDid).slice(0, 24)}…)`);
 rmSync(home, { recursive: true, force: true });

@@ -138,10 +138,12 @@ export async function authenticateAgent(
     return { ok: false, status: 403, code: 'no-capabilities-granted' };
   }
 
-  // A non-delegated subject IS its own root; a delegated subject's root credit
-  // is deferred until the report surfaces the proven delegator.
+  // The proven root comes from the verdict itself (the verifier validated the
+  // delegation seal before naming it) — never parsed out of the evidence. An
+  // older addon without the field falls back to the conservative pre-field
+  // behavior: root subjects credit themselves, delegated subjects defer.
   const delegated = Array.isArray(e.delegatorKel) && e.delegatorKel.length > 0;
-  const authsRoot = delegated ? null : report.subject;
+  const authsRoot = report.subjectRoot ?? (delegated ? null : report.subject);
 
   const supabase = createServiceClient();
   const { data, error } = await supabase
