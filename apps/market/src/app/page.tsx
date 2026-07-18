@@ -63,7 +63,7 @@ export default async function HomePage({
 
       <section id="browse" className="scroll-mt-24 px-6 py-16">
         <div className="mx-auto max-w-5xl">
-          <div className="flex items-baseline justify-between">
+          <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2">
             <h2 className="font-display text-3xl font-medium tracking-tight text-ink">
               Verified endpoints
             </h2>
