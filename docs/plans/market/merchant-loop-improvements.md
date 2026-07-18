@@ -6,7 +6,7 @@ Every finding below was hit live, not speculated. Split by repo; each epic has s
 with a plain-English description and a concrete code idea; open questions are flagged
 where a task needs an owner decision first.
 
-Status codes: **[fixed]** landed during the e2e session · **[ready]** buildable now ·
+Status codes: **[fixed: repo@sha]** closed by the named commit · **[owner-release]** waits on an owner-run release ·
 **[decide]** blocked on an open question.
 
 You will be working in auths, so you must read this first:
@@ -25,7 +25,7 @@ file that must be committed or verification fails `budget-mismatch`, then hand-w
 `audit.json`. This is the exact gap `--with-evidence` closed for presentations —
 close it the same way.
 
-- **A1.1 [ready] `export-spend-bundle` one-shot.** One command emits everything a
+- **A1.1 [fixed: auths@12d3f338] `export-spend-bundle` one-shot.** One command emits everything a
   relying party's `verify-spend` needs, correctly, every time:
 
   ```
@@ -49,7 +49,7 @@ close it the same way.
   forever, while integrity is carried by the agent-signed running cumulative plus
   eventual external anchoring — never by commit frequency. Nothing blocks A1.1.
 
-- **A1.3 [ready] The gateway sets its own git identity.** Chain builds die on clean
+- **A1.3 [fixed: auths@86cf30e2] The gateway sets its own git identity.** Chain builds die on clean
   machines ("unable to auto-detect email address") — precisely the machines autonomous
   agents run on. The prober already solves this with env vars; the gateway should too.
   Note: the docs deliberately do NOT document the `GIT_AUTHOR_NAME`/`GIT_AUTHOR_EMAIL`
@@ -76,7 +76,7 @@ close it the same way.
   throw new Error(`x402 facilitator declined (${network}): ${body.errorReason ?? 'no reason given'}`);
   ```
 
-- **A2.2 [ready] `metered-amount-required` teaches the fix.** A buyer following the
+- **A2.2 [fixed: auths@dff1f705] `metered-amount-required` teaches the fix.** A buyer following the
   integration snippet verbatim omits `amount_atomic` and gets a bare refusal. The
   gateway knows exactly what was missing — say it:
 
@@ -87,13 +87,13 @@ close it the same way.
 
 ### Epic A3: Ship the contract (release train)
 
-- **A3.1 [ready] Release `@auths-dev/sdk` from main after PR #377 merges.** Everything
+- **A3.1 [owner-release: publish @auths-dev/sdk from main — owner action, not loop scope] Release `@auths-dev/sdk` from main after PR #377 merges.** Everything
   the market's agent door needs (relying-party surface, `subjectRoot`,
   `KelUnauthenticated`, conformance vectors) exists only in checkout builds. The npm
   release is the switch that turns production agent sign-in from an honest 503 into a
   live door. Same train releases the CLI binaries (`--with-evidence`) and the gateway.
 
-- **A3.2 [ready] The merchant loop as a release gate.** Every seam this loop crosses
+- **A3.2 [documented: run `node tests/e2e/full-merchant-loop.mjs` and `node tests/e2e/fleet-throughput.mjs` against RC binaries via the `AUTHS_CLI` / `GATEWAY_BIN` / `AUTHS_MCP_LAUNCHER` overrides; where this wiring lives in the release pipeline stays the parked release-gate question] The merchant loop as a release gate.** Every seam this loop crosses
   broke on first live contact (delegated attachments, seal rehydration, registry clone
   semantics, the counter). Run `full-merchant-loop.mjs` against the release candidates
   (local CLI + local addon via `AUTHS_CLI` / `AUTHS_SDK_PATH`) before publishing —
@@ -109,7 +109,7 @@ close it the same way.
 
 ### Epic S1: The listing contract, unambiguous
 
-- **S1.1 [ready] One `endpointValue` convention: the RAW downstream command.** Two
+- **S1.1 [fixed: auths-site@041b13b] One `endpointValue` convention: the RAW downstream command.** Two
   conventions exist in the wild today — the seed listing embeds a full
   `npx -y @auths-dev/mcp wrap …` command while the e2e lists the bare server. The
   prober wraps whatever it is given (wrap-of-wrap works but double-spawns), and the
@@ -125,7 +125,7 @@ close it the same way.
 
   Plus: reseed `demo-echo`'s endpoint to the raw form, and say the rule on /sell.
 
-- **S1.2 [ready] `get_integration` includes one example metered call.** The snippet
+- **S1.2 [fixed: auths-site@98026b0] `get_integration` includes one example metered call.** The snippet
   gets a buyer connected but not paying; the first `tools/call` then fails
   `metered-amount-required`. Extend the integration payload:
 
@@ -156,7 +156,7 @@ close it the same way.
   `X402_LIVE=1` e2e runs.) Until decided the metered leg stays honestly soft — probe
   detail records the skip and the Verified tooltip claims only what ran.
 
-- **S2.3 [ready] True day-bucketing for receipt summaries.** v0 writes one all-time
+- **S2.3 [fixed: auths-site@eef1d60] True day-bucketing for receipt summaries.** v0 writes one all-time
   row per run-day. The spend log's records carry timestamps; bucket them:
 
   ```ts
@@ -168,12 +168,12 @@ close it the same way.
 
 ### Epic S3: Finish the agent API surface (deferred from #20)
 
-- **S3.1 [ready] MCP write tools** (`create_listing`, `my_listings`) in
+- **S3.1 [fixed: auths-site@9cd0ea1] MCP write tools** (`create_listing`, `my_listings`) in
   `mcp/market-directory.mjs`, driving the same challenge → present → POST flow the e2e
   proves — an agent should sell without ever leaving MCP. The agent side shells
   `auths credential present --with-evidence`; the tool passes header + evidence through.
 
-- **S3.2 [ready] `me/listings` for agents.** Agents currently list blind (no way to see
+- **S3.2 [fixed: auths-site@a979fe6] `me/listings` for agents.** Agents currently list blind (no way to see
   their probe status or fail_reason). POST-with-presentation (stateless auth can't ride
   a GET body):
 
@@ -182,7 +182,7 @@ close it the same way.
   → [{ slug, status, fail_reason, verified_at, live_proven_at }]
   ```
 
-- **S3.3 [ready] /sell documents the agent path.** The wizard page gains the
+- **S3.3 [fixed: auths-site@e75091f] /sell documents the agent path.** The wizard page gains the
   four-command agent recipe (init → credential issue `market:sell` → challenge →
   present + POST) next to the GitHub flow — test-mode before live, commands runnable
   as pasted, per the copy rules.
@@ -193,7 +193,7 @@ close it the same way.
   `@auths-dev/sdk` dependency in `apps/market/package.json`, redeploy, delete nothing —
   the 503 fail-closed path stays as the honest posture for any load failure.
 
-- **S4.2 [ready]** Run `check-verifier-vectors.mjs` in market CI once the dependency is
+- **S4.2 [owner-release: needs the released @auths-dev/sdk dependency]** Run `check-verifier-vectors.mjs` in market CI once the dependency is
   real (it skips cleanly today), so a contract-drifting SDK bump fails the build
   instead of the first agent.
 

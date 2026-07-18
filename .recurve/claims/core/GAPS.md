@@ -253,11 +253,18 @@ And the negative space: a below-bar run fails, a single-agent-only refusal fails
 a re-derived total diverging from observation fails, and a tampered or rolled-back
 checkpoint trail fails the cross-check.
 
-## MC-18 — A3.1 A3.2 S4.2 plan bookkeeping: owner-release tags and the release-gate runbook
+## MC-18 — A3.1 A3.2 S4.2 plan bookkeeping: owner-release tags and the release-gate runbook (CLOSED)
 
-What this suite claims should happen: The merchant plan carries zero `[ready]` markers: release-scoped items (A3.1, S4.2) are tagged `owner-release`, the A3.2 release-gate runbook is written without deciding its parked home, and the legend describes the final vocabulary.
+Closed 2026-07-18. Zero `[ready]` markers remain in the merchant plan: every
+closed item names its closing commit (`[fixed: repo@sha]`), the release-scoped
+items (A3.1, S4.2) carry `[owner-release]`, A3.2 documents the release-gate
+invocation (both e2es against RC binaries via the env overrides) without deciding
+its parked home, A2.1 states its park (lives in auths-mcp), and the legend
+describes the final vocabulary. The monetization plan's epics carry
+shipped/deferred statuses with the same commit citations.
 
-And the negative space: No item is silently dropped — every flip names its closing commit or its owner.
+And the negative space: no item was silently dropped — every flip names a commit,
+an owner, or a park reason.
 
 ## MC-19 — M-A1 channel open records a funded reservation and channel close settles netted (CLOSED)
 

@@ -305,7 +305,7 @@
   covers: ['MC-18']
   title: 'A3.1 A3.2 S4.2 plan bookkeeping: owner-release tags and the release-gate runbook'
   class: staging
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1

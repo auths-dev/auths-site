@@ -68,7 +68,7 @@ around — every parallel channel settled through our coordination pays its open
 Prerequisites from `merchant-loop-improvements.md` Part 3 assumed done (file
 counter, log rotation, incremental verify, async RP call).
 
-### Epic M-A1: Channels — reserve → stream → settle
+### Epic M-A1: Channels — reserve → stream → settle  [shipped: auths@4a995c0d — open/close CLI, netted log_hash-cited settlement; live rail legs env-gated]
 
 The spend log's agent-signed running cumulative already IS a payment-channel state
 update; `verify-spend` already IS the closing proof. Build only the ends:
@@ -94,7 +94,7 @@ update; `verify-spend` already IS the closing proof. Build only the ends:
   Self-operated custody is off the table. Stripe has no such question (Connect
   direct charges + application fees are native and non-custodial for the platform).
 
-### Epic M-A2: The fleet treasury (the coherent cap as a service)
+### Epic M-A2: The fleet treasury (the coherent cap as a service)  [shipped: auths@e4b05a63 — coordinator + fail-closed fallback + signed checkpoints; proven at 401 calls/s by tests/e2e/fleet-throughput.mjs]
 
 - **M-A2.1 Treasury coordinator.** A shared counter service enforcing ONE cap across
   N gateway processes: `reserve(delegation, cents) → grant|refuse`, mirroring the
@@ -111,7 +111,7 @@ update; `verify-spend` already IS the closing proof. Build only the ends:
   the paid product is the HOSTED one plus attestation, and enterprises who
   self-host still pay for anchoring/attestation because "not-me" is the product.
 
-### Epic M-A3: Anchoring as a product
+### Epic M-A3: Anchoring as a product  [deferred: enterprise pull, not overnight scope]
 
 - **M-A3.1** Productize the in-tree witness commons (`auths-witness`,
   `auths-checkpoint-cosigner`) for spend-log heads: accept
@@ -138,7 +138,7 @@ proofs, org audit, SCIM. Gaps:
 
 ## 3. What auths-site needs (front-end across tiers)
 
-### Epic M-S1: Billing accounts and the take rate
+### Epic M-S1: Billing accounts and the take rate  [schema shipped: auths-site@4d67cec (M-S1.1, fee rows cite log_hash); M-S1.2 Stripe Connect onboarding env-gated, deferred until credentials]
 
 - **M-S1.1 Schema.** Billing hangs off the *root identity*, not the login method:
   ```
@@ -156,7 +156,7 @@ proofs, org audit, SCIM. Gaps:
   `log_hash` + settlement records it was computed from — we bill the way we badge:
   numbers a customer can re-derive, or they don't render.
 
-### Epic M-S2: The fleet dashboard
+### Epic M-S2: The fleet dashboard  [shipped: auths-site@c078d80 — /fleet renders re-derived cap headroom, channel states, presentation-verified members; alerts (M-S2.3) deferred]
 
 - **M-S2.1 Fleet view:** delegations (agent AID, scope, per-agent spend), the ONE
   treasury cap with live headroom, channel states (open capacity / streamed /
@@ -168,7 +168,7 @@ proofs, org audit, SCIM. Gaps:
   re-derivation — label projections as projections; settled numbers stay
   re-derived).
 
-### Epic M-S3: Multi-user representation (2+ humans, one fleet)
+### Epic M-S3: Multi-user representation (2+ humans, one fleet)  [member view shipped via /fleet (KEL-verified subjects + roots); role-gated UI + two-person control deferred]
 
 - **M-S3.1 The seller entity becomes the org.** `sellers.auths_root` = org root for
   fleet accounts; humans attach as *members*: GitHub-login users map to member AIDs
