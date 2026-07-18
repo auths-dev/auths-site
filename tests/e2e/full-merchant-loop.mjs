@@ -406,5 +406,31 @@ check('public receipts API serves the re-derived aggregates',
 console.log(`\nfull merchant loop proven — ${passed} checks green`);
 console.log(`  seller ${sellerDid.slice(0, 28)}… listed ${slug}`);
 console.log(`  buyer agent ${agentDid.slice(0, 28)}… paid, was capped, and its signed log re-derived`);
+
+// If the buy leg settled LIVE on-chain (X402_LIVE=1 + funded wallet), surface the
+// base-sepolia tx hash(es) as Basescan links before the temp dirs are cleaned up.
+if (liveLeg) {
+  const txs = [];
+  for (const d of readdirSync(spendLogDir)) {
+    const dd = join(spendLogDir, d);
+    const files = existsSync(dd) && readdirSync(dd, { withFileTypes: true }).some((e) => e.isFile())
+      ? readdirSync(dd).filter((x) => x.endsWith('.jsonl')).map((x) => join(dd, x))
+      : [join(spendLogDir, d)];
+    for (const f of files) {
+      if (!existsSync(f) || !f.endsWith('.jsonl')) continue;
+      for (const line of readFileSync(f, 'utf8').split('\n')) {
+        if (!line.trim()) continue;
+        const r = JSON.parse(line).receipt ?? {};
+        if (r.rail === 'x402' && typeof r.charge_ref === 'string' && r.charge_ref.startsWith('0x')) {
+          txs.push(r.charge_ref);
+        }
+      }
+    }
+  }
+  if (txs.length > 0) {
+    console.log(`\n  on-chain base-sepolia settlement(s) — verify on Basescan:`);
+    for (const tx of txs) console.log(`    https://sepolia.basescan.org/tx/${tx}`);
+  }
+}
 cleanup();
 process.exit(0);
