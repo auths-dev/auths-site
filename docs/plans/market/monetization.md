@@ -20,6 +20,32 @@ like"), and the business lives at the four points parallelism cannot self-provid
 The 64-thread trading bot is the design's favorite customer: its throughput is free,
 its coherence and settlement are the bill.
 
+**Custody stance: never (decided 2026-07-18).** The market is NEVER a custodian of
+customer funds — no held balances, no pooled deposits, no self-operated facilitator
+holding money. Holding funds makes us a money transmitter (licensing, AML program,
+custody security, a hack target) and contradicts the product's own thesis: we prove
+who owes what; we do not hold what is owed. Every "escrow" below means a hold that
+lives in a regulated or trust-minimized third place:
+
+- **Stripe rail:** Stripe Connect with direct charges — the authorization hold lives
+  inside Stripe on the buyer's card, the charge lands on the SELLER's connected
+  account, Stripe does KYC and payouts, and we take an `application_fee_amount`
+  without the money ever touching us. Stripe is the regulated entity; that is what
+  Connect is for.
+- **x402 rail:** either a third-party facilitator that already custodies as its
+  business, or a minimal on-chain channel contract — the buyer's deposit sits in the
+  contract, each agent-signed running cumulative is a check the seller can cash, the
+  seller closes with the latest signed state, the buyer reclaims the remainder after
+  timeout. The contract holds; nobody's ops team does. (Our spend-log records are
+  already exactly these signed channel states.)
+- **v0 simplest, no escrow at all:** short netting intervals with seller-bounded
+  credit — settle every dollar or every minute, so a seller's maximum exposure is one
+  interval. Zero custody, zero contracts, ships first.
+
+Our monetizable role is settlement COORDINATOR, never treasurer: we run the netting
+logic, produce the signed evidence, and collect fees via Stripe's application fee or
+a fee split in the contract — the bps toll survives; the custody never existed.
+
 ---
 
 ## 1. The tier ladder
@@ -61,10 +87,12 @@ update; `verify-spend` already IS the closing proof. Build only the ends:
   ```
   auths-mcp channel close --log <spend.jsonl>   # capture(min(cumulative, capacity))
   ```
-- **Open question:** x402 escrow mechanism — facilitator-held balances (fast, but
-  the facilitator becomes a custodian) vs a minimal on-chain escrow contract
-  (trust-minimized, but we now maintain a contract). Stripe has no such question
-  (auth/capture is native).
+- **Open question (bounded by the custody stance):** x402 channel mechanism — a
+  THIRD-PARTY facilitator that custodies as its own regulated business, vs a minimal
+  on-chain channel contract we author but never control funds in (audit cost, no
+  custody), vs v0's no-escrow short-interval netting with seller-bounded credit.
+  Self-operated custody is off the table. Stripe has no such question (Connect
+  direct charges + application fees are native and non-custodial for the platform).
 
 ### Epic M-A2: The fleet treasury (the coherent cap as a service)
 
@@ -119,9 +147,11 @@ proofs, org audit, SCIM. Gaps:
   settlements        id, channel_ref, listing_id, gross_cents, fee_cents, rail, log_hash
   usage_rollups      billing_account_id, period, settled_cents, fee_cents
   ```
-- **M-S1.2 Stripe Connect for sellers.** Sellers onboard as connected accounts; the
-  market escrows (auth), captures at channel close, takes the application fee,
-  transfers the rest. x402 payouts mirror this through the escrow leg (M-A1).
+- **M-S1.2 Stripe Connect for sellers.** Sellers onboard as connected accounts;
+  charges are DIRECT charges on the seller's account with an
+  `application_fee_amount` — the authorization hold lives in Stripe, capture fires
+  at channel close, and the market never touches the funds (see the custody stance
+  above). x402 payouts flow through the non-custodial channel leg (M-A1).
 - **M-S1.3 Fees are re-derived too.** The invoice line for bps must cite the
   `log_hash` + settlement records it was computed from — we bill the way we badge:
   numbers a customer can re-derive, or they don't render.
