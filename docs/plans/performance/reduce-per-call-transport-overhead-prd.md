@@ -106,15 +106,21 @@ per-call `eprintln!` — Phase 1's target): ~0.57 ms/call is spent outside crypt
 in avoidable handler overhead. That is why Phase 1 (low-risk) is worth doing before the
 architecture commitments.
 
-### Phase 1 — in-place hot-path hygiene (low risk, keeps every boundary)
-- Remove avoidable per-call allocation/serialization in `call_tool` (reuse buffers; avoid the
-  `arguments.clone()` + re-`Object` round-trip; compute canonical bytes once; drop verdict
-  clones where a borrow suffices).
-- Demote the per-call `eprintln!` verdict line to a `tracing` event gated by level (at rate,
-  synchronous stderr writes are a real cost).
-- Larger/reused stdio buffers on both rmcp legs.
-**Acceptance:** measurable warm-latency drop with **zero** behavioural change; verdicts +
-`verify-spend` identical. Target: shave the orchestration slice without touching the two hops.
+### Phase 1 — in-place hot-path hygiene — **IMPLEMENTED (first pass)**
+Done: the per-call verdict `eprintln!` (two synchronous stderr writes + a `format!` allocation)
+is gated behind `AUTHS_MCP_VERBOSE`, off by default — the recorded metrics are the hot-path
+observability; and the proof binding hash (`call_commit_binding`) is derived once and reused
+rather than computed twice per call.
+
+**Measured** (4 agents, mean ms/call): `orchestration` **0.57 → 0.38 ms (−33%)**, whole handler
+≈ 1.0 ms (was ≈ 1.4 ms in the pre-Phase-1 runs), with verdicts + `verify-spend` unchanged
+(dogfood MATCH, 4/4 consistent). The remaining ~0.38 ms is canonicalization + receipt build +
+async scheduling between `.await` points — the last of which is the **Phase 3** transport lever,
+not further hygiene.
+
+Follow-on (not yet done): eliminate the `arguments.clone()` + re-`Object` round-trip, and reuse
+the stdio buffers on both rmcp legs. **Acceptance:** met — measurable warm-latency drop with
+zero behavioural change.
 
 ### Phase 2 — batched `tools/call` (amortize the round-trips)
 Add a batch entrypoint (`auths/batch_call` custom method, or MCP array batch) that carries N
