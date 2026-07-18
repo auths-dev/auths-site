@@ -1,0 +1,68 @@
+# recurve.toml — all project variability lives here. If a knob didn't need to
+# vary, it isn't here.
+
+[project]
+name = "auths-site"
+label = "suite"
+default_reads = "none"
+cycles_dir = ".recurve/claims/core/cycles"
+schema = "1"
+
+[target]
+tree = "."
+sacred = []                 # paths/resources no cycle may touch
+forbidden_strings = ["GAP-", "core-", "recurve"]  # loop vocabulary must not leak into the tree
+
+[commit]
+policy = "unsigned-per-cycle"   # STERN WARNING: this repo normally SIGNS commits. The loop commits UNSIGNED (signing prompts hang headless agents) — review and sign/squash the cycle commits after every run; do not leave unsigned commits as the permanent record
+hooks = "run"
+
+[gate]
+traps = "required"          # every probe keeps a counterexample it must turn RED
+quality = "pre-launch"     # the constitution: .recurve/quality.md
+
+[reads.none]
+method = "none"
+# Add one rule per artifact class probes read, e.g.:
+# [reads.cli]
+# method = "content-hash"
+# artifact = "bin/app"
+# source = "target/release/app"
+
+[suites.core]
+dir = ".recurve/claims/core"
+rebuild = ""
+harness = [
+  "cd apps/market && node scripts/check-market.mjs",
+  "cd apps/market && bunx eslint src",
+  "cd apps/market && bun run typecheck",
+  "node tests/e2e/full-merchant-loop.mjs",
+]
+
+# A scaffold that hardens a PLATFORM in another repo? Declare that repo as a
+# sculpt tree. `[target]` above is what the loop BUILDS; each `[sculpts.<name>]`
+# is what it FEEDS — a secondary tree the cycle may sculpt when a claim's honest
+# fix lives there, with its OWN leak vocabulary, commit branch, rebuild, and
+# gate. `recurve matrix --gate` then federates: green only when the target's
+# probes AND every sculpt's own gate pass. Uncomment and edit to opt in; a fresh
+# init stays single-tree.
+[sculpts.auths]
+tree = "../auths"
+kind = "rust"
+branch = "pivot/close-374-262-registry-kel-transports"
+forbidden_strings = ["GAP-", "recurve"]
+rebuild = "cargo build -p auths-cli && cd packages/auths-node && npx napi build --platform && node scripts/sync-conformance.mjs"
+gate = "cargo run -p xtask -- check-binding-boundary && cargo run -p xtask -- check-verify-path-completeness && cargo check -p auths-cli -p auths-verifier"
+
+[sculpts.docs]
+tree = "../auths-docs"
+kind = "docs"
+branch = "main"
+forbidden_strings = ["GAP-", "recurve"]
+rebuild = ""
+gate = "node scripts/check-docs.mjs --no-external"
+
+[burndown]
+cap = 12
+max_consecutive_failures = 3
+runaway_net_positive_cycles = 2

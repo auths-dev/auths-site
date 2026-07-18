@@ -23,7 +23,6 @@ export function MarketNav() {
           href="/"
           className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/auths_logo.svg"
             alt=""

@@ -58,9 +58,28 @@ async function deriveListing(listing: Listing): Promise<
     const logPath = join(work, 'spend.jsonl');
     writeFileSync(logPath, logText);
     const registryPath = join(work, 'registry');
-    await run('git', ['clone', '--quiet', '--depth', '1', manifest.registry_git_url, registryPath], {
-      timeout: 60_000,
-    });
+    // The registry lives under refs/auths/* (git-as-storage) with the durable
+    // budget counter and spend log as committed working files: a plain clone
+    // neither fetches the identity refs nor tolerates a repo with no HEAD, so
+    // init, fetch EVERY ref, and materialize the published branch when one
+    // exists (verify-spend reads the counter from the working tree).
+    await run('git', ['init', '--quiet', registryPath], { timeout: 15_000 });
+    await run(
+      'git',
+      ['-C', registryPath, 'fetch', '--quiet', manifest.registry_git_url, 'refs/*:refs/*'],
+      { timeout: 60_000 },
+    );
+    const { stdout: heads } = await run(
+      'git',
+      ['-C', registryPath, 'for-each-ref', 'refs/heads', '--format=%(refname:short)'],
+      { timeout: 15_000 },
+    );
+    const head = heads.split('\n').find(Boolean);
+    if (head) {
+      await run('git', ['-C', registryPath, 'checkout', '--quiet', '--force', head], {
+        timeout: 30_000,
+      });
+    }
 
     const { stdout, stderr } = await run(
       'npx',
@@ -106,7 +125,9 @@ export async function deriveAll(): Promise<{ derived: number; invalid: number }>
   let invalid = 0;
   for (const listing of (data ?? []) as Listing[]) {
     if (!listing.spend_log_url) continue;
-    const result = await deriveListing(listing);
+    const result = await deriveListing(listing).catch(
+      (e: Error) => ({ ok: false as const, reason: `derivation error: ${e.message}` }),
+    );
     if (result.ok) {
       derived += 1;
       const today = new Date().toISOString().slice(0, 10);
