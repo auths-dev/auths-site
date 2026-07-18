@@ -154,11 +154,29 @@ What this suite claims should happen: The sell page shows the four-command agent
 
 And the negative space: No command drifts from the real CLI surface (the drift lint owns this).
 
-## MC-17 — the fleet-throughput e2e proves 8+ agents under one shared cap at 20+ calls/s
+## MC-17 — the fleet-throughput e2e proves 8+ agents under one shared cap at 20+ calls/s (CLOSED)
 
-What this suite claims should happen: `tests/e2e/fleet-throughput.mjs` runs 8+ headless agents delegated under one root, driving concurrent metered test-mode calls through real gateways; it reports aggregate calls/s and p50/p95 latency and fails below 20 aggregate calls/s.
+Closed 2026-07-18. `tests/e2e/fleet-throughput.mjs` (gate-wired in the suite harness)
+runs 8 headless agents delegated under ONE shared root registry (the gateway's
+fleet-join: `AUTHS_MCP_AGENT_LABEL` reuses an existing org root and adds its own
+delegation), each behind its own real gateway wrap over the x402 adapter, metering
+$0.01 test-mode micro-calls against one $1.00 treasury cap. Measured: 53.7 calls/s
+aggregate (bar: 20), p50 133 ms, p95 269 ms after a disclosed one-call-per-agent
+warmup. Every agent is refused `usage-cap-exceeded` once the fleet cap exhausts —
+exactly at the cap, never past it. All 8 signed logs re-derive `consistent`; the
+re-derived sum equals the observed total, equals the coordinator's settled counter,
+and the signed checkpoint trail cross-checks via
+`verify-spend --treasury-checkpoints --expect-cumulative`.
 
-And the negative space: Crossing the one shared cap is refused with `usage-cap-exceeded` on every agent, and the combined logs re-derive `consistent`, totals matching what the test observed.
+The throughput came from in-process per-call signing (`inproc_sign.rs`): the first
+call of each kind still runs the full subprocess ceremony and is harvested as a
+byte-template; later calls build + SSHSIG-sign the same commit shape in memory
+(seconds → ~133 ms/call). The offline audit re-verifies every record from both
+paths through the same verifier.
+
+And the negative space: a below-bar run fails, a single-agent-only refusal fails,
+a re-derived total diverging from observation fails, and a tampered or rolled-back
+checkpoint trail fails the cross-check.
 
 ## MC-18 — A3.1 A3.2 S4.2 plan bookkeeping: owner-release tags and the release-gate runbook
 

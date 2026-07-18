@@ -286,7 +286,7 @@
   covers: ['MC-17']
   title: the fleet-throughput e2e proves 8+ agents under one shared cap at 20+ calls/s
   class: missing-surface
-  status: open
+  status: closed
   severity: headline
   covers_claim:
   - MC-1

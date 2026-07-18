@@ -37,6 +37,7 @@ harness = [
   "cd apps/market && bunx eslint src",
   "cd apps/market && bun run typecheck",
   "node tests/e2e/full-merchant-loop.mjs",
+  "node tests/e2e/fleet-throughput.mjs",
 ]
 
 # A scaffold that hardens a PLATFORM in another repo? Declare that repo as a
