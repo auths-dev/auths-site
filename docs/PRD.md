@@ -53,7 +53,7 @@ Goal in one sentence: work both market plans end to end — publishing, listing 
 
 - A new `tests/e2e/fleet-throughput.mjs` must run at least 8 headless agents delegated under one root, driving concurrent metered test-mode calls through real gateways.
 - The fleet test must enforce one shared cap: an aggregate spend that crosses it must be refused with `usage-cap-exceeded` on every agent, not just one.
-- The fleet test must report aggregate calls per second and p50 and p95 per-call latency, and must fail below 20 aggregate calls per second.
+- The fleet test must report aggregate calls per second and p50 and p95 per-call latency, and must fail below 20 aggregate calls per second. Use small micro-transactions.
 - After the run, the combined spend logs must re-derive with the `consistent` line and the re-derived total must equal the sum the test observed.
 
 ## Requirements — the gate itself

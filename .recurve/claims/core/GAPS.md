@@ -62,3 +62,136 @@ with [ready] markers) must always evaluate RED. Too big for one cycle by
 construction: cycles decompose it via `covers_claim: [MC-1]` per the PRD's
 epics, sculpt-first (auths contract changes land in the auths sculpt, then the
 target consumes them, then docs).
+
+
+## MC-2 — A1.1 export-spend-bundle emits spend.jsonl plus audit.json and leaves the registry committed
+
+What this suite claims should happen: A seller agent runs `auths-mcp export-spend-bundle --live-dir <dir> --out <out>` and gets `spend.jsonl` plus an `audit.json` naming `registry_git_url`, `agent`, and `root`, with the registry working files committed — one command, verifier-ready.
+
+And the negative space: Running `verify-spend` on a fresh, untampered export prints `consistent — N call(s), $X re-derived from signed costs`; a tampered export does not.
+
+## MC-3 — A1.3 the gateway injects its own git identity on clean machines
+
+What this suite claims should happen: A wrap on a HOME with no gitconfig and no GIT_AUTHOR_NAME env still builds its signing chain: the gateway injects an agent-derived git identity into every git invocation.
+
+And the negative space: The old failure — git auto-detect email aborting the chain build — must be impossible on a clean machine.
+
+## MC-4 — A2.1 a declined x402 settle surfaces the facilitator errorReason
+
+What this suite claims should happen: A declined x402 facilitator settle surfaces the facilitator's `errorReason` text in the adapter's error.
+
+And the negative space: A bare HTTP status alone is never the whole error. NOTE: the honest fix lives in ../auths-mcp, outside the declared sculpt trees — park unless sanctioned.
+
+## MC-5 — A2.2 the metered-amount-required refusal teaches an amount_atomic tools/call
+
+What this suite claims should happen: A buyer refused with `metered-amount-required` reads, inside the refusal, an example `tools/call` carrying `amount_atomic` and can self-correct without docs.
+
+And the negative space: The refusal still fails closed: the call is refused, signed, and persisted as a refused record.
+
+## MC-6 — P3.2 spend logs rotate by period under spend-log/<delegation>/ and verify across files
+
+What this suite claims should happen: Spend logs rotate by period under `spend-log/<delegation>/`; `verify-spend` over a rotated multi-file log prints the `consistent` line.
+
+And the negative space: A missing middle file breaks the back-link chain and re-derivation reports it — rotation never weakens tamper evidence.
+
+## MC-7 — P3.5 authenticatePresentation runs async off the Node event loop
+
+What this suite claims should happen: `authenticatePresentation` is an async napi export; verification runs via spawn_blocking off the Node event loop.
+
+And the negative space: Denial semantics are unchanged: same kebab denial codes, same verdicts — only the scheduling moved.
+
+## MC-8 — P3.5 agent-login evidence over 64 KB is refused with a typed 401
+
+What this suite claims should happen: Agent login evidence larger than 64 KB is refused with a typed 401 (`evidence-too-large`) before any parse or verification runs.
+
+And the negative space: An attacker cannot make the market do unbounded work: the bound is checked first, fail-closed.
+
+## MC-9 — S1.1 endpointValue is the raw downstream command and demo-echo is seeded bare
+
+What this suite claims should happen: `parseListingInput` refuses an `endpointValue` containing the wrap launcher and tells the seller to list the bare MCP server command; the `demo-echo` seed carries a raw downstream command.
+
+And the negative space: A wrapped endpoint never reaches the prober — the refusal names the convention instead of half-working.
+
+## MC-10 — S1.2 endpoint detail and get_integration return example_call with amount_atomic
+
+What this suite claims should happen: `GET /api/v1/endpoints/<slug>` includes an `example_call` whose arguments carry `amount_atomic` derived from `price_cents`; the MCP `get_integration` tool returns the same field.
+
+And the negative space: The example must match what the gateway actually accepts — a buyer pasting it is not refused for shape.
+
+## MC-11 — S2.3 receipt summaries bucket by record day and populate rail_split
+
+What this suite claims should happen: `receipt_summaries` holds one row per UTC day with activity, bucketed by each spend-log record's own timestamp; `rail_split` is populated from the records' rails whenever settled calls exist.
+
+And the negative space: The run day never masquerades as the activity day; an empty rail_split with settled calls is a bug, not a default.
+
+## MC-12 — P3.3 the receipts worker checkpoints log_hash and re-verifies only the suffix
+
+What this suite claims should happen: The receipts worker checkpoints `log_hash` and verified length per listing and re-verifies only the suffix while the stored prefix hash is unchanged.
+
+And the negative space: A prefix mutation invalidates the checkpoint and forces full re-verification — the shortcut never trusts a changed history.
+
+## MC-13 — P3.4 the worker fetches only refs/auths/* and the published branch with a blob filter
+
+What this suite claims should happen: The receipts worker fetches only `refs/auths/*` and the published branch, with a blob filter.
+
+And the negative space: A fetch failure marks `receipts_invalid` with a stated reason — never silently green.
+
+## MC-14 — S3.1 the MCP directory gains create_listing and my_listings write tools
+
+What this suite claims should happen: `mcp/market-directory.mjs` exposes `create_listing` and `my_listings` tools that drive challenge → presentation → POST end to end.
+
+And the negative space: The tools fail with the server's typed denial codes — no swallowed 401/403.
+
+## MC-15 — S3.2 POST /api/v1/me/listings returns the presented agent listings
+
+What this suite claims should happen: `POST /api/v1/me/listings` authenticates the presentation and returns the caller's listings with `status`, `fail_reason`, `verified_at`, `live_proven_at`.
+
+And the negative space: Another agent's listings are never returned; a failed authentication gets the standard 401/403 doctrine.
+
+## MC-16 — S3.3 the sell page shows the runnable agent recipe, test-mode first
+
+What this suite claims should happen: The sell page shows the four-command agent recipe — issue the `market:sell` credential, mint a challenge, present, create the listing — test-mode before live-mode, every command runnable as pasted.
+
+And the negative space: No command drifts from the real CLI surface (the drift lint owns this).
+
+## MC-17 — the fleet-throughput e2e proves 8+ agents under one shared cap at 20+ calls/s
+
+What this suite claims should happen: `tests/e2e/fleet-throughput.mjs` runs 8+ headless agents delegated under one root, driving concurrent metered test-mode calls through real gateways; it reports aggregate calls/s and p50/p95 latency and fails below 20 aggregate calls/s.
+
+And the negative space: Crossing the one shared cap is refused with `usage-cap-exceeded` on every agent, and the combined logs re-derive `consistent`, totals matching what the test observed.
+
+## MC-18 — A3.1 A3.2 S4.2 plan bookkeeping: owner-release tags and the release-gate runbook
+
+What this suite claims should happen: The merchant plan carries zero `[ready]` markers: release-scoped items (A3.1, S4.2) are tagged `owner-release`, the A3.2 release-gate runbook is written without deciding its parked home, and the legend describes the final vocabulary.
+
+And the negative space: No item is silently dropped — every flip names its closing commit or its owner.
+
+## MC-19 — M-A1 channel open records a funded reservation and channel close settles netted
+
+What this suite claims should happen: `auths-mcp channel open --seller <did> --capacity <amt> --rail <rail>` records a funded reservation the gateway meters against with zero rail touches per call; `channel close` settles the netted total in one rail action and emits a settlement record the receipts worker reads.
+
+And the negative space: Rail-touching legs are env-gated: absent credentials produce a stated skip, never a fake settle.
+
+## MC-20 — M-A2 a treasury coordinator enforces one fleet cap and signs checkpoints
+
+What this suite claims should happen: A treasury coordinator enforces ONE cap across N gateway processes via `reserve(delegation, cents) → grant|refuse`; it signs periodic `{fleet, count, cumulative}` checkpoints that `verify-spend` can cross-check.
+
+And the negative space: An unreachable coordinator fails closed to the local, smaller budget — never open.
+
+## MC-21 — M-S1 billing_accounts, fleets, settlements keyed to the root with log_hash-cited fees
+
+What this suite claims should happen: The market schema gains `billing_accounts`, `fleets`, and `settlements` keyed to the root identity; every fee row cites the `log_hash` it was computed from.
+
+And the negative space: A fee that cannot be re-derived from its cited log does not render — we bill the way we badge.
+
+## MC-22 — M-S2 the fleet dashboard renders re-derived figures and KEL-read members
+
+What this suite claims should happen: The fleet dashboard renders delegations, the one treasury cap with live headroom, and channel states, all from re-derived figures; org member management reads members from the org identity history.
+
+And the negative space: Gateway-reported numbers never render as settled figures; a mirror table alone never defines membership.
+
+## MC-ASM — the decomposition of MC-1 covers every ready item, the scaling fixes, monetization, and the fleet test
+
+What this suite claims should happen: Mechanical sufficiency of the MC-1 decomposition: every live `[ready]` item ID in the merchant plan, the scaling fixes P3.2–P3.5, the monetization epics M-A1/M-A2/M-S1/M-S2, and the fleet-throughput test each appear in a child claim covering MC-1.
+
+And the negative space: A plan item no child covers turns this RED — the cut is revised, never forced.

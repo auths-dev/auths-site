@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# MC-19 (M-A1): channel open records a funded reservation, channel close settles netted; rail legs env-gated with a stated skip.
+source "$(dirname "$0")/_contract.sh"
+root="$(cd "$(dirname "$0")/../../../.." && pwd)"
+auths="$root/../auths"
+bin="$auths/target/debug/auths-mcp-gateway"
+[ -n "$TRAP_FIXTURE" ] && bin="$TRAP_FIXTURE/auths-mcp-gateway"
+[ -x "$bin" ] || broken "gateway binary missing at $bin (run the sculpt rebuild)"
+"$bin" channel --help >/dev/null 2>&1 || red "channel-subcommand=absent oracle=channel open/close"
+open_help=$("$bin" channel open --help 2>&1) || red "channel-open=absent oracle=channel open"
+echo "$open_help" | grep -q -- '--capacity' || red "no --capacity flag"
+echo "$open_help" | grep -q -- '--rail' || red "no --rail flag"
+"$bin" channel close --help >/dev/null 2>&1 || red "channel-close=absent oracle=channel close"
+g="$auths/crates/auths-mcp-gateway/src"
+[ -n "$TRAP_FIXTURE" ] && g="$TRAP_FIXTURE/gateway-src"
+grep -rqE 'not configured|credentials absent' "$g" || red "no stated env-gate skip oracle=skip reason when rail credentials absent"
+green "channel open/close present with env-gated rail legs"

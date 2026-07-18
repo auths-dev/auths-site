@@ -15,3 +15,374 @@
     '
   probe: probes/mc-1.sh
   unlocks: the market sells, settles, and scales with no human in the loop, provably
+
+- id: MC-2
+  title: A1.1 export-spend-bundle emits spend.jsonl plus audit.json and leaves the registry
+    committed
+  class: missing-surface
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-2.sh:1
+  observed: 'RED at baseline 2026-07-18: export-spend-bundle-subcommand=absent oracle=present'
+  smallest_fix: 'Add an export-spend-bundle subcommand to the gateway CLI: copy the delegation
+    spend log(s), write audit.json {registry_git_url, agent, root}, and commit registry working
+    files so verify-spend re-derives consistent.
+
+    '
+  probe: probes/mc-2.sh
+
+- id: MC-3
+  title: A1.3 the gateway injects its own git identity on clean machines
+  class: broken-route
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-3.sh:1
+  observed: 'RED at baseline 2026-07-18: no GIT_AUTHOR_NAME injection oracle=env-injected
+    identity'
+  smallest_fix: 'Set GIT_AUTHOR_NAME/EMAIL + GIT_COMMITTER_NAME/EMAIL (agent-derived) on every
+    git invocation in chain.rs so wraps on a HOME with no gitconfig build their signing chain.
+
+    '
+  probe: probes/mc-3.sh
+
+- id: MC-4
+  title: A2.1 a declined x402 settle surfaces the facilitator errorReason
+  class: wire-mismatch
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-4.sh:1
+  observed: 'RED at baseline 2026-07-18: settle-error-omits-errorReason oracle=facilitator
+    reason text in error'
+  smallest_fix: 'In the x402-adapter settle path, include the facilitator response body errorReason
+    in the thrown error text, never a bare HTTP status. NOTE: lives in ../auths-mcp, outside
+    the declared sculpt trees.
+
+    '
+  probe: probes/mc-4.sh
+
+- id: MC-5
+  title: A2.2 the metered-amount-required refusal teaches an amount_atomic tools/call
+  class: friction
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-5.sh:1
+  observed: 'RED at baseline 2026-07-18: refusal-lacks-embedded-example oracle=escaped amount_atomic
+    JSON in the message'
+  smallest_fix: 'Extend the refusal message in proxy.rs with an embedded example tools/call
+    JSON carrying amount_atomic so a buyer can self-correct.
+
+    '
+  probe: probes/mc-5.sh
+
+- id: MC-6
+  title: P3.2 spend logs rotate by period under spend-log/<delegation>/ and verify across
+    files
+  class: missing-surface
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-6.sh:1
+  observed: 'RED at baseline 2026-07-18: reads-single-file oracle=multi-file read via read_dir'
+  smallest_fix: 'Write period-named files under spend-log/<delegation>/, read/verify across
+    all files in order; verify-spend on a rotated log still prints the consistent line.
+
+    '
+  probe: probes/mc-6.sh
+
+- id: MC-7
+  title: P3.5 authenticatePresentation runs async off the Node event loop
+  class: friction
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-7.sh:1
+  observed: 'RED at baseline 2026-07-18: authenticate_presentation=sync oracle=pub async fn'
+  smallest_fix: 'Make the napi export pub async fn using spawn_blocking around the verification;
+    regenerate index.d.ts + lib/native.ts shadow.
+
+    '
+  probe: probes/mc-7.sh
+
+- id: MC-8
+  title: P3.5 agent-login evidence over 64 KB is refused with a typed 401
+  class: missing-surface
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-8.sh:1
+  observed: 'RED at baseline 2026-07-18: no-size-bound oracle=64KB cap before verify'
+  smallest_fix: 'Bound the Auths-Presentation evidence at 64 KB before any parse/verify, denial
+    code evidence-too-large, in the market auth lib.
+
+    '
+  probe: probes/mc-8.sh
+
+- id: MC-9
+  title: S1.1 endpointValue is the raw downstream command and demo-echo is seeded bare
+  class: wire-mismatch
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-9.sh:1
+  observed: 'RED at baseline 2026-07-18: no-wrap-refusal oracle=endpointValue containing the
+    wrap launcher is refused'
+  smallest_fix: 'parseListingInput refuses endpointValue containing the wrap launcher, teaching
+    the bare downstream command; keep the demo-echo seed raw.
+
+    '
+  probe: probes/mc-9.sh
+
+- id: MC-10
+  title: S1.2 endpoint detail and get_integration return example_call with amount_atomic
+  class: missing-surface
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-10.sh:1
+  observed: 'RED at baseline 2026-07-18: api-lacks-example_call oracle=example_call in endpoint
+    detail'
+  smallest_fix: 'Add example_call (tools/call arguments with amount_atomic derived from price_cents)
+    to GET /api/v1/endpoints/<slug> and the MCP get_integration tool.
+
+    '
+  probe: probes/mc-10.sh
+
+- id: MC-11
+  title: S2.3 receipt summaries bucket by record day and populate rail_split
+  class: wire-mismatch
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-11.sh:1
+  observed: 'RED at baseline 2026-07-18: bucket-by-run-day oracle=each record''s own UTC day'
+  smallest_fix: 'Group spend-log records by their own UTC day (one row per day with activity),
+    populate rail_split from record rails; drop the run-day bucket.
+
+    '
+  probe: probes/mc-11.sh
+
+- id: MC-12
+  title: P3.3 the receipts worker checkpoints log_hash and re-verifies only the suffix
+  class: missing-surface
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-12.sh:1
+  observed: 'RED at baseline 2026-07-18: no-checkpoint-use oracle=verified_len suffix re-verify'
+  smallest_fix: 'Store log_hash + verified_len per listing; on unchanged prefix hash re-verify
+    only the suffix; migration adds the checkpoint columns.
+
+    '
+  probe: probes/mc-12.sh
+
+- id: MC-13
+  title: P3.4 the worker fetches only refs/auths/* and the published branch with a blob filter
+  class: wire-mismatch
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-13.sh:1
+  observed: 'RED at baseline 2026-07-18: broad-fetch oracle=refs/auths/* + published branch
+    only'
+  smallest_fix: 'Narrow the registry fetch to refs/auths/* plus the published branch with
+    --filter=blob:none; fetch failure marks receipts_invalid with a stated reason.
+
+    '
+  probe: probes/mc-13.sh
+
+- id: MC-14
+  title: S3.1 the MCP directory gains create_listing and my_listings write tools
+  class: missing-surface
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-14.sh:1
+  observed: 'RED at baseline 2026-07-18: create_listing=absent oracle=write tool present'
+  smallest_fix: 'Add create_listing and my_listings tools to market-directory.mjs driving
+    challenge -> presentation -> POST end to end.
+
+    '
+  probe: probes/mc-14.sh
+
+- id: MC-15
+  title: S3.2 POST /api/v1/me/listings returns the presented agent listings
+  class: missing-surface
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-15.sh:1
+  observed: 'RED at baseline 2026-07-18: me/listings-route=absent oracle=apps/market/src/app/api/v1/me/listings/route.ts'
+  smallest_fix: 'New route: authenticate the presentation, return the caller-owned listings
+    with status, fail_reason, verified_at, live_proven_at.
+
+    '
+  probe: probes/mc-15.sh
+
+- id: MC-16
+  title: S3.3 the sell page shows the runnable agent recipe, test-mode first
+  class: friction
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-16.sh:1
+  observed: 'RED at baseline 2026-07-18: no-agent-recipe oracle=credential issue with market:sell'
+  smallest_fix: 'Add the four-command agent path (issue market:sell credential, mint challenge,
+    present, create listing) to /sell, every command runnable as pasted.
+
+    '
+  probe: probes/mc-16.sh
+
+- id: MC-17
+  title: the fleet-throughput e2e proves 8+ agents under one shared cap at 20+ calls/s
+  class: missing-surface
+  status: open
+  severity: headline
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-17.sh:1
+  observed: 'RED at baseline 2026-07-18: fleet-test=absent oracle=tests/e2e/fleet-throughput.mjs'
+  smallest_fix: 'New tests/e2e/fleet-throughput.mjs: 8+ delegated headless agents, concurrent
+    metered test-mode calls, shared cap refused fleet-wide with usage-cap-exceeded, cps +
+    p50/p95 reported, fail under 20 cps, combined logs re-derive consistent; wire into the
+    suite harness.
+
+    '
+  probe: probes/mc-17.sh
+
+- id: MC-18
+  title: 'A3.1 A3.2 S4.2 plan bookkeeping: owner-release tags and the release-gate runbook'
+  class: staging
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-18.sh:1
+  observed: 'RED at baseline 2026-07-18: ready-markers-remaining=14 oracle=0'
+  smallest_fix: 'Retag release-scoped items owner-release per the PRD, write the A3.2 release-gate
+    runbook note without deciding its home, reword the legend once zero ready markers remain.
+
+    '
+  probe: probes/mc-18.sh
+
+- id: MC-19
+  title: M-A1 channel open records a funded reservation and channel close settles netted
+  class: missing-surface
+  status: open
+  severity: headline
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-19.sh:1
+  observed: 'RED at baseline 2026-07-18: channel-subcommand=absent oracle=channel open/close'
+  smallest_fix: 'auths-mcp channel open --seller --capacity --rail records the funded reservation
+    the gateway meters against; channel close settles the netted total in one rail action
+    and emits a settlement record; rail legs env-gated with a stated skip.
+
+    '
+  probe: probes/mc-19.sh
+
+- id: MC-20
+  title: M-A2 a treasury coordinator enforces one fleet cap and signs checkpoints
+  class: missing-surface
+  status: open
+  severity: headline
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-20.sh:1
+  observed: 'RED at baseline 2026-07-18: no-coordinator-wiring oracle=TREASURY_URL reserve
+    client'
+  smallest_fix: 'TREASURY_URL reserve(delegation, cents) -> grant|refuse across N gateways;
+    unreachable coordinator fails closed to the smaller local budget; periodic signed {fleet,
+    count, cumulative} checkpoints verify-spend can cross-check.
+
+    '
+  probe: probes/mc-20.sh
+
+- id: MC-21
+  title: M-S1 billing_accounts, fleets, settlements keyed to the root with log_hash-cited
+    fees
+  class: missing-surface
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-21.sh:1
+  observed: 'RED at baseline 2026-07-18: no-billing_accounts oracle=billing schema'
+  smallest_fix: 'Migration adding billing_accounts, fleets, settlements (every fee row cites
+    its log_hash), keyed to the root identity.
+
+    '
+  probe: probes/mc-21.sh
+
+- id: MC-22
+  title: M-S2 the fleet dashboard renders re-derived figures and KEL-read members
+  class: missing-surface
+  status: open
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-22.sh:1
+  observed: 'RED at baseline 2026-07-18: fleet-dashboard=absent oracle=apps/market/src/app/fleet'
+  smallest_fix: 'New /fleet page: delegations, the one treasury cap with headroom, channel
+    states from re-derived logs only; member view reads the org identity history, never a
+    mirror table alone.
+
+    '
+  probe: probes/mc-22.sh
+
+- id: MC-ASM
+  title: the decomposition of MC-1 covers every ready item, the scaling fixes, monetization,
+    and the fleet test
+  class: staging
+  status: closed
+  severity: feature
+  covers_claim:
+  - MC-1
+  evidence:
+  - probes/mc-asm.sh:1
+  observed: 'GREEN at baseline 2026-07-18: assembly holds: children=21 cover 13 ready items
+    + scaling + monetization + fleet'
+  smallest_fix: 'Mechanical sufficiency: every live ready item ID, P3.2-P3.5, M-A1/M-A2/M-S1/M-S2,
+    and the fleet-throughput test each appear in a child claim covering MC-1.
+
+    '
+  probe: probes/mc-asm.sh
