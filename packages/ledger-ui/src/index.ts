@@ -14,5 +14,5 @@ export {
   type FooterLink,
 } from './ledger'
 export { CopyButton } from './copy-button'
-export { CodeBlock } from './code-block'
+export { BashLines, CodeBlock } from './code-block'
 export { MotionProvider } from './motion-provider'
