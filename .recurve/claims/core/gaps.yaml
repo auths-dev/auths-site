@@ -1,6 +1,7 @@
 # gaps.yaml — the live ledger: verified observations only.
 
 - id: MC-1
+  covers: ['1']
   title: both market plans are closed, proven, and fleet-guarded
   class: missing-surface
   status: open
@@ -17,6 +18,7 @@
   unlocks: the market sells, settles, and scales with no human in the loop, provably
 
 - id: MC-2
+  covers: ['MC-2']
   title: A1.1 export-spend-bundle emits spend.jsonl plus audit.json and leaves the registry
     committed
   class: missing-surface
@@ -35,6 +37,7 @@
   probe: probes/mc-2.sh
 
 - id: MC-3
+  covers: ['MC-3']
   title: A1.3 the gateway injects its own git identity on clean machines
   class: broken-route
   status: open
@@ -52,6 +55,7 @@
   probe: probes/mc-3.sh
 
 - id: MC-4
+  covers: ['MC-4']
   title: A2.1 a declined x402 settle surfaces the facilitator errorReason
   class: wire-mismatch
   status: open
@@ -70,6 +74,7 @@
   probe: probes/mc-4.sh
 
 - id: MC-5
+  covers: ['MC-5']
   title: A2.2 the metered-amount-required refusal teaches an amount_atomic tools/call
   class: friction
   status: open
@@ -87,6 +92,7 @@
   probe: probes/mc-5.sh
 
 - id: MC-6
+  covers: ['MC-6']
   title: P3.2 spend logs rotate by period under spend-log/<delegation>/ and verify across
     files
   class: missing-surface
@@ -104,6 +110,7 @@
   probe: probes/mc-6.sh
 
 - id: MC-7
+  covers: ['MC-7']
   title: P3.5 authenticatePresentation runs async off the Node event loop
   class: friction
   status: open
@@ -120,6 +127,7 @@
   probe: probes/mc-7.sh
 
 - id: MC-8
+  covers: ['MC-8']
   title: P3.5 agent-login evidence over 64 KB is refused with a typed 401
   class: missing-surface
   status: open
@@ -136,6 +144,7 @@
   probe: probes/mc-8.sh
 
 - id: MC-9
+  covers: ['MC-9']
   title: S1.1 endpointValue is the raw downstream command and demo-echo is seeded bare
   class: wire-mismatch
   status: open
@@ -153,6 +162,7 @@
   probe: probes/mc-9.sh
 
 - id: MC-10
+  covers: ['MC-10']
   title: S1.2 endpoint detail and get_integration return example_call with amount_atomic
   class: missing-surface
   status: open
@@ -170,6 +180,7 @@
   probe: probes/mc-10.sh
 
 - id: MC-11
+  covers: ['MC-11']
   title: S2.3 receipt summaries bucket by record day and populate rail_split
   class: wire-mismatch
   status: open
@@ -186,6 +197,7 @@
   probe: probes/mc-11.sh
 
 - id: MC-12
+  covers: ['MC-12']
   title: P3.3 the receipts worker checkpoints log_hash and re-verifies only the suffix
   class: missing-surface
   status: open
@@ -202,6 +214,7 @@
   probe: probes/mc-12.sh
 
 - id: MC-13
+  covers: ['MC-13']
   title: P3.4 the worker fetches only refs/auths/* and the published branch with a blob filter
   class: wire-mismatch
   status: open
@@ -219,6 +232,7 @@
   probe: probes/mc-13.sh
 
 - id: MC-14
+  covers: ['MC-14']
   title: S3.1 the MCP directory gains create_listing and my_listings write tools
   class: missing-surface
   status: open
@@ -235,6 +249,7 @@
   probe: probes/mc-14.sh
 
 - id: MC-15
+  covers: ['MC-15']
   title: S3.2 POST /api/v1/me/listings returns the presented agent listings
   class: missing-surface
   status: open
@@ -251,6 +266,7 @@
   probe: probes/mc-15.sh
 
 - id: MC-16
+  covers: ['MC-16']
   title: S3.3 the sell page shows the runnable agent recipe, test-mode first
   class: friction
   status: open
@@ -267,6 +283,7 @@
   probe: probes/mc-16.sh
 
 - id: MC-17
+  covers: ['MC-17']
   title: the fleet-throughput e2e proves 8+ agents under one shared cap at 20+ calls/s
   class: missing-surface
   status: open
@@ -285,6 +302,7 @@
   probe: probes/mc-17.sh
 
 - id: MC-18
+  covers: ['MC-18']
   title: 'A3.1 A3.2 S4.2 plan bookkeeping: owner-release tags and the release-gate runbook'
   class: staging
   status: open
@@ -301,6 +319,7 @@
   probe: probes/mc-18.sh
 
 - id: MC-19
+  covers: ['MC-19']
   title: M-A1 channel open records a funded reservation and channel close settles netted
   class: missing-surface
   status: open
@@ -318,16 +337,17 @@
   probe: probes/mc-19.sh
 
 - id: MC-20
+  covers: ['MC-20']
   title: M-A2 a treasury coordinator enforces one fleet cap and signs checkpoints
   class: missing-surface
-  status: open
+  status: closed
   severity: headline
   covers_claim:
   - MC-1
   evidence:
   - probes/mc-20.sh:1
-  observed: 'RED at baseline 2026-07-18: no-coordinator-wiring oracle=TREASURY_URL reserve
-    client'
+  observed: 'CLOSED 2026-07-18: treasury serve grants/refuses/persists/checkpoints (live smoke);
+    proxy reserves fleet capacity before the local judge; verify-spend cross-checks the signed trail.'
   smallest_fix: 'TREASURY_URL reserve(delegation, cents) -> grant|refuse across N gateways;
     unreachable coordinator fails closed to the smaller local budget; periodic signed {fleet,
     count, cumulative} checkpoints verify-spend can cross-check.
@@ -336,6 +356,7 @@
   probe: probes/mc-20.sh
 
 - id: MC-21
+  covers: ['MC-21']
   title: M-S1 billing_accounts, fleets, settlements keyed to the root with log_hash-cited
     fees
   class: missing-surface
@@ -353,6 +374,7 @@
   probe: probes/mc-21.sh
 
 - id: MC-22
+  covers: ['MC-22']
   title: M-S2 the fleet dashboard renders re-derived figures and KEL-read members
   class: missing-surface
   status: open
@@ -370,6 +392,7 @@
   probe: probes/mc-22.sh
 
 - id: MC-ASM
+  covers: ['MC-ASM']
   title: the decomposition of MC-1 covers every ready item, the scaling fixes, monetization,
     and the fleet test
   class: staging

@@ -81,15 +81,20 @@ async function deriveListing(listing: Listing): Promise<
       });
     }
 
+    // Same launcher rule as the prober: `AUTHS_MCP_LAUNCHER` pins a local
+    // `auths-mcp.mjs` (no npm fetch inside the verification window); the default
+    // cold-installs the published package under the worker's fresh HOME.
+    const launcher = process.env.AUTHS_MCP_LAUNCHER;
+    const verifyArgs = [
+      'verify-spend',
+      '--log', logPath,
+      '--registry', registryPath,
+      '--agent', manifest.agent,
+      '--root', manifest.root,
+    ];
     const { stdout, stderr } = await run(
-      'npx',
-      [
-        '-y', '@auths-dev/mcp', 'verify-spend',
-        '--log', logPath,
-        '--registry', registryPath,
-        '--agent', manifest.agent,
-        '--root', manifest.root,
-      ],
+      launcher ? process.execPath : 'npx',
+      launcher ? [launcher, ...verifyArgs] : ['-y', '@auths-dev/mcp', ...verifyArgs],
       { timeout: 120_000, env: { ...process.env, HOME: work } },
     ).catch((e: Error & { stdout?: string; stderr?: string }) => ({
       stdout: e.stdout ?? '',

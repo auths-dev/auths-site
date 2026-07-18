@@ -172,11 +172,23 @@ What this suite claims should happen: `auths-mcp channel open --seller <did> --c
 
 And the negative space: Rail-touching legs are env-gated: absent credentials produce a stated skip, never a fake settle.
 
-## MC-20 — M-A2 a treasury coordinator enforces one fleet cap and signs checkpoints
+## MC-20 — M-A2 a treasury coordinator enforces one fleet cap and signs checkpoints (CLOSED)
 
-What this suite claims should happen: A treasury coordinator enforces ONE cap across N gateway processes via `reserve(delegation, cents) → grant|refuse`; it signs periodic `{fleet, count, cumulative}` checkpoints that `verify-spend` can cross-check.
+Closed 2026-07-18. `auths-mcp-gateway treasury serve --listen --fleet --cap --state-dir`
+holds the ONE fleet counter: `reserve(delegation, cents) → granted|refused` over a
+newline-JSON TCP wire (`TREASURY_URL=tcp://host:port`), commit-on-grant, persisted
+atomically so restarts resume the high-water. Every wrapped gateway pre-authorizes
+each metered call there BEFORE its local budget; a fleet refusal is
+`usage-cap-exceeded` before any rail touch, and an unreachable coordinator degrades
+to the local (smaller) budget — fail-closed to the tighter cap, never open. The
+coordinator signs periodic `{fleet, count, cumulative}` checkpoints (P-256 over
+canonical JSON) that `verify-spend --treasury-checkpoints [--treasury-pubkey]
+[--expect-cumulative]` re-verifies: signature, one stable signer, monotonicity, and
+the re-derived total.
 
-And the negative space: An unreachable coordinator fails closed to the local, smaller budget — never open.
+And the negative space: a tampered checkpoint line fails its signature, a rolled-back
+trail is refused, a changed signer is refused, and a cumulative that disagrees with
+the caller's re-derived fleet sum exits non-zero.
 
 ## MC-21 — M-S1 billing_accounts, fleets, settlements keyed to the root with log_hash-cited fees
 

@@ -80,7 +80,7 @@ let fileServer = null;
 
 function cleanup() {
   for (const child of [devServer, fileServer]) child?.kill?.('SIGKILL');
-  try { execFileSync('bash', ['-c', 'lsof -ti :3002 | xargs kill -9 2>/dev/null || true']); } catch { /* noop */ }
+  try { execFileSync('bash', ['-c', 'lsof -ti tcp:3002 -sTCP:LISTEN | xargs kill -9 2>/dev/null || true']); } catch { /* noop */ }
   for (const d of tempDirs) rmSync(d, { recursive: true, force: true });
 }
 
@@ -191,8 +191,17 @@ class StdioMcp {
 }
 
 // ── phase 0: the market, and a place to publish the spend log ───────────────────
+// The prober and the buyer both run the LOCAL launcher over the freshly built
+// gateway — no per-probe npm fetch of the published package (a fresh-HOME cold
+// install pays a ~70 MB registry download inside every probe's 90 s budget).
+const LAUNCHER = process.env.AUTHS_MCP_LAUNCHER
+  ?? resolve(SITE, '../auths-mcp/packages/auths-mcp/bin/auths-mcp.mjs');
+process.env.AUTHS_MCP_LAUNCHER = LAUNCHER;
+process.env.GATEWAY_BIN = process.env.GATEWAY_BIN
+  ?? resolve(SITE, '../auths/target/debug/auths-mcp-gateway');
+
 if (!process.env.MARKET_URL) {
-  execFileSync('bash', ['-c', 'lsof -ti :3002 | xargs kill -9 2>/dev/null || true']);
+  execFileSync('bash', ['-c', 'lsof -ti tcp:3002 -sTCP:LISTEN | xargs kill -9 2>/dev/null || true']);
   devServer = spawn('bun', ['run', 'dev'], { cwd: APP, stdio: 'ignore', detached: false });
   for (let i = 0; i < 120; i += 1) {
     try { await fetch(`${MARKET}/api/v1/endpoints`); break; } catch { await new Promise((r) => setTimeout(r, 1000)); }
@@ -280,8 +289,8 @@ const buyerEnv = {
 const detail = await api(`/api/v1/endpoints/${slug}`);
 check('public API serves the live listing with its integration', detail.status === 200 && !!detail.body.integration, detail.body);
 
-const wrap = new StdioMcp('npx', [
-  '-y', '@auths-dev/mcp', 'wrap',
+const wrap = new StdioMcp(process.execPath, [
+  LAUNCHER, 'wrap',
   '--scope', 'paid.call',
   '--budget', '$1',
   '--ttl', '30m',
@@ -380,3 +389,4 @@ console.log(`\nfull merchant loop proven — ${passed} checks green`);
 console.log(`  seller ${sellerDid.slice(0, 28)}… listed ${slug}`);
 console.log(`  buyer agent ${agentDid.slice(0, 28)}… paid, was capped, and its signed log re-derived`);
 cleanup();
+process.exit(0);
