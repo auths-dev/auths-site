@@ -27,19 +27,29 @@ import type { Listing } from '@/lib/listings';
 
 const run = promisify(execFile);
 
+/** The worker's proven end-state for one listing's log (see receipt_checkpoints). */
+export interface ReceiptCheckpoint {
+  log_hash: string;
+  prefix_bytes: number;
+  verified_len: number;
+  last_binding: string;
+  last_cents: number;
+}
+
 interface AuditManifest {
   registry_git_url: string;
   agent: string;
   root: string;
 }
 
-async function deriveListing(listing: Listing): Promise<
+async function deriveListing(listing: Listing, checkpoint?: ReceiptCheckpoint | null): Promise<
   | {
       ok: true;
       calls: number;
       cents: number;
       logHash: string;
       days: Map<string, { calls: number; cents: number; rails: Record<string, number> }>;
+      checkpoint: ReceiptCheckpoint | null;
     }
   | { ok: false; reason: string }
 > {
@@ -112,6 +122,21 @@ async function deriveListing(listing: Listing): Promise<
       '--agent', manifest.agent,
       '--root', manifest.root,
     ];
+    // Incremental re-verification: when the stored prefix hash still matches the
+    // fetched bytes, resume after the records this worker already proved — only
+    // the suffix re-verifies. Any prefix mutation misses the hash → full audit.
+    const logBuf = Buffer.from(logText);
+    const prefixUnchanged = !!checkpoint
+      && logBuf.length >= checkpoint.prefix_bytes
+      && createHash('sha256').update(logBuf.subarray(0, checkpoint.prefix_bytes)).digest('hex')
+        === checkpoint.log_hash;
+    if (checkpoint && prefixUnchanged) {
+      verifyArgs.push(
+        '--resume-index', String(checkpoint.verified_len),
+        '--resume-binding', checkpoint.last_binding,
+        '--resume-cents', String(checkpoint.last_cents),
+      );
+    }
     const { stdout, stderr } = await run(
       launcher ? process.execPath : 'npx',
       launcher ? [launcher, ...verifyArgs] : ['-y', '@auths-dev/mcp', ...verifyArgs],
@@ -161,7 +186,17 @@ async function deriveListing(listing: Listing): Promise<
         reason: `per-day breakdown (${daySum}c) diverged from the re-derived total (${cents}c)`,
       };
     }
-    return { ok: true, calls, cents, logHash, days };
+    const cp = out.match(/checkpoint: records=(\d+) settled_cents=(\d+) binding=([0-9a-f]+)/);
+    const nextCheckpoint: ReceiptCheckpoint | null = cp
+      ? {
+          log_hash: logHash,
+          prefix_bytes: logBuf.length,
+          verified_len: Number.parseInt(cp[1], 10),
+          last_binding: cp[3],
+          last_cents: Number.parseInt(cp[2], 10),
+        }
+      : null;
+    return { ok: true, calls, cents, logHash, days, checkpoint: nextCheckpoint };
   } finally {
     rmSync(work, { recursive: true, force: true });
   }
@@ -172,11 +207,19 @@ export async function deriveAll(): Promise<{ derived: number; invalid: number }>
   const { data, error } = await supabase.from('listings').select('*').eq('status', 'live');
   if (error) throw new Error(`listing query failed: ${error.message}`);
 
+  const listingIds = ((data ?? []) as Listing[]).map((l) => l.id);
+  const { data: checkpointRows } = listingIds.length
+    ? await supabase.from('receipt_checkpoints').select('*').in('listing_id', listingIds)
+    : { data: [] };
+  const checkpoints = new Map<string, ReceiptCheckpoint>(
+    (checkpointRows ?? []).map((row) => [row.listing_id as string, row as ReceiptCheckpoint]),
+  );
+
   let derived = 0;
   let invalid = 0;
   for (const listing of (data ?? []) as Listing[]) {
     if (!listing.spend_log_url) continue;
-    const result = await deriveListing(listing).catch(
+    const result = await deriveListing(listing, checkpoints.get(listing.id) ?? null).catch(
       (e: Error) => ({ ok: false as const, reason: `derivation error: ${e.message}` }),
     );
     if (result.ok) {
@@ -194,6 +237,11 @@ export async function deriveAll(): Promise<{ derived: number; invalid: number }>
       // The whole breakdown re-derives from the log each run — replace, never accrete.
       await supabase.from('receipt_summaries').delete().eq('listing_id', listing.id);
       if (rows.length > 0) await supabase.from('receipt_summaries').insert(rows);
+      if (result.checkpoint) {
+        await supabase
+          .from('receipt_checkpoints')
+          .upsert({ listing_id: listing.id, ...result.checkpoint, derived_at: derivedAt });
+      }
       const update: Record<string, unknown> = { receipts_invalid: false };
       // Badge tier 2: first re-derived settled cents prove the live rail.
       if (!listing.live_proven_at && result.cents > 0) {

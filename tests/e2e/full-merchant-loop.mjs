@@ -379,6 +379,14 @@ check('receipts worker ran verify-spend over the published log', receipts.status
 const listingRow = (await db('GET', `listings?slug=eq.${slug}&select=id,receipts_invalid,fail_reason,live_proven_at`))[0];
 check('the log re-derived CONSISTENT (never seller-reported)',
   listingRow?.receipts_invalid === false, listingRow);
+const receiptsAgain = await api('/api/cron/receipts', {
+  method: 'GET',
+  headers: { authorization: `Bearer ${CRON_SECRET}` },
+});
+const listingRow2 = (await db('GET', `listings?slug=eq.${slug}&select=receipts_invalid`))[0];
+check('a second pass resumes from the stored checkpoint and stays consistent',
+  receiptsAgain.status === 200 && listingRow2?.receipts_invalid === false,
+  { receiptsAgain: receiptsAgain.body, listingRow2 });
 const finalSummary = (await db('GET', `receipt_summaries?listing_id=eq.${listingRow.id}&select=calls,cents_settled,log_hash`))[0];
 check('re-derived receipts show settled calls and cents',
   finalSummary?.calls >= 1 && finalSummary?.cents_settled >= 1, finalSummary);

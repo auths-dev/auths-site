@@ -169,11 +169,21 @@ diverges from verify-spend's total marks the listing invalid with a stated reaso
 And the negative space: the run day never masquerades as the activity day, and an
 unverified log writes no rows at all.
 
-## MC-12 — P3.3 the receipts worker checkpoints log_hash and re-verifies only the suffix
+## MC-12 — P3.3 the receipts worker checkpoints log_hash and re-verifies only the suffix (CLOSED)
 
-What this suite claims should happen: The receipts worker checkpoints `log_hash` and verified length per listing and re-verifies only the suffix while the stored prefix hash is unchanged.
+Closed 2026-07-18. The auditor gained a RESUMED entrypoint (`AuditResume`:
+prior records, final binding, settled cents — state the caller's own earlier
+audit proved); `verify-spend` exposes it (`--resume-index/--resume-binding/
+--resume-cents`) and prints a machine-readable `checkpoint:` line. The worker
+stores that end-state per listing (`receipt_checkpoints`, applied live) and, when
+the fetched log's prefix bytes still hash to the stored `log_hash`, re-verifies
+only the suffix. The merchant loop (20 checks) proves a second pass resumes and
+stays consistent.
 
-And the negative space: A prefix mutation invalidates the checkpoint and forces full re-verification — the shortcut never trusts a changed history.
+And the negative space: any prefix mutation misses the hash and forces a full
+re-verification — the shortcut skips only work the worker itself proved, never
+trust in the operator; suffix signatures and the `Auths-Prev` link to the stored
+binding are still fully verified.
 
 ## MC-13 — P3.4 the worker fetches only refs/auths/* and the published branch with a blob filter (CLOSED)
 

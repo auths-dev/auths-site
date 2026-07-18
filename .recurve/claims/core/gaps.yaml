@@ -200,7 +200,7 @@
   covers: ['MC-12']
   title: P3.3 the receipts worker checkpoints log_hash and re-verifies only the suffix
   class: missing-surface
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1
