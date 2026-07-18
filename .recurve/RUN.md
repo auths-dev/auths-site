@@ -9,7 +9,7 @@ gaps to N−k, and leave every suite green. Not two cycles. Not "as many as
 fit." One, finished and proven, then stop and report.
 
 The whole loop is safe to run because one command is ground truth you cannot
-argue with: **`recurve matrix --gate`** exits non-zero on any regression,
+argue with: **`recurve matrix --gate --timeout 900`** exits non-zero on any regression,
 broken probe, stale artifact, or a guard probe that blessed its own
 counterexample. Anchor every claim to it. A gap is closed when its probe is
 GREEN and the gate is green fleet-wide — never because you believe it is.
@@ -95,7 +95,7 @@ any of them (`docs/plans/autonomous_solver.md` §1 — sufficiency vs. taste):
    own decomposition library, once wired to a CLI command in this project —
    walks to discharge this gap once every child closes.
 4. `recurve baseline <suite>` arms the new entries for real. `recurve
-   matrix --gate` must still hold: the assembly promotes to closed; the
+   matrix --gate --timeout 900` must still hold: the assembly promotes to closed; the
    fresh sub-claims start open — RED is expected and correct for them.
 5. **This gap itself stays OPEN.** It is discharged in a LATER cycle, once
    every child is closed and the assembly composes them into an
@@ -119,12 +119,12 @@ recurve matrix --gate        # fleet-wide: zero regressions/broken/stale/failed 
 
 Then the suite's behavioral harness if it has one. All of it, every cycle.
 
-**Fast gate (`--cache`).** `recurve matrix --gate --cache` is the *same* fleet-wide gate,
+**Fast gate (`--cache`).** `recurve matrix --gate --cache --timeout 900` is the *same* fleet-wide gate,
 only faster: it skips any probe whose check file and the project sources it imports are
 unchanged since that probe's last verdict, reusing the stored GREEN/RED. It is **sound** — a
 probe whose inputs moved is always re-run, so it catches regressions exactly as the full gate
 does — and the node you just sculpted always re-runs (its source changed). Use it for fast
-iteration and the per-cycle gate. **Run the plain uncached `recurve matrix --gate` where the
+iteration and the per-cycle gate. **Run the plain uncached `recurve matrix --gate --timeout 900` where the
 verdict must be ground-truth fresh: before a PR/merge, before `recurve baseline`, before a
 published report, and any time you doubt the built artifacts.** The cache is off by default —
 nothing changes unless you pass `--cache` — and its store lives in `.recurve/cache/` (gitignore

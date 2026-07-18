@@ -55,7 +55,7 @@ fi
 
 echo "burndown $RUN_ID: preflight"
 $PROG validate || { echo "burndown: broken ledger — fix before running unattended."; exit 1; }
-$PROG matrix --gate || { echo "burndown: baseline gate is not green — never start here."; exit 1; }
+$PROG matrix --gate --timeout 900 || { echo "burndown: baseline gate is not green — never start here."; exit 1; }
 
 # arm_wave: send one agent to author probes+traps for pending drafts, then
 # run the baseline ceremony so RED drafts become open, sculptable gaps.
@@ -205,7 +205,7 @@ except Exception: print("")' "$RESULT_FILE")"
       || echo "  (record rejected by schema — kept raw at $RESULT_FILE)"
     case "$STATUS" in
       closed)
-        if $PROG matrix --gate >/dev/null 2>&1; then
+        if $PROG matrix --gate --timeout 900 >/dev/null 2>&1; then
           echo "  cycle $cycle: closed $GAP, gate green"
           fails=0; closed=$((closed+1))
         else
@@ -215,7 +215,7 @@ except Exception: print("")' "$RESULT_FILE")"
       decomposed)
         # The gap itself stays open on purpose — only the fleet gate (assembly
         # GREEN, fresh children armed RED) is checked here, never $GAP's own probe.
-        if $PROG matrix --gate >/dev/null 2>&1; then
+        if $PROG matrix --gate --timeout 900 >/dev/null 2>&1; then
           echo "  cycle $cycle: decomposed $GAP into sub-claims, gate green"
           fails=0; decomposed=$((decomposed+1))
         else

@@ -52,7 +52,7 @@ trap '$PROG lock release >/dev/null 2>&1' EXIT
 
 echo "parallel burndown $RUN_ID: preflight"
 $PROG validate || { echo "broken ledger — fix before running unattended"; exit 1; }
-$PROG matrix --gate || { echo "baseline gate is not green — never start here"; exit 1; }
+$PROG matrix --gate --timeout 900 || { echo "baseline gate is not green — never start here"; exit 1; }
 
 empty_rounds=0
 landed_total=0
@@ -112,7 +112,7 @@ Write your run record JSON to \$RECURVE_RESULT_FILE, then STOP."
     else
       git -C "$TREE" apply "$PATCH"
       if $PROG probe --gap "$GAP" 2>/dev/null | grep -q "READY→close" \
-         && $PROG matrix --gate >/dev/null 2>&1; then
+         && $PROG matrix --gate --timeout 900 >/dev/null 2>&1; then
         py 'import sys
 path, gap = sys.argv[1], sys.argv[2]
 t = open(path).read()

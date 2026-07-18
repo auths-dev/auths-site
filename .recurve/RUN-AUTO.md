@@ -22,14 +22,14 @@ Your stop condition: the loop halts itself.
 
 ## Before you start
 
-- `recurve validate && recurve matrix --gate` must both be green. An
+- `recurve validate && recurve matrix --gate --timeout 900` must both be green. An
   unattended run started on a broken baseline burns every cycle on the same
   rock. (Keep this *baseline* gate **uncached** — ground truth.)
-- **Speed knob for the run:** the per-cycle gate may use `recurve matrix --gate
+- **Speed knob for the run:** the per-cycle gate may use `recurve matrix --gate --timeout 900
   --cache` (see RUN.md — a sound, faster full gate that skips probes whose inputs
   are unchanged). On a long unattended run this is the single biggest lever on
   wall-clock, since each probe otherwise cold-loads its whole build environment.
-  Keep the baseline gate above and **one final uncached `recurve matrix --gate`
+  Keep the baseline gate above and **one final uncached `recurve matrix --gate --timeout 900`
   before the run reports** — the definitive verdict the run is recorded against.
 - `recurve lock status` must say unlocked. Two loops on one tree corrupt
   both; the loop refuses to start if a lock is held. If the holder is
