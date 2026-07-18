@@ -1,0 +1,88 @@
+---
+title: "Agentic Commerce"
+description: "What does a world look like where agents pay each other? We wired one up: a human sets a budget once, delegates it, and autonomous agents build, discover, and pay for each other's tools — settling real USDC on-chain, with no human in the loop and nobody holding the money."
+date: "2026-07-18"
+---
+
+# Agentic Commerce
+
+Picture a market with no humans in it.
+
+An agent needs a capability it doesn't have — a translation model, a data feed, a rendering pipeline. It searches, finds a tool another agent built and listed, reads the price, and pays for a call. The tool runs. Money moves. A receipt is written. Nobody typed a password. Nobody clicked "approve." No invoice, no account signup, no API key pasted into a config file.
+
+It's a compelling picture, and it raises an uncomfortable question the moment you take it seriously: **who is in charge?**
+
+If agents can spend, then the interesting failure isn't a bad prediction — it's a runaway one. An agent in a loop that pays for the same call ten thousand times. A compromised agent that drains a wallet. A delegated task that quietly spawns more delegated tasks until the budget is gone. "The agent decides" is not an answer a business, or a person, can live with.
+
+So the honest version of agentic commerce isn't "agents are in charge." It's this: **a human is in charge exactly once — at the moment they set the ceiling — and everything after that is bounded, delegated, and provable.** The human authorizes a budget with a fingerprint. Agents spend inside it, delegate slices of it, and every payment leaves a signed trail anyone can re-derive. Authority flows down; accountability flows back up.
+
+We built that. Below is the actual run — a human budget, an agent that built a tool, an agent that bought it, and a fleet of agents that split the budget and paid in parallel. Every settlement is a real transaction on Base Sepolia; the links are live, and you can open any of them.
+
+## The human sets the ceiling
+
+Everything starts with one human decision, and it's the only one.
+
+The human already holds a root identity — a key that lives in their device's Secure Enclave and never leaves it. To let agents spend, they delegate: they authorize a **budget**, scoped to a capability and an expiry, to an agent identity. That authorization is signed by the root key, which means it costs exactly one Touch ID. The delegation is anchored in a tamper-evident key-event log, so it can be verified by anyone and revoked by the human with a single command.
+
+<AgenticCommerceDiagram step="delegate" />
+
+Notice what the human did *not* do. They didn't hand over a wallet. They didn't paste a private key into an agent's config. They didn't set up a shared account with a spending limit they have to trust a dashboard to enforce. They granted a **bounded, revocable, cryptographic** budget — a hard cap the agents cannot exceed and cannot widen, because the ceiling lives in the root's key-event log, and only the root's key can move it.
+
+This step is identity, not payment — so there's no on-chain transaction here yet. That's the point: the authority is established off-chain, in cryptography, before a single cent is spent.
+
+## Agent A builds a tool — and sells it
+
+Now the agents take over.
+
+The first agent — call it Agent A — has something worth selling: an MCP tool. It wraps that tool behind a bounded-agent gateway, which meters every call and writes a signed receipt, and it lists the result on the market: a name, a price per call, a payment rail. No human reviews the listing. No human approves the price.
+
+<AgenticCommerceDiagram step="build" />
+
+The listing doesn't go live on the seller's say-so. The market's prober becomes the listing's **first test-mode customer** — it calls the tool, re-derives the advertised price from the seller's own signed receipts, and only then flips the listing to *proven-live*. A seller can't claim a price it can't cryptographically back. The market trusts numbers it can reproduce, or it doesn't render them.
+
+## Agent B discovers the tool — and pays for it
+
+A second agent — Agent B, running under its own delegated budget — needs what Agent A built. It finds the listing, wraps it under its budget, and makes a metered call. The gateway checks the call is in scope and under budget, forwards it, and settles the cost — a real USDC transfer on Base Sepolia. It writes a signed receipt that anyone can re-verify offline, trusting neither Agent A, nor Agent B, nor us.
+
+<AgenticCommerceDiagram step="buy" />
+
+Here is that payment, on-chain:
+
+- **Agent B buys Agent A's tool** — [`0x4124094a…dd5ad32`](https://sepolia.basescan.org/tx/0x4124094a49d6d3cc610b0054f9b8daee8342c7fd58c9a08de357dd6b7dd5ad32)
+
+And here is the part that makes it safe: when Agent B tried a call that would cross its budget, the gateway refused it with `usage-cap-exceeded` — **before the payment rail was ever touched.** The cap isn't a post-hoc alert. It's a pre-authorization: a call that can't be paid for within budget never runs.
+
+## One budget, many agents, in parallel
+
+The picture gets real when one agent needs to fan work out. Agent B doesn't do everything itself — it delegates slices of its budget to a fleet of sub-agents that work in parallel. A translation job, three shards, three agents, one shared cap.
+
+The danger here is obvious: three agents, three chances to overspend. The answer is that the budget is the **fleet's**, not each agent's. A single treasury cap is coordinated outside every gateway process, so the agents can run concurrently and still share one ceiling. Each settles on-chain independently; the moment the shared cap is exhausted, the next call from *any* agent is refused.
+
+<AgenticCommerceDiagram step="fanout" />
+
+Three agents, three real on-chain settlements, one budget:
+
+- **Agent 1 settles** — [`0x2396d1d1…deb415a5`](https://sepolia.basescan.org/tx/0x2396d1d175407b2f0cdffef7c50c0b99a7fb96d050a69d62f94e801ddeb415a5)
+- **Agent 2 settles** — [`0x60c849c4…e9764697`](https://sepolia.basescan.org/tx/0x60c849c4aa7c104f57fd22c135671489b317ea782244cda75f49f984e9764697)
+- **Agent 3 settles** — [`0xd403021a…60bed3b1`](https://sepolia.basescan.org/tx/0xd403021a2a7b71f255e286b88796d7f59a57484c6b6ea55891aa765d60bed3b1)
+
+After the cap was reached, further calls across the whole fleet came back `usage-cap-exceeded`. The human's one decision — a $0.03 ceiling — held across three independent agents settling on-chain at the same time.
+
+## The security stance
+
+Everything above rests on a small number of non-negotiable properties. They're what let a human hand spending power to an autonomous agent and still sleep at night.
+
+- **A human fingerprint to delegate.** Authority originates from a root key in the Secure Enclave. Creating or widening a budget requires that key, which means a Touch ID. An agent can never grant itself more than it was given, because the scope seal lives in the root's key-event log and only the root's key can advance it.
+- **A bounded budget, enforced before the rail.** The cap is a pre-authorization, not an alarm. A call that would exceed the budget is refused *before* any payment happens — so a runaway loop or a compromised agent can't overspend; it can only get refused.
+- **Scope, not just amount.** A delegation grants a capability (`paid.call`), not blanket access. A delegate exercising a capability outside its grant is rejected, whatever its budget.
+- **Time-boxed and revocable.** Every delegation carries an expiry, and the human can revoke it instantly with one command. Trust is leased, never given away.
+- **Non-custodial.** Nobody holds the money. Settlements are peer-to-peer and on-chain; the gateway meters and receipts, but never takes custody. There's no pooled balance to hack and no operator to trust with funds.
+- **Provable, not reported.** Every payment writes a signed receipt, and the full spend log re-derives offline — anyone can replay it and confirm the totals without trusting the gateway or its operator. The numbers you saw above aren't a dashboard's claim; they're on a public ledger, and the receipts behind them are re-verifiable by hand.
+
+That's the shape of the answer to *who is in charge*: the human, once, at the top — and cryptography, continuously, everywhere below.
+
+## Try it
+
+Every transaction above was produced by autonomous agents running the published gateway — no humans in the loop, real USDC on-chain, links you can open. If you want to wire up your own bounded agents, start here:
+
+**[docs.auths.dev/docs/mcp](https://docs.auths.dev/docs/mcp)**

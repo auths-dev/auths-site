@@ -4,6 +4,7 @@ import { LifelineDiagram } from '@/components/lifeline-diagram/lifeline-diagram'
 import { SetupCeremonyDiagram } from '@/components/setup-ceremony-diagram';
 import { ApiKeyComparisonDiagram } from '@/components/api-key-comparison-diagram';
 import { ThreeLayerDiagram } from '@/components/three-layer-diagram';
+import { AgenticCommerceDiagram } from '@/components/agentic-commerce-diagram';
 
 type PreProps = ComponentPropsWithoutRef<'pre'>;
 
@@ -37,4 +38,5 @@ export const mdxComponents = {
   SetupCeremonyDiagram,
   ApiKeyComparisonDiagram,
   ThreeLayerDiagram,
+  AgenticCommerceDiagram,
 };
