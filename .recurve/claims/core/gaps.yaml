@@ -130,7 +130,7 @@
   covers: ['MC-8']
   title: P3.5 agent-login evidence over 64 KB is refused with a typed 401
   class: missing-surface
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1
@@ -147,7 +147,7 @@
   covers: ['MC-9']
   title: S1.1 endpointValue is the raw downstream command and demo-echo is seeded bare
   class: wire-mismatch
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1

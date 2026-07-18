@@ -72,6 +72,15 @@ export function parseListingInput(raw: {
   if (!endpointValue) {
     return { ok: false, error: 'The endpoint (stdio command or URL) is required.' };
   }
+  if (/(?:@auths-dev\/)?mcp wrap|auths-mcp(?:-gateway)? wrap/.test(endpointValue)) {
+    return {
+      ok: false,
+      error:
+        'List the bare downstream MCP server command — the market prober and every buyer '
+        + 'run their own wrap around it; an endpointValue that embeds the wrap launcher '
+        + 'would nest gateways and meter nothing.',
+    };
+  }
   if (transport === 'url' && !endpointValue.startsWith('https://')) {
     return { ok: false, error: 'URL endpoints must be https.' };
   }

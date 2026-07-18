@@ -114,17 +114,26 @@ nonce checks stay synchronous ahead of it. `index.d.ts` regenerated
 And the negative space: denial semantics are unchanged — same kebab denial codes,
 same verdicts; only the scheduling moved.
 
-## MC-8 — P3.5 agent-login evidence over 64 KB is refused with a typed 401
+## MC-8 — P3.5 agent-login evidence over 64 KB is refused with a typed 401 (CLOSED)
 
-What this suite claims should happen: Agent login evidence larger than 64 KB is refused with a typed 401 (`evidence-too-large`) before any parse or verification runs.
+Closed 2026-07-18. `authenticateAgent` sizes the serialized evidence FIRST —
+before nonce consumption, before any verification — and refuses anything over
+64 KB with the typed 401 `evidence-too-large`. The sized string is the same one
+handed to the verifier, so nothing is serialized twice.
 
-And the negative space: An attacker cannot make the market do unbounded work: the bound is checked first, fail-closed.
+And the negative space: an unauthenticated caller cannot make the market do
+unbounded verification work, and the bound never consumes a challenge.
 
-## MC-9 — S1.1 endpointValue is the raw downstream command and demo-echo is seeded bare
+## MC-9 — S1.1 endpointValue is the raw downstream command and demo-echo is seeded bare (CLOSED)
 
-What this suite claims should happen: `parseListingInput` refuses an `endpointValue` containing the wrap launcher and tells the seller to list the bare MCP server command; the `demo-echo` seed carries a raw downstream command.
+Closed 2026-07-18. `parseListingInput` refuses any `endpointValue` embedding the
+wrap launcher (`@auths-dev/mcp wrap`, `auths-mcp wrap`, `auths-mcp-gateway wrap`)
+with an error that teaches the convention: list the bare downstream command — the
+prober and every buyer run their own wrap, so a nested gateway meters nothing.
+Both listing doors (sell wizard, agent API) share this one rulebook; the
+`demo-echo` seed already carries the raw command.
 
-And the negative space: A wrapped endpoint never reaches the prober — the refusal names the convention instead of half-working.
+And the negative space: a wrapped endpoint never reaches the prober.
 
 ## MC-10 — S1.2 endpoint detail and get_integration return example_call with amount_atomic
 
