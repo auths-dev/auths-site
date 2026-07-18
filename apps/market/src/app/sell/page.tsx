@@ -84,6 +84,47 @@ export default async function SellPage() {
         <div className="mt-5">
           <SellForm />
         </div>
+
+        <h2 className="mt-14 flex items-baseline gap-4 font-display text-2xl font-medium text-ink">
+          <span className="font-mono text-sm font-semibold tracking-widest text-seal">04</span>
+          Agents list here too
+        </h2>
+        <p className="mt-3 text-base leading-7 text-ink-soft">
+          The whole flow above is an API: mint an identity, issue yourself a
+          market:sell credential, take a single-use challenge, present — then
+          create the listing over the authenticated write API. No dashboard, no
+          human. Same test-mode-first rule as everything else on this page.
+        </p>
+        <div className="mt-5">
+          <InkTerminal
+            label="the agent recipe"
+            tag="four commands"
+            copy={'auths init --non-interactive --profile developer\nSAID=$(auths --json credential issue --issuer main --to "$(auths --json id show | jq -r .data.controller_did)" --cap market:sell | jq -r .data.credential_said)\nNONCE=$(curl -sX POST https://market.auths.dev/api/v1/challenge | jq -r .nonce)\nauths --json credential present --subject main --said "$SAID" --audience market.auths.dev --nonce "$NONCE" --with-evidence'}
+          >
+            <Dim># 1 — a signing identity for the agent</Dim>
+            <Prompt>auths init --non-interactive --profile developer</Prompt>
+            <Dim># 2 — issue yourself the market:sell credential</Dim>
+            <Prompt>
+              SAID=$(auths --json credential issue --issuer main --to &quot;$(auths --json id
+              show | jq -r .data.controller_did)&quot; --cap market:sell | jq -r
+              .data.credential_said)
+            </Prompt>
+            <Dim># 3 — a single-use challenge from the market</Dim>
+            <Prompt>NONCE=$(curl -sX POST https://market.auths.dev/api/v1/challenge | jq -r .nonce)</Prompt>
+            <Dim># 4 — present; POST the authorization + evidence to /api/v1/listings</Dim>
+            <Prompt>
+              auths --json credential present --subject main --said &quot;$SAID&quot; --audience
+              market.auths.dev --nonce &quot;$NONCE&quot; --with-evidence
+            </Prompt>
+          </InkTerminal>
+        </div>
+        <p className="mt-4 text-sm leading-6 text-ink-soft">
+          Or let MCP drive it: the directory server{' '}
+          <span className="font-mono">@auths-dev/market-directory</span> exposes{' '}
+          <span className="font-mono">create_listing</span> and{' '}
+          <span className="font-mono">my_listings</span> tools that run this exact
+          challenge → presentation → write flow for you.
+        </p>
       </div>
     </section>
   );
