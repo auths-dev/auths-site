@@ -32,7 +32,10 @@ function configSnippet(listing: Listing, testMode: boolean): string {
     '--',
     ...downstream,
   ];
-  return `"${listing.slug}": {\n  "command": "npx",\n  "args": ${JSON.stringify(['-y', ...args])}\n}`;
+  // One argument per line, indented to sit inside the config object — long
+  // wrap invocations stay readable and diffable in a real mcp.json.
+  const argsJson = JSON.stringify(['-y', ...args], null, 2).replace(/\n/g, '\n  ');
+  return `"${listing.slug}": {\n  "command": "npx",\n  "args": ${argsJson}\n}`;
 }
 
 /**
