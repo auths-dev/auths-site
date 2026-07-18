@@ -1,9 +1,19 @@
 # Decision plan — registry storage backend: git single-writer vs Postgres
 
-**Status:** PROPOSED — needs a product/architecture decision · 2026-07-18
+**Status:** **DECIDED — Option B; Postgres backend IMPLEMENTED + tested** · 2026-07-18
 **Trigger:** max-throughput study finding #6 (see `tests/performance/FINDINGS.md`)
 **Scope:** the `auths` registry storage backend (`crates/auths-storage`), **not** the
 `auths-mcp-gateway` per-call path.
+
+> **Update (performance branch):** Option B was chosen and the `PostgresAdapter` (previously a
+> stub) is now a complete `RegistryBackend` implementation on the `auths` `performance` branch:
+> row-level concurrency via a `PRIMARY KEY (tenant, prefix, seq)` CAS (no global lock), monotonic
+> key-state, append-only signed events (BYTEA), attestation history, org members, and tenant
+> metadata — behind the opt-in `backend-postgres` feature, with git remaining the default. **17
+> integration tests pass against a live Postgres**, including
+> `concurrent_onboarding_different_identities_does_not_serialize` (the finding-#6 fix) and
+> `concurrent_appends_same_prefix_exactly_one_wins` (the CAS). It is **not** wired into the
+> gateway, exactly as this plan concluded.
 
 ---
 

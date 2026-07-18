@@ -31,6 +31,43 @@ the projection at the end.
 
 ---
 
+## Measured impact of the `performance`-branch fixes
+
+Fixes #5, #2, and #4 implemented on the `auths` `performance` branch, re-measured with the
+same harness (`auths@7c08f225` → `auths@a1052b5a`):
+
+| Metric | Before | After | Fix |
+|---|---:|---:|---|
+| Cold first *metered* call | 6.0 s | **~3 ms** (≈2,000× faster) | #5 |
+| Fleet coordination tax (fleet vs solo, k=32) | ~30% | **6%** | #4 |
+| Fleet coordination tax (k=64) | ~30% | **15%** | #4 |
+| Fleet **peak** throughput | 2,858/s | **3,859/s** (+35%) | #4 |
+| Warm latency, 10-wide soak (p50 / p99) | 2.2 / 12.2 ms | **2.0 / 9.3 ms** | #2 |
+| Solo peak throughput | 3,964/s | 4,084/s | (stdio-bound; #1 pending) |
+| Concurrent onboarding (different identities) | serializes / times out | **no serialization** (Postgres) | #6 |
+| Spend-log integrity under load | 256/256 | **256/256 · 256/256 · 10/10 consistent** | all |
+
+- **#5** moved the ~6 s git-subprocess signing ceremony off the metered path (into session
+  setup) AND pre-decrypts the session key there, so the FIRST metered call is fully in-process:
+  6.0 s → 0.70 s (templates warmed) → **~3 ms** (session key pre-decrypted). Confirmed on the
+  rebuilt binary; the metered hot path never forks git and never pays the Argon2id unlock.
+- **#6** replaced the `PostgresAdapter` stub with a complete `RegistryBackend` (CAS on
+  `(tenant, prefix, seq)`, monotonic key-state, append-only signed events) — **17 integration
+  tests pass against a live Postgres**, including that concurrent onboarding of different
+  identities no longer serializes. Opt-in `backend-postgres`; git stays default; not wired into
+  the gateway.
+- **#4** (keepalive treasury connection vs connect-per-reserve) cut the fleet tax from ~30%
+  to single digits and lifted the fleet **peak** 35%.
+- **#2** (in-memory authoritative counter, default per-settle durability) trimmed warm
+  latency; the cross-rail cap safety is unchanged — every spend log still re-derives
+  `consistent`.
+- **Solo peak barely moved** — as predicted, the single-node ceiling is **stdio transport +
+  orchestration (#1)**, not signing/counter/treasury. That fix is the next lever.
+- Spawn time rose (~130 s → ~157 s): the one-time ceremony now runs at setup, off the
+  metered path — the intended trade.
+
+---
+
 ## The measured picture
 
 | Metric | Value | Where |
