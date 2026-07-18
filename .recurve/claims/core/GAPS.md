@@ -184,11 +184,25 @@ What this suite claims should happen: The merchant plan carries zero `[ready]` m
 
 And the negative space: No item is silently dropped — every flip names its closing commit or its owner.
 
-## MC-19 — M-A1 channel open records a funded reservation and channel close settles netted
+## MC-19 — M-A1 channel open records a funded reservation and channel close settles netted (CLOSED)
 
-What this suite claims should happen: `auths-mcp channel open --seller <did> --capacity <amt> --rail <rail>` records a funded reservation the gateway meters against with zero rail touches per call; `channel close` settles the netted total in one rail action and emits a settlement record the receipts worker reads.
+Closed 2026-07-18. `auths-mcp-gateway channel open --seller --capacity --rail
+--live-dir` records the capacity reservation (deterministic channel id, escrow
+reference, KEL-adjacent seller binding) the gateway meters against with zero rail
+touches per call — the signed spend log IS the channel state. `channel close
+--channel --log` re-derives the streamed cumulative from the signed log, nets it
+to `min(cumulative, capacity)`, and emits a settlement record citing the exact
+`log_hash` (SHA-256 of the log bytes) plus the call count — the evidence one rail
+action settles and the receipts worker re-derives. Double-close is refused.
 
-And the negative space: Rail-touching legs are env-gated: absent credentials produce a stated skip, never a fake settle.
+Rail legs are env-gated with stated reasons, never faked (custody-never): absent
+credentials record an explicit `unfunded:<rail>:credentials-absent` posture
+("seller-bounded credit, settle at close"); present credentials still route the
+hold/capture through the non-custodial leg (Stripe Connect direct charges on the
+seller's account, or the x402 channel contract) keyed to the settlement evidence.
+
+And the negative space: closing an unknown or already-settled channel fails with a
+distinct error, and streamed spend beyond the reserved capacity never settles.
 
 ## MC-20 — M-A2 a treasury coordinator enforces one fleet cap and signs checkpoints (CLOSED)
 

@@ -322,7 +322,7 @@
   covers: ['MC-19']
   title: M-A1 channel open records a funded reservation and channel close settles netted
   class: missing-surface
-  status: open
+  status: closed
   severity: headline
   covers_claim:
   - MC-1
