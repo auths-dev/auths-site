@@ -26,6 +26,18 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
       integration: {
         test_mode: `npx -y @auths-dev/mcp wrap --scope paid.call --budget '$1' --ttl 30m --rail ${rail} --test-mode -- ${downstream}`,
         live: `npx -y @auths-dev/mcp wrap --scope paid.call --budget '$1' --ttl 30m --rail ${rail} -- ${downstream}`,
+        // One runnable metered call, priced from the listing itself:
+        // amount_atomic is USDC 6-decimals (price_cents × 10_000).
+        example_call: {
+          method: 'tools/call',
+          params: {
+            name: l.tools[0]?.name ?? 'paid_call',
+            arguments: {
+              amount_atomic: Math.max(1, l.price_cents) * 10_000,
+              network: rail === 'x402' ? 'base-sepolia' : undefined,
+            },
+          },
+        },
       },
       verify_spend: verifySpendCommand(l),
     },
