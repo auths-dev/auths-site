@@ -22,7 +22,7 @@
   title: A1.1 export-spend-bundle emits spend.jsonl plus audit.json and leaves the registry
     committed
   class: missing-surface
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1
@@ -96,7 +96,7 @@
   title: P3.2 spend logs rotate by period under spend-log/<delegation>/ and verify across
     files
   class: missing-surface
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1

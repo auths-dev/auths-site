@@ -64,11 +64,17 @@ epics, sculpt-first (auths contract changes land in the auths sculpt, then the
 target consumes them, then docs).
 
 
-## MC-2 — A1.1 export-spend-bundle emits spend.jsonl plus audit.json and leaves the registry committed
+## MC-2 — A1.1 export-spend-bundle emits spend.jsonl plus audit.json and leaves the registry committed (CLOSED)
 
-What this suite claims should happen: A seller agent runs `auths-mcp export-spend-bundle --live-dir <dir> --out <out>` and gets `spend.jsonl` plus an `audit.json` naming `registry_git_url`, `agent`, and `root`, with the registry working files committed — one command, verifier-ready.
+Closed 2026-07-18. `auths-mcp export-spend-bundle --live-dir --agent --root
+--registry-url --out` flattens the delegation's (rotated) spend log into one
+validated `spend.jsonl`, writes `audit.json` naming `registry_git_url`, `agent`,
+and `root`, and commits the registry working files — one command, verifier-ready.
+The merchant loop publishes through it (19 checks) and the worker re-derives
+`consistent` from the exported bundle.
 
-And the negative space: Running `verify-spend` on a fresh, untampered export prints `consistent — N call(s), $X re-derived from signed costs`; a tampered export does not.
+And the negative space: a corrupt log line aborts the export (fail-closed), and a
+clean registry tree exports without error.
 
 ## MC-3 — A1.3 the gateway injects its own git identity on clean machines (CLOSED)
 
@@ -97,11 +103,16 @@ docs. The refusal still fails closed: refused, signed, persisted.
 
 And the negative space: every other verdict keeps its terse code-first error.
 
-## MC-6 — P3.2 spend logs rotate by period under spend-log/<delegation>/ and verify across files
+## MC-6 — P3.2 spend logs rotate by period under spend-log/<delegation>/ and verify across files (CLOSED)
 
-What this suite claims should happen: Spend logs rotate by period under `spend-log/<delegation>/`; `verify-spend` over a rotated multi-file log prints the `consistent` line.
+Closed 2026-07-18. The writer appends to `spend-log/<delegation>/<YYYY-MM>.jsonl`
+(the record's OWN timestamp names the period); the shared reader accepts a file or
+a rotated directory, walking period files in sorted order into one record stream.
+`verify-spend --log <delegation-dir>` re-derives `consistent` across files —
+proven by the fleet e2e (8 rotated logs, 21 checks) and the merchant loop.
 
-And the negative space: A missing middle file breaks the back-link chain and re-derivation reports it — rotation never weakens tamper evidence.
+And the negative space: a missing middle period breaks the `Auths-Prev` chain and
+re-derivation reports it — rotation never weakens tamper evidence.
 
 ## MC-7 — P3.5 authenticatePresentation runs async off the Node event loop (CLOSED)
 

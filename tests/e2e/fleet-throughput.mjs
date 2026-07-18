@@ -247,8 +247,8 @@ check(`aggregate throughput sustains ≥ ${MIN_CPS} calls/s`, cps >= MIN_CPS, { 
 // ── phase 3: the combined logs re-derive, and the checkpoints cross-check ───────
 const registry = join(liveDir, 'registry');
 const spendLogDir = join(registry, 'spend-log');
-const logFiles = readdirSync(spendLogDir).filter((f) => f.endsWith('.jsonl'));
-check(`one signed spend log per delegation (${FLEET_SIZE})`, logFiles.length === FLEET_SIZE, logFiles);
+const logDirs = readdirSync(spendLogDir).filter((f) => !f.startsWith('.'));
+check(`one signed spend log per delegation (${FLEET_SIZE})`, logDirs.length === FLEET_SIZE, logDirs);
 
 const treasuryStatus = await treasuryRpc({ op: 'status', fleet: FLEET_ID });
 check('the coordinator settled exactly the granted total',
@@ -262,17 +262,17 @@ const rootDid = JSON.parse(execFileSync(BIN.replace(/auths-mcp-gateway$/, 'auths
 
 let rederivedCents = 0;
 let rederivedCalls = 0;
-for (const logFile of logFiles) {
-  const agentDid = `did:keri:${logFile.replace(/\.jsonl$/, '')}`;
+for (const logDir of logDirs) {
+  const agentDid = `did:keri:${logDir.replace(/\.jsonl$/, '')}`;
   const out = execFileSync(BIN, [
     'verify-spend',
-    '--log', join(spendLogDir, logFile),
+    '--log', join(spendLogDir, logDir),
     '--registry', registry,
     '--agent', agentDid,
     '--root', rootDid,
   ], { env: baseEnv, encoding: 'utf8' });
   const m = out.match(/consistent — (\d+) call\(s\), \$([0-9.]+) re-derived/);
-  check(`log ${logFile.slice(0, 12)}… re-derived consistent`, !!m, out.slice(0, 300));
+  check(`log ${logDir.slice(0, 12)}… re-derived consistent`, !!m, out.slice(0, 300));
   rederivedCalls += Number(m[1]);
   rederivedCents += Math.round(Number(m[2]) * 100);
 }
@@ -285,9 +285,9 @@ check('the coordinator wrote a signed checkpoint trail',
   existsSync(checkpointsFile) && readFileSync(checkpointsFile, 'utf8').trim().length > 0);
 const crossCheck = execFileSync(BIN, [
   'verify-spend',
-  '--log', join(spendLogDir, logFiles[0]),
+  '--log', join(spendLogDir, logDirs[0]),
   '--registry', registry,
-  '--agent', `did:keri:${logFiles[0].replace(/\.jsonl$/, '')}`,
+  '--agent', `did:keri:${logDirs[0].replace(/\.jsonl$/, '')}`,
   '--root', rootDid,
   '--treasury-checkpoints', checkpointsFile,
   '--expect-cumulative', String(grantedCents),

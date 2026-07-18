@@ -346,8 +346,8 @@ const orgRepo = join(liveDir, 'registry');
 const spendLogDir = join(orgRepo, 'spend-log');
 check('the gateway wrote a signed spend log', existsSync(spendLogDir) && readdirSync(spendLogDir).length > 0,
   existsSync(liveDir) ? readdirSync(liveDir) : 'no live dir');
-const logFile = readdirSync(spendLogDir).find((f) => f.endsWith('.jsonl'));
-const agentDid = `did:keri:${logFile.replace(/\.jsonl$/, '')}`;
+const delegationEntry = readdirSync(spendLogDir)[0];
+const agentDid = `did:keri:${delegationEntry.replace(/\.jsonl$/, '')}`;
 const rootDid = JSON.parse(
   execFileSync(CLI, ['--json', 'id', 'show'], {
     env: { ...agentEnv(buyerHome), AUTHS_HOME: orgRepo, AUTHS_REPO: orgRepo },
@@ -355,22 +355,21 @@ const rootDid = JSON.parse(
   }),
 ).data.controller_did;
 
-// Publish = commit the registry's working state (budget counter + spend log)
-// so the verifier's copy materializes the same counter the wire advanced.
-const gitPublish = (args) =>
-  execFileSync('git', ['-C', orgRepo, '-c', 'user.name=merchant-e2e', '-c', 'user.email=e2e@auths.dev', ...args], {
-    env: buyerEnv,
-    encoding: 'utf8',
-  });
-gitPublish(['add', '-A']);
-gitPublish(['commit', '--quiet', '-m', 'published spend bundle']);
-
-writeFileSync(join(publishDir, 'spend.jsonl'), readFileSync(join(spendLogDir, logFile)));
-writeFileSync(join(publishDir, 'audit.json'), JSON.stringify({
-  registry_git_url: orgRepo,
-  agent: agentDid,
-  root: rootDid,
-}));
+// Publish = ONE command: flatten the (rotated) log, write audit.json, and commit
+// the registry working state so the verifier's copy re-derives the same counter.
+const exported = execFileSync(process.env.GATEWAY_BIN, [
+  'export-spend-bundle',
+  '--live-dir', liveDir,
+  '--agent', agentDid,
+  '--root', rootDid,
+  '--registry-url', orgRepo,
+  '--out', publishDir,
+], { env: buyerEnv, encoding: 'utf8' });
+check('export-spend-bundle emitted the verifier-ready bundle',
+  exported.includes('spend.jsonl + audit.json')
+    && existsSync(join(publishDir, 'spend.jsonl'))
+    && existsSync(join(publishDir, 'audit.json')),
+  exported.trim());
 
 const receipts = await api('/api/cron/receipts', {
   method: 'GET',
