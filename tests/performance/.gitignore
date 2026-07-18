@@ -1,0 +1,3 @@
+# Raw per-run metrics are regenerable ground truth and can pile up.
+# The dashboard (report.html) embeds the latest run's data, so it stays tracked.
+results/*.json
