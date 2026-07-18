@@ -219,11 +219,15 @@ checks): the seller lists, then reads its listing back.
 And the negative space: another agent's listings never return, and a failed
 authentication gets the standard 401/403 doctrine.
 
-## MC-16 — S3.3 the sell page shows the runnable agent recipe, test-mode first
+## MC-16 — S3.3 the sell page shows the runnable agent recipe, test-mode first (CLOSED)
 
-What this suite claims should happen: The sell page shows the four-command agent recipe — issue the `market:sell` credential, mint a challenge, present, create the listing — test-mode before live-mode, every command runnable as pasted.
-
-And the negative space: No command drifts from the real CLI surface (the drift lint owns this).
+Closed 2026-07-18. /sell gained section 04 — "Agents list here too": the
+four-command recipe (init → issue the `market:sell` credential to yourself →
+mint a single-use challenge → present with evidence), every command runnable as
+pasted (values flow via shell substitution, no placeholders), plus the MCP
+alternative (`create_listing` / `my_listings` on the directory server). The
+page-wide test-mode-before-live rule and the paste lint both hold
+(check-market clean, 37 files).
 
 ## MC-17 — the fleet-throughput e2e proves 8+ agents under one shared cap at 20+ calls/s (CLOSED)
 
@@ -293,17 +297,23 @@ And the negative space: a tampered checkpoint line fails its signature, a rolled
 trail is refused, a changed signer is refused, and a cumulative that disagrees with
 the caller's re-derived fleet sum exits non-zero.
 
-## MC-21 — M-S1 billing_accounts, fleets, settlements keyed to the root with log_hash-cited fees
+## MC-21 — M-S1 billing_accounts, fleets, settlements keyed to the root with log_hash-cited fees (CLOSED)
 
-What this suite claims should happen: The market schema gains `billing_accounts`, `fleets`, and `settlements` keyed to the root identity; every fee row cites the `log_hash` it was computed from.
+Closed 2026-07-18. Migration `20260718000003_billing.sql` (applied live):
+`billing_accounts` keyed to the root identity (with a pre-root seller fallback,
+one subject required), `fleets` (org root, delegation count, the ONE cap,
+coordinator URL), `settlements` (channel_ref, rail, gross/fee cents, and a
+NOT-NULL `log_hash` — every fee row cites the exact bytes it was computed
+from), `usage_rollups` per period. Service-role only.
 
-And the negative space: A fee that cannot be re-derived from its cited log does not render — we bill the way we badge.
+## MC-22 — M-S2 the fleet dashboard renders re-derived figures and KEL-read members (CLOSED)
 
-## MC-22 — M-S2 the fleet dashboard renders re-derived figures and KEL-read members
-
-What this suite claims should happen: The fleet dashboard renders delegations, the one treasury cap with live headroom, and channel states, all from re-derived figures; org member management reads members from the org identity history.
-
-And the negative space: Gateway-reported numbers never render as settled figures; a mirror table alone never defines membership.
+Closed 2026-07-18. `/fleet` renders: the one treasury cap with headroom
+computed from re-derived settlements (never gateway-reported), channel states
+(settled channels with their cited log_hash; open channels stated as
+gateway-side until close), and the member view built from KEL-verified
+presentations — each subject proved key control and `auths_root` is the
+verifier-surfaced delegator chain, never a mirror table alone.
 
 ## MC-ASM — the decomposition of MC-1 covers every ready item, the scaling fixes, monetization, and the fleet test
 

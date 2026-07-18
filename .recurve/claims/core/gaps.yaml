@@ -269,7 +269,7 @@
   covers: ['MC-16']
   title: S3.3 the sell page shows the runnable agent recipe, test-mode first
   class: friction
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1
@@ -360,7 +360,7 @@
   title: M-S1 billing_accounts, fleets, settlements keyed to the root with log_hash-cited
     fees
   class: missing-surface
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1
@@ -377,7 +377,7 @@
   covers: ['MC-22']
   title: M-S2 the fleet dashboard renders re-derived figures and KEL-read members
   class: missing-surface
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1
