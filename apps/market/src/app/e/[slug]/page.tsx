@@ -72,11 +72,6 @@ export default async function ListingPage({ params }: Props) {
           </tbody>
         </table>
 
-        <h2 className="mt-14 font-display text-2xl font-medium text-ink">Use it, bounded</h2>
-        <div className="mt-5 max-w-3xl">
-          <IntegrationPane listing={listing} />
-        </div>
-
         <h2 className="mt-14 font-display text-2xl font-medium text-ink">
           Receipts — re-derived, not reported
         </h2>
@@ -105,6 +100,11 @@ export default async function ListingPage({ params }: Props) {
             ? `Every figure re-derived via verify-spend from the seller's published log (hash ${latestHash?.slice(0, 12)}…).`
             : 'No receipts re-derived yet — figures appear once the receipts worker has verified the published log.'}
         </p>
+
+        <h2 className="mt-14 font-display text-2xl font-medium text-ink">Use it, bounded</h2>
+        <div className="mt-5 max-w-3xl">
+          <IntegrationPane listing={listing} />
+        </div>
 
         <h2 className="mt-14 font-display text-2xl font-medium text-ink">Audit this yourself</h2>
         <p className="mt-3 max-w-2xl text-base leading-7 text-ink-soft">
