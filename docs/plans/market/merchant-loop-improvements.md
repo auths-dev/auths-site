@@ -1,0 +1,194 @@
+# Merchant-Loop Improvements — What the E2E Taught Us
+
+**Source:** `tests/e2e/full-merchant-loop.mjs` (17 checks green, 2026-07-18) — the first
+run of the complete create → verify → sell → buy → settle loop with no human anywhere.
+Every finding below was hit live, not speculated. Split by repo; each epic has subtasks
+with a plain-English description and a concrete code idea; open questions are flagged
+where a task needs an owner decision first.
+
+Status codes: **[fixed]** landed during the e2e session · **[ready]** buildable now ·
+**[decide]** blocked on an open question.
+
+---
+
+## Part 1 — `auths` (SDK / gateway / CLI)
+
+### Epic A1: One-command seller publishing
+
+Publishing a spend bundle today takes internals knowledge no agent should need: find
+the gateway's live dir, derive the agent DID *from a spend-log filename*, run `id show`
+against the registry for the root, know the budget counter is an uncommitted working
+file that must be committed or verification fails `budget-mismatch`, then hand-write
+`audit.json`. This is the exact gap `--with-evidence` closed for presentations —
+close it the same way.
+
+- **A1.1 [ready] `export-spend-bundle` one-shot.** One command emits everything a
+  relying party's `verify-spend` needs, correctly, every time:
+
+  ```
+  auths-mcp export-spend-bundle --live-dir "$AUTHS_MCP_LIVE_DIR" --out ./published/
+  # → published/spend.jsonl
+  # → published/audit.json        {"registry_git_url": …, "agent": …, "root": …}
+  # → registry working files committed (budget counter included), ready to clone
+  ```
+
+  Implementation sketch: the gateway already knows all three identifiers
+  (`chain.org_repo()`, `chain.agent_did`, `chain.root_did` — the replay path prints
+  them as `audit-cmd`); this is the same data written to disk plus a
+  `git add -A && git commit` on the org repo. Lives beside `verify-spend` in
+  `auths-mcp-gateway/src/main.rs`.
+
+- **A1.2 [decide] The budget counter's storage home.** The durable cross-rail counter
+  lives at `<registry>/budget-ledger/<agent>` as an *uncommitted working file*, while
+  everything else the verifier needs lives under `refs/auths/*`. That made "publish
+  your registry" ill-defined by the contract itself — the e2e's `budget-mismatch` was
+  this exact gap.
+  **Open question:** move the counter under git-as-storage (`refs/auths/budget/…`,
+  consistent, atomic-ref semantics, but a write-amplification cost per settled call) or
+  keep it a file and make A1.1's commit step the documented contract? A1.1 works either
+  way; the refactor is about long-term coherence.
+
+- **A1.3 [ready] The gateway sets its own git identity.** Chain builds die on clean
+  machines ("unable to auto-detect email address") — precisely the machines autonomous
+  agents run on. The prober already solves this with env vars; the gateway should too:
+
+  ```rust
+  // chain.rs, before shelling git/auths:
+  cmd.env("GIT_AUTHOR_NAME", "auths-mcp-gateway")
+     .env("GIT_AUTHOR_EMAIL", "gateway@auths.dev")
+     .env("GIT_COMMITTER_NAME", "auths-mcp-gateway")
+     .env("GIT_COMMITTER_EMAIL", "gateway@auths.dev");
+  ```
+
+### Epic A2: Honest, actionable failure surfaces
+
+- **A2.1 [ready] The x402 adapter surfaces the facilitator's reason.** A live settle
+  against an unfunded wallet fails as `x402 facilitator settle failed: HTTP 200` — the
+  facilitator's 200-with-`success:false` body carries an `errorReason` that gets
+  swallowed. One debugging cycle for me; more for an agent.
+
+  ```js
+  // settle.mjs: on !settlement.success
+  throw new Error(`x402 facilitator declined (${network}): ${body.errorReason ?? 'no reason given'}`);
+  ```
+
+- **A2.2 [ready] `metered-amount-required` teaches the fix.** A buyer following the
+  integration snippet verbatim omits `amount_atomic` and gets a bare refusal. The
+  gateway knows exactly what was missing — say it:
+
+  ```
+  metered-amount-required — a metered x402 call must carry its intended amount,
+  e.g. tools/call { name, arguments: { amount_atomic: 30000 } }  ($0.03)
+  ```
+
+### Epic A3: Ship the contract (release train)
+
+- **A3.1 [ready] Release `@auths-dev/sdk` from main after PR #377 merges.** Everything
+  the market's agent door needs (relying-party surface, `subjectRoot`,
+  `KelUnauthenticated`, conformance vectors) exists only in checkout builds. The npm
+  release is the switch that turns production agent sign-in from an honest 503 into a
+  live door. Same train releases the CLI binaries (`--with-evidence`) and the gateway.
+
+- **A3.2 [ready] The merchant loop as a release gate.** Every seam this loop crosses
+  broke on first live contact (delegated attachments, seal rehydration, registry clone
+  semantics, the counter). Run `full-merchant-loop.mjs` against the release candidates
+  (local CLI + local addon via `AUTHS_CLI` / `AUTHS_SDK_PATH`) before publishing —
+  manual is fine; skipping it is how the seams rot.
+  **Open question:** does this live in the auths release runbook (`just release`) or as
+  an auths-site invocation documented in both places?
+
+---
+
+## Part 2 — `auths-site` (the market)
+
+### Epic S1: The listing contract, unambiguous
+
+- **S1.1 [ready] One `endpointValue` convention: the RAW downstream command.** Two
+  conventions exist in the wild today — the seed listing embeds a full
+  `npx -y @auths-dev/mcp wrap …` command while the e2e lists the bare server. The
+  prober wraps whatever it is given (wrap-of-wrap works but double-spawns), and the
+  integration builder assumes raw. Pick raw; enforce gently:
+
+  ```ts
+  // listing-input.ts
+  if (endpointValue.includes('@auths-dev/mcp wrap')) {
+    return { ok: false, error:
+      'List the bare MCP server command — buyers and the prober add their own wrap (and budget).' };
+  }
+  ```
+
+  Plus: reseed `demo-echo`'s endpoint to the raw form, and say the rule on /sell.
+
+- **S1.2 [ready] `get_integration` includes one example metered call.** The snippet
+  gets a buyer connected but not paying; the first `tools/call` then fails
+  `metered-amount-required`. Extend the integration payload:
+
+  ```ts
+  example_call: {
+    method: 'tools/call',
+    params: { name: firstTool, arguments: { amount_atomic: listing.price_cents * 10_000 } },
+    note: 'amount_atomic is USDC at 6 decimals; the gateway meters it against YOUR budget.',
+  }
+  ```
+
+  (Mirror it in the MCP directory server's `get_integration` tool and the /sell docs.)
+
+### Epic S2: Receipts and probe depth
+
+- **S2.1 [fixed] Registry fetch semantics.** The worker now does
+  `git init` + `fetch refs/*` + checkout (a bare clone loses `refs/auths/*` AND the
+  counter file), and one listing's derivation error no longer 500s the whole cron.
+  Kept here for the record — this was the "receipts worker had never actually succeeded
+  against a real registry" finding.
+
+- **S2.2 [decide] Fund the prober's testnet wallet.** The probe's metered-call leg
+  (check b) is skipped in production: `PROBER_X402_WALLET_PRIVATE_KEY` is unset. With a
+  funded base-sepolia wallet, the platform genuinely becomes every listing's first
+  paying customer and the Verified tooltip gets stronger.
+  **Open question:** who custodies the prober wallet, and is the per-probe testnet
+  spend acceptable ops overhead? (Same wallet could serve `X402_LIVE=1` e2e runs.)
+
+- **S2.3 [ready] True day-bucketing for receipt summaries.** v0 writes one all-time
+  row per run-day. The spend log's records carry timestamps; bucket them:
+
+  ```ts
+  // parse each SpendLogRecord's timestamp → group cents/calls by UTC day,
+  // upsert one row per day; log_hash stays the reproducibility anchor.
+  ```
+
+  Also populate `rail_split` (currently `{}`) from each record's rail.
+
+### Epic S3: Finish the agent API surface (deferred from #20)
+
+- **S3.1 [ready] MCP write tools** (`create_listing`, `my_listings`) in
+  `mcp/market-directory.mjs`, driving the same challenge → present → POST flow the e2e
+  proves — an agent should sell without ever leaving MCP. The agent side shells
+  `auths credential present --with-evidence`; the tool passes header + evidence through.
+
+- **S3.2 [ready] `me/listings` for agents.** Agents currently list blind (no way to see
+  their probe status or fail_reason). POST-with-presentation (stateless auth can't ride
+  a GET body):
+
+  ```
+  POST /api/v1/me/listings   { evidence }  + Auths-Presentation header
+  → [{ slug, status, fail_reason, verified_at, live_proven_at }]
+  ```
+
+- **S3.3 [ready] /sell documents the agent path.** The wizard page gains the
+  four-command agent recipe (init → credential issue `market:sell` → challenge →
+  present + POST) next to the GitHub flow — test-mode before live, commands runnable
+  as pasted, per the copy rules.
+
+### Epic S4: Turn production on
+
+- **S4.1 [ready, after A3.1]** Swap `AUTHS_SDK_PATH` for a real
+  `@auths-dev/sdk` dependency in `apps/market/package.json`, redeploy, delete nothing —
+  the 503 fail-closed path stays as the honest posture for any load failure.
+
+- **S4.2 [ready]** Run `check-verifier-vectors.mjs` in market CI once the dependency is
+  real (it skips cleanly today), so a contract-drifting SDK bump fails the build
+  instead of the first agent.
+
+- **S4.3 [decide] Challenge-table hygiene.** Expired nonces are pruned opportunistically
+  on each mint; under zero traffic rows linger.
+  **Open question:** good enough (rows are inert), or add a cleanup to the daily cron?
