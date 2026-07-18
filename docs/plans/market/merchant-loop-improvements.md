@@ -212,6 +212,19 @@ counter. **Recommendation: close A1.2 as "counter stays a file; `export-spend-bu
 commits a snapshot of it at publish time"** — the audit only ever needs the counter's
 value at verification, not a committed value per call.
 
+On "just put Redis in front" (the relay already uses Redis for shared state across
+stateless processes): that solves *distribution*, not the write-path model — the
+amplification would only move behind a cache and reappear at flush. A Redis
+write-back tier with git *checkpoints* (one commit per interval/publish, mirroring
+the relay's Memory-vs-Redis store pattern) is a legitimate multi-process design, but
+it is an availability answer, not an integrity one: the window since the last
+checkpoint is only as tamper-evident as Redis. Integrity is carried by what the
+spend log already has — the agent-signed running cumulative per settlement (an
+operator cannot forge a lower total without the agent's key) — plus the documented
+follow-on of anchoring `{count, cumulative}` outside the operator's control. With
+those, per-call durable commits buy almost nothing; never spend write bandwidth on
+commit frequency for tamper-evidence.
+
 ### P3.2 A1.1 needs spend-log rotation behind it (quadratic re-hash)
 
 `git add` re-hashes a changed file whole. The spend log is one append-only JSONL per
