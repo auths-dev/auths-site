@@ -19,7 +19,7 @@
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { createServiceClient } from '@/lib/supabase/service';
@@ -34,7 +34,13 @@ interface AuditManifest {
 }
 
 async function deriveListing(listing: Listing): Promise<
-  | { ok: true; calls: number; cents: number; logHash: string }
+  | {
+      ok: true;
+      calls: number;
+      cents: number;
+      logHash: string;
+      days: Map<string, { calls: number; cents: number; rails: Record<string, number> }>;
+    }
   | { ok: false; reason: string }
 > {
   const logRes = await fetch(listing.spend_log_url!, { signal: AbortSignal.timeout(20_000) });
@@ -110,12 +116,38 @@ async function deriveListing(listing: Listing): Promise<
         reason: verdict ? `verify-spend: ${verdict[1]}` : `verify-spend did not re-derive consistent`,
       };
     }
-    return {
-      ok: true,
-      calls: Number.parseInt(consistent[1], 10),
-      cents: Math.round(Number.parseFloat(consistent[2]) * 100),
-      logHash,
-    };
+    const calls = Number.parseInt(consistent[1], 10);
+    const cents = Math.round(Number.parseFloat(consistent[2]) * 100);
+    // Per-day breakdown from each record's OWN timestamp (display aggregation of the
+    // just-verified log; the authoritative total stays verify-spend's). A settled
+    // call's cents are the cumulative delta; its rail attributes the rail_split.
+    const days = new Map<string, { calls: number; cents: number; rails: Record<string, number> }>();
+    let prevCumulative = 0;
+    for (const line of readFileSync(logPath, 'utf8').split('\n')) {
+      if (!line.trim()) continue;
+      const receipt = JSON.parse(line).receipt ?? {};
+      const day = String(receipt.at ?? '').slice(0, 10);
+      if (day.length !== 10) continue;
+      const bucket = days.get(day) ?? { calls: 0, cents: 0, rails: {} };
+      bucket.calls += 1;
+      const cumulative = Number(receipt.cumulative_cents ?? prevCumulative);
+      const delta = cumulative - prevCumulative;
+      prevCumulative = cumulative;
+      if (delta > 0) {
+        bucket.cents += delta;
+        const rail = String(receipt.rail ?? 'unmetered');
+        bucket.rails[rail] = (bucket.rails[rail] ?? 0) + delta;
+      }
+      days.set(day, bucket);
+    }
+    const daySum = [...days.values()].reduce((a, b) => a + b.cents, 0);
+    if (daySum !== cents) {
+      return {
+        ok: false,
+        reason: `per-day breakdown (${daySum}c) diverged from the re-derived total (${cents}c)`,
+      };
+    }
+    return { ok: true, calls, cents, logHash, days };
   } finally {
     rmSync(work, { recursive: true, force: true });
   }
@@ -135,19 +167,19 @@ export async function deriveAll(): Promise<{ derived: number; invalid: number }>
     );
     if (result.ok) {
       derived += 1;
-      const today = new Date().toISOString().slice(0, 10);
-      await supabase.from('receipt_summaries').upsert(
-        {
-          listing_id: listing.id,
-          day: today,
-          calls: result.calls,
-          cents_settled: result.cents,
-          rail_split: {},
-          log_hash: result.logHash,
-          derived_at: new Date().toISOString(),
-        },
-        { onConflict: 'listing_id,day' },
-      );
+      const derivedAt = new Date().toISOString();
+      const rows = [...result.days.entries()].map(([day, bucket]) => ({
+        listing_id: listing.id,
+        day,
+        calls: bucket.calls,
+        cents_settled: bucket.cents,
+        rail_split: bucket.rails,
+        log_hash: result.logHash,
+        derived_at: derivedAt,
+      }));
+      // The whole breakdown re-derives from the log each run — replace, never accrete.
+      await supabase.from('receipt_summaries').delete().eq('listing_id', listing.id);
+      if (rows.length > 0) await supabase.from('receipt_summaries').insert(rows);
       const update: Record<string, unknown> = { receipts_invalid: false };
       // Badge tier 2: first re-derived settled cents prove the live rail.
       if (!listing.live_proven_at && result.cents > 0) {

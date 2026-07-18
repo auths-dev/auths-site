@@ -118,11 +118,17 @@ What this suite claims should happen: `GET /api/v1/endpoints/<slug>` includes an
 
 And the negative space: The example must match what the gateway actually accepts — a buyer pasting it is not refused for shape.
 
-## MC-11 — S2.3 receipt summaries bucket by record day and populate rail_split
+## MC-11 — S2.3 receipt summaries bucket by record day and populate rail_split (CLOSED)
 
-What this suite claims should happen: `receipt_summaries` holds one row per UTC day with activity, bucketed by each spend-log record's own timestamp; `rail_split` is populated from the records' rails whenever settled calls exist.
+Closed 2026-07-18. After the log re-derives `consistent`, the worker walks the
+verified records and buckets by each receipt's OWN UTC day (`at`), one row per day
+with activity: `calls`, `cents_settled` (cumulative deltas), and `rail_split`
+populated from each settled record's rail. The breakdown replaces the listing's
+rows wholesale each run — re-derived, never accreted — and a per-day sum that
+diverges from verify-spend's total marks the listing invalid with a stated reason.
 
-And the negative space: The run day never masquerades as the activity day; an empty rail_split with settled calls is a bug, not a default.
+And the negative space: the run day never masquerades as the activity day, and an
+unverified log writes no rows at all.
 
 ## MC-12 — P3.3 the receipts worker checkpoints log_hash and re-verifies only the suffix
 

@@ -183,7 +183,7 @@
   covers: ['MC-11']
   title: S2.3 receipt summaries bucket by record day and populate rail_split
   class: wire-mismatch
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1
