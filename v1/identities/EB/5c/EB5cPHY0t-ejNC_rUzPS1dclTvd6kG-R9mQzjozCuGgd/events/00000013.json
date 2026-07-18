@@ -1,0 +1,13 @@
+{
+  "v": "KERI10JSON00012e_",
+  "t": "ixn",
+  "d": "EP0KgPUSLmYprFsHWfFbw0rxaIDq1ePdvSyImKVwxYkn",
+  "i": "EB5cPHY0t-ejNC_rUzPS1dclTvd6kG-R9mQzjozCuGgd",
+  "s": "d",
+  "p": "EKvB1FemDJ0kEwiqhmTQljb5_clKGiQ9qjb5MilfuU2Q",
+  "a": [
+    {
+      "d": "agentscope:EO1cBsYoV5izKvdIL6TstN5TOQl1hYN3WnhtAOh1lwAp:1786981212:sign_commit,sign_release"
+    }
+  ]
+}

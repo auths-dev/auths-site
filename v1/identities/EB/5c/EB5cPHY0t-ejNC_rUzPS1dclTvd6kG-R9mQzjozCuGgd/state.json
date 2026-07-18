@@ -8,8 +8,8 @@
     "next_commitment": [
       "EGPZRt46kODI9PChbjPRnNxPurBLfRNJxNlqutsBUNFH"
     ],
-    "sequence": 12,
-    "last_event_said": "EKvB1FemDJ0kEwiqhmTQljb5_clKGiQ9qjb5MilfuU2Q",
+    "sequence": 13,
+    "last_event_said": "EP0KgPUSLmYprFsHWfFbw0rxaIDq1ePdvSyImKVwxYkn",
     "is_abandoned": false,
     "threshold": "1",
     "next_threshold": "1",
@@ -20,5 +20,5 @@
     "delegator": null,
     "last_establishment_sequence": 0
   },
-  "validated_against_said": "EKvB1FemDJ0kEwiqhmTQljb5_clKGiQ9qjb5MilfuU2Q"
+  "validated_against_said": "EP0KgPUSLmYprFsHWfFbw0rxaIDq1ePdvSyImKVwxYkn"
 }
