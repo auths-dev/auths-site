@@ -192,3 +192,73 @@ close it the same way.
 - **S4.3 [decide] Challenge-table hygiene.** Expired nonces are pruned opportunistically
   on each mint; under zero traffic rows linger.
   **Open question:** good enough (rows are inert), or add a cleanup to the daily cron?
+
+---
+
+## Part 3 — Scaling & performance notes on the Part-1 changes
+
+Concerns surfaced by thinking each change through at 10³–10⁵ calls and 10²–10³
+listings. Two of these should change decisions above.
+
+### P3.1 A1.2 should be decided AGAINST refs-based counters (performance)
+
+The durable counter is written **per settled call**. As a working file that is one
+small write. Under `refs/auths/*` it becomes a blob + tree + commit + ref update per
+call: at 100 calls/sec that is 100 git commits/sec on the registry, a single
+serialized ref (lock contention), and an object store that grows forever because
+every historical counter value stays reachable. Git-as-storage is right for
+low-frequency identity events; it is the wrong store for a high-frequency monotonic
+counter. **Recommendation: close A1.2 as "counter stays a file; `export-spend-bundle`
+commits a snapshot of it at publish time"** — the audit only ever needs the counter's
+value at verification, not a committed value per call.
+
+### P3.2 A1.1 needs spend-log rotation behind it (quadratic re-hash)
+
+`git add` re-hashes a changed file whole. The spend log is one append-only JSONL per
+delegation, so committing at publish re-hashes the ENTIRE history every time — O(n)
+per publish, O(n²) cumulative. At ~500 B/record, a million settled calls is a ~500 MB
+re-hash per publish. Add to A1.1: **rotate logs by period**
+(`spend-log/<delegation>/<yyyy-mm>.jsonl`), with the chain's `Auths-Prev` back-link
+carrying across file boundaries. Bounded blobs also shrink what the receipts worker
+fetches (P3.3).
+
+### P3.3 Re-derive-everything is O(n²) over a listing's lifetime — needs an incremental mode
+
+`verify-spend` re-verifies EVERY record's signatures on EVERY run, and the receipts
+worker does that per listing per cron, behind a fresh `npx -y` (cold gateway
+download) and a fresh registry fetch each time. Cumulative cost is quadratic in log
+length, and on serverless (300 s ceiling) the sequential per-listing loop breaches
+the budget somewhere around tens of listings. The honesty model survives an
+incremental variant because the log is a hash-chained sequence: **checkpoint
+`(log_hash, verified_len, counter_snapshot)` per listing and verify only the suffix
+since the last checkpoint**, re-deriving from genesis only when the prefix hash
+changes (which is itself a tamper signal). Independently: cache/vendor the gateway
+binary in the worker's deployment instead of `npx -y` per run, and bound the
+per-listing registry fetch (P3.4).
+
+### P3.4 `registry_git_url` is attacker-sized input
+
+The worker fetches `refs/*` from whatever URL a seller published. A hostile or
+merely huge repo makes the worker download gigabytes inside its cron budget. Cap it:
+fetch only what verification reads (`refs/auths/*` plus the published branch),
+`--filter=blob:none` with a sparse checkout of `budget-ledger/`, and keep the
+existing timeouts as hard failures with `receipts_invalid` + a loud reason.
+
+### P3.5 The RP surface is synchronous native work on the event loop
+
+`authenticatePresentation` runs KEL signature validation inside a synchronous napi
+call. Honest presentations are ~1 ms (a handful of ECDSA verifies) — but the
+contract's generous bounds (1 MiB request, 1024 events per KEL slice, three slices)
+let an adversary submit hundreds of milliseconds of signature work per request, and
+a sync napi call blocks Node's event loop for all of it: a cheap DoS on the door.
+Two-part fix: **mark the napi export async** (`#[napi]` on an async fn → tokio
+`spawn_blocking`, off the event loop), and market-side, cap evidence at a realistic
+interactive size (real login KELs are a few events; ~64 KB is roomy) plus per-IP
+rate limits on `/api/v1/challenge` and the write routes. The verifier's 1 MiB bound
+is right for batch/offline surfaces; the login path should not inherit it.
+
+### Non-concerns, for the record
+
+A1.3 (env vars), A2.x (error strings), the conformance sync (build-time only), and
+the Supabase challenge store (single-row insert/delete per auth; opportunistic
+pruning) are all flat-cost and fine at any plausible scale.
