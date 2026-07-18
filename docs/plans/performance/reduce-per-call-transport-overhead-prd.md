@@ -85,12 +85,26 @@ harness. **Invariant across all phases:** identical verdicts, identical signed s
 records, and `verify-spend` stays `consistent`. Nothing here changes what is enforced — only
 how the bytes move.
 
-### Phase 0 — decompose the 1.85 ms (no product change)
-Add per-stage timing spans (behind the metrics feature) around: request decode, sign, verify,
-reserve, downstream round-trip, response encode. Emit as `auths_mcp_stage_seconds{stage}`.
-This turns "84% is transport+orchestration" into a per-stage budget so Phases 1–4 target the
-real cost centres. **Acceptance:** the stage histogram sums to ≈ the call histogram; the
-downstream round-trip and JSON (de)serialization are quantified.
+### Phase 0 — decompose the per-call budget — **IMPLEMENTED**
+The gateway emits `auths_mcp_stage_seconds{stage}` histograms around `sign`, `gate` (verify +
+reserve), the `downstream` round-trip, `settle`, and the `spend_log` append. The perf
+harness's `metrics` scenario scrapes them and computes the mean per-call budget, the
+`orchestration` residual (handler time not inside an instrumented stage), and the `transport`
+gap (caller-observed round-trip − handler time = the agent↔gateway pipe/JSON the handler
+cannot see from inside `call_tool`).
+
+**Measured (4 agents, mean ms/call):**
+
+| sign | gate | downstream | settle | spend_log | orchestration | transport | ≈ external |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0.07 | 0.15 | 0.38 | 0.08 | 0.17 | 0.57 | 0.19 | ~1.6 |
+
+Stages + orchestration sum **exactly** to the handler time (acceptance met). The two largest
+slices are **`downstream`** (gateway↔adapter pipe + JSON + the adapter's per-call fixture read —
+Phase 3's target) and **`orchestration`** (in-handler clones, lock acquisitions, and the
+per-call `eprintln!` — Phase 1's target): ~0.57 ms/call is spent outside crypto/fs/downstream,
+in avoidable handler overhead. That is why Phase 1 (low-risk) is worth doing before the
+architecture commitments.
 
 ### Phase 1 — in-place hot-path hygiene (low risk, keeps every boundary)
 - Remove avoidable per-call allocation/serialization in `call_tool` (reuse buffers; avoid the

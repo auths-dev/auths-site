@@ -61,6 +61,12 @@ same harness (`auths@7c08f225` → `auths@a1052b5a`):
   `auths_mcp_calls_total` exactly matched the harness's driven count (**1,604 = 1,604**), and
   the `sign{inproc}=1604` vs `sign{subprocess}=4` split independently confirms #5 (only the 4
   agent warm-ups fork git; every metered call is in-process).
+- **Per-call budget** (new `auths_mcp_stage_seconds` decomposition, mean ms/call): of a ~1.6 ms
+  metered call, the biggest slices are `downstream` gateway↔adapter transport ≈ **0.38 ms** and
+  in-handler `orchestration` (clones/locks/`eprintln!`) ≈ **0.57 ms** — the concrete targets for
+  #1 in `docs/plans/performance/reduce-per-call-transport-overhead-prd.md`. Stages +
+  orchestration sum exactly to the handler time; `transport` (external − internal) ≈ 0.19 ms is
+  the agent↔gateway pipe the handler can't see.
 - **#4** (keepalive treasury connection vs connect-per-reserve) cut the fleet tax from ~30%
   to single digits and lifted the fleet **peak** 35%.
 - **#2** (in-memory authoritative counter, default per-settle durability) trimmed warm

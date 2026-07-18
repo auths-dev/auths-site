@@ -351,6 +351,22 @@ function APP() {
       `<span class="badge ${mx.dogfood_match ? 'ok' : 'bad'}">${mx.dogfood_match ? '✓ match' : '✗ mismatch'}</span> `
       + `the harness drove <b>${fmt(mx.external_total)}</b> calls; the gateway’s own <code>auths_mcp_calls_total</code> counted `
       + `<b>${fmt(mx.internal.callsTotal)}</b> across ${mx.internal.scraped} agents.` }));
+    if (mx.budget) {
+      const b = mx.budget;
+      barChart(sec, {
+        bars: [
+          { label: 'sign', value: b.stage_mean_ms.sign, color: C.series1() },
+          { label: 'gate', value: b.stage_mean_ms.gate, color: C.series1() },
+          { label: 'downstream', value: b.stage_mean_ms.downstream, color: C.seal() },
+          { label: 'settle', value: b.stage_mean_ms.settle, color: C.series1() },
+          { label: 'spend_log', value: b.stage_mean_ms.spend_log, color: C.series1() },
+          { label: 'orchestration', value: b.orchestration_ms, color: C.series2() },
+          { label: 'transport', value: b.transport_gap_ms, color: C.seal() },
+        ],
+        yLabel: 'mean ms / call', yFmt: (v) => v.toFixed(3), rotate: true,
+        caption: `Where a metered call’s <b>${b.external_mean_ms.toFixed(2)} ms</b> actually goes, decomposed from the gateway’s own <code>auths_mcp_stage_seconds</code>. The measured stages + <b>orchestration</b> (in-handler clones/locks/logging) sum to the handler time; <b>transport</b> (external − internal) is the agent↔gateway pipe/JSON the handler cannot see. <b>downstream</b> (gateway↔adapter) and <b>orchestration</b> are the largest slices — the hot-path-hygiene and streamable-HTTP targets in the transport-overhead PRD.`,
+      });
+    }
     tableView(sec, ['metric (scraped from /metrics)', 'value'], [
       ['auths_mcp_calls_total{verdict="granted"}', fmt(mx.internal.granted)],
       ['auths_mcp_calls_total{verdict="refused"}', fmt(mx.internal.refused)],
