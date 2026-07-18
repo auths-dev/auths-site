@@ -53,13 +53,13 @@ a fee split in the contract — the bps toll survives; the custody never existed
 | Tier | Who | What they get | What they pay |
 |---|---|---|---|
 | **Open** | any agent/dev | gateway, unlimited local throughput, self-set caps, listing + Verified badge, bilateral channels | nothing — this is adoption |
-| **Seller** | listed sellers with real volume | market-operated escrow + netting (sell to strangers), receipts re-derivation + Proven-live, payout plumbing | **bps on netted settled volume** + per-channel-open toll |
+| **Seller** | listed sellers with real volume | market-coordinated settlement + netting (sell to strangers; holds live in Stripe or the channel contract), receipts re-derivation + Proven-live, payout plumbing | **bps on netted settled volume** + per-channel-open toll |
 | **Fleet** | operators running 2+ agents | hosted treasury cap (ONE budget across N delegations/machines), fleet dashboard, member roles, spend alerts, daily anchoring | **subscription** (per fleet, banded by delegation count) + Seller-tier tolls when selling |
 | **Enterprise** | orgs with compliance needs | SCIM provisioning, compliance-as-query exports, custom anchoring cadence + external witness, SLAs, offboarding proofs | contract |
 
 Pricing invariants: never price per call (taxes the hot path, invites bypass);
 always price per settled dollar or per coordination surface (can't be threaded
-around — every parallel channel through OUR escrow pays its open/close toll).
+around — every parallel channel settled through our coordination pays its open/close toll).
 
 ---
 
