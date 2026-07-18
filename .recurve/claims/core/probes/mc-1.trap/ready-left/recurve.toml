@@ -63,6 +63,6 @@ rebuild = ""
 gate = "node scripts/check-docs.mjs --no-external"
 
 [burndown]
-cap = 30
+cap = 12
 max_consecutive_failures = 3
 runaway_net_positive_cycles = 2
