@@ -49,6 +49,12 @@ export async function authenticateAgent(
   if (typeof evidence !== 'object' || evidence === null) {
     return { ok: false, status: 401, code: 'evidence-required' };
   }
+  // Bound the work an unauthenticated caller can demand: the evidence is sized
+  // BEFORE any verification (or even nonce consumption) runs, fail-closed.
+  const evidenceJson = JSON.stringify(evidence);
+  if (evidenceJson.length > 64 * 1024) {
+    return { ok: false, status: 401, code: 'evidence-too-large' };
+  }
 
   let peek;
   try {
@@ -69,7 +75,7 @@ export async function authenticateAgent(
 
   const report = await sdk.authenticatePresentation(
     authorization,
-    JSON.stringify(evidence),
+    evidenceJson,
     CHALLENGE_AUDIENCE,
     peek.nonce,
   );
