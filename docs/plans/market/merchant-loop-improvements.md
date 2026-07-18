@@ -50,7 +50,10 @@ close it the same way.
 
 - **A1.3 [ready] The gateway sets its own git identity.** Chain builds die on clean
   machines ("unable to auto-detect email address") — precisely the machines autonomous
-  agents run on. The prober already solves this with env vars; the gateway should too:
+  agents run on. The prober already solves this with env vars; the gateway should too.
+  Note: the docs deliberately do NOT document the `GIT_AUTHOR_NAME`/`GIT_AUTHOR_EMAIL`
+  workaround (decided 2026-07-18) — this gets fixed in the gateway, not papered over
+  in install instructions, so ship A1.3 before agents hit it in the wild:
 
   ```rust
   // chain.rs, before shelling git/auths:
