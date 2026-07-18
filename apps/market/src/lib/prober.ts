@@ -129,7 +129,7 @@ async function probeListing(listing: Listing): Promise<ProbeResult> {
       checks.spend_log = `unreachable (${res.status})`;
       return {
         verdict: 'fail',
-        failReason: `spend-log URL returned ${res.status} — dashboards can only render re-derived numbers, so the log must be fetchable`,
+        failReason: `the listing's spend-log URL (${listing.spend_log_url}) returned HTTP ${res.status} — dashboards can only render re-derived numbers, so the log must be publicly fetchable; fix the URL and relist`,
         detail,
       };
     }
