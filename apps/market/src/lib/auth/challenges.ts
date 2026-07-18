@@ -5,8 +5,8 @@
  * expired all look identical to the caller: not consumable.
  */
 
-import { randomBytes } from 'node:crypto';
 import { createServiceClient } from '@/lib/supabase/service';
+import { loadVerifier } from './agent-verifier';
 
 export const CHALLENGE_AUDIENCE = 'market.auths.dev';
 const CHALLENGE_TTL_SECONDS = 300;
@@ -17,9 +17,15 @@ export interface Challenge {
   expiresAt: string;
 }
 
-/** Mint a fresh 32-byte base64url nonce and store it with a 5-minute TTL. */
+/**
+ * Mint a fresh challenge and store it with a 5-minute TTL. The nonce shape is
+ * the SDK's (the auths-rp contract), never invented here — and without the
+ * addon there is no agent sign-in to challenge, so minting fails closed.
+ */
 export async function mintChallenge(): Promise<Challenge> {
-  const nonce = randomBytes(32).toString('base64url');
+  const sdk = loadVerifier();
+  if (!sdk) throw new Error('agent sign-in unavailable: SDK addon not loaded');
+  const nonce = sdk.mintChallengeNonce();
   const expiresAt = new Date(Date.now() + CHALLENGE_TTL_SECONDS * 1000).toISOString();
   const supabase = createServiceClient();
 

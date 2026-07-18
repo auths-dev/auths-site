@@ -7,6 +7,10 @@ import { mintChallenge } from '@/lib/auth/challenges';
  * request; the nonce is consumable exactly once and expires in five minutes.
  */
 export async function POST() {
-  const challenge = await mintChallenge();
-  return NextResponse.json(challenge, { status: 201 });
+  try {
+    const challenge = await mintChallenge();
+    return NextResponse.json(challenge, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: { code: 'agent-auth-unavailable' } }, { status: 503 });
+  }
 }
