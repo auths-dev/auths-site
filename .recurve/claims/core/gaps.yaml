@@ -77,7 +77,7 @@
   covers: ['MC-5']
   title: A2.2 the metered-amount-required refusal teaches an amount_atomic tools/call
   class: friction
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1

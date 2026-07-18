@@ -87,11 +87,15 @@ What this suite claims should happen: A declined x402 facilitator settle surface
 
 And the negative space: A bare HTTP status alone is never the whole error. NOTE: the honest fix lives in ../auths-mcp, outside the declared sculpt trees — park unless sanctioned.
 
-## MC-5 — A2.2 the metered-amount-required refusal teaches an amount_atomic tools/call
+## MC-5 — A2.2 the metered-amount-required refusal teaches an amount_atomic tools/call (CLOSED)
 
-What this suite claims should happen: A buyer refused with `metered-amount-required` reads, inside the refusal, an example `tools/call` carrying `amount_atomic` and can self-correct without docs.
+Closed 2026-07-18. The `metered-amount-required` refusal now carries, inside the
+error a buyer reads, a runnable example `tools/call` for the refused tool with
+`"amount_atomic": 30000` (USDC 6-decimals, $0.03) plus the
+`_auths_reserve_ceiling_cents` raw-cent alternative — self-correction without
+docs. The refusal still fails closed: refused, signed, persisted.
 
-And the negative space: The refusal still fails closed: the call is refused, signed, and persisted as a refused record.
+And the negative space: every other verdict keeps its terse code-first error.
 
 ## MC-6 — P3.2 spend logs rotate by period under spend-log/<delegation>/ and verify across files
 
