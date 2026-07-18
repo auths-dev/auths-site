@@ -18,7 +18,7 @@ export function SiteNav() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-rule bg-paper/90 backdrop-blur-sm">
-      <nav className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
+      <nav className="mx-auto flex h-14 max-w-[88rem] items-center justify-between px-6">
         <Link
           href="/"
           className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
