@@ -49,7 +49,7 @@ harness = [
 [sculpts.auths]
 tree = "../auths"
 kind = "rust"
-branch = "pivot/close-374-262-registry-kel-transports"
+branch = "merchant-close"
 forbidden_strings = ["GAP-", "recurve"]
 rebuild = "cargo build -p auths-cli && cd packages/auths-node && npx napi build --platform && node scripts/sync-conformance.mjs"
 gate = "cargo run -p xtask -- check-binding-boundary && cargo run -p xtask -- check-verify-path-completeness && cargo check -p auths-cli -p auths-verifier"
@@ -57,7 +57,7 @@ gate = "cargo run -p xtask -- check-binding-boundary && cargo run -p xtask -- ch
 [sculpts.docs]
 tree = "../auths-docs"
 kind = "docs"
-branch = "main"
+branch = "merchant-close"
 forbidden_strings = ["GAP-", "recurve"]
 rebuild = ""
 gate = "node scripts/check-docs.mjs --no-external"
