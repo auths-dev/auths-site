@@ -135,11 +135,16 @@ Both listing doors (sell wizard, agent API) share this one rulebook; the
 
 And the negative space: a wrapped endpoint never reaches the prober.
 
-## MC-10 — S1.2 endpoint detail and get_integration return example_call with amount_atomic
+## MC-10 — S1.2 endpoint detail and get_integration return example_call with amount_atomic (CLOSED)
 
-What this suite claims should happen: `GET /api/v1/endpoints/<slug>` includes an `example_call` whose arguments carry `amount_atomic` derived from `price_cents`; the MCP `get_integration` tool returns the same field.
+Closed 2026-07-18. `GET /api/v1/endpoints/<slug>` now includes
+`integration.example_call` — a runnable `tools/call` for the listing's first tool
+whose arguments carry `amount_atomic = price_cents × 10_000` (USDC 6-decimals,
+plus the network for x402). `get_integration` returns the same integration object
+and names `example_call` in its tool contract.
 
-And the negative space: The example must match what the gateway actually accepts — a buyer pasting it is not refused for shape.
+And the negative space: the example prices from the LISTING, never a hardcoded
+number, so a buyer pasting it is not refused for shape.
 
 ## MC-11 — S2.3 receipt summaries bucket by record day and populate rail_split (CLOSED)
 
@@ -171,17 +176,27 @@ boundedness comes from the refspecs either way. A fetch failure surfaces as
 And the negative space: `refs/*:refs/*` never returns, and a fetch failure is
 never silently green.
 
-## MC-14 — S3.1 the MCP directory gains create_listing and my_listings write tools
+## MC-14 — S3.1 the MCP directory gains create_listing and my_listings write tools (CLOSED)
 
-What this suite claims should happen: `mcp/market-directory.mjs` exposes `create_listing` and `my_listings` tools that drive challenge → presentation → POST end to end.
+Closed 2026-07-18. `market-directory.mjs` gains `create_listing` and
+`my_listings`: each mints a server challenge, presents the named `market:sell`
+credential through the agent's own auths CLI (`credential present
+--with-evidence` — the directory never touches key material), and drives the
+authenticated POST. Refusals surface the server's typed denial codes verbatim.
 
-And the negative space: The tools fail with the server's typed denial codes — no swallowed 401/403.
+And the negative space: no credential SAID, no writes — the tools are inert
+without the agent's own signer.
 
-## MC-15 — S3.2 POST /api/v1/me/listings returns the presented agent listings
+## MC-15 — S3.2 POST /api/v1/me/listings returns the presented agent listings (CLOSED)
 
-What this suite claims should happen: `POST /api/v1/me/listings` authenticates the presentation and returns the caller's listings with `status`, `fail_reason`, `verified_at`, `live_proven_at`.
+Closed 2026-07-18. `POST /api/v1/me/listings` authenticates the presentation
+(same challenge → present flow as every agent write) and returns only the
+presented seller's rows: `slug`, `name`, `status`, `fail_reason`, `verified_at`,
+`live_proven_at`, `receipts_invalid`. Proven in the merchant loop (now 18
+checks): the seller lists, then reads its listing back.
 
-And the negative space: Another agent's listings are never returned; a failed authentication gets the standard 401/403 doctrine.
+And the negative space: another agent's listings never return, and a failed
+authentication gets the standard 401/403 doctrine.
 
 ## MC-16 — S3.3 the sell page shows the runnable agent recipe, test-mode first
 

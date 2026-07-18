@@ -259,6 +259,17 @@ check('seller agent listed a real x402 endpoint (201)', created.status === 201, 
 // Point the listing at the local publish server (create-time validation demands
 // https; the prober and receipts worker only demand fetchable).
 const patched = await db('PATCH', `listings?slug=eq.${slug}`, { spend_log_url: `${publishUrl}/spend.jsonl` });
+const challenge2 = await api('/api/v1/challenge', { method: 'POST' });
+const presented2 = seller.auths('credential', 'present', '--subject', 'main', '--said', cred.credential_said,
+  '--audience', AUDIENCE, '--nonce', challenge2.body.nonce, '--with-evidence');
+const mine = await api('/api/v1/me/listings', {
+  method: 'POST',
+  headers: { authorization: presented2.authorization, 'content-type': 'application/json' },
+  body: JSON.stringify({ evidence: presented2.evidence }),
+});
+check('the agent reads back its own listings (me/listings)',
+  mine.status === 200 && (mine.body.listings ?? []).some((l) => l.slug === slug), mine.body);
+
 check('spend-log URL points at the publish server', patched?.[0]?.spend_log_url?.startsWith(publishUrl), patched);
 
 // ── phase 2: the prober takes it live ──────────────────────────────────────────

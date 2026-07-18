@@ -165,7 +165,7 @@
   covers: ['MC-10']
   title: S1.2 endpoint detail and get_integration return example_call with amount_atomic
   class: missing-surface
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1
@@ -235,7 +235,7 @@
   covers: ['MC-14']
   title: S3.1 the MCP directory gains create_listing and my_listings write tools
   class: missing-surface
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1
@@ -252,7 +252,7 @@
   covers: ['MC-15']
   title: S3.2 POST /api/v1/me/listings returns the presented agent listings
   class: missing-surface
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1
