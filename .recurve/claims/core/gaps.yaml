@@ -40,7 +40,7 @@
   covers: ['MC-3']
   title: A1.3 the gateway injects its own git identity on clean machines
   class: broken-route
-  status: open
+  status: closed
   severity: feature
   covers_claim:
   - MC-1

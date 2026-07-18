@@ -70,11 +70,16 @@ What this suite claims should happen: A seller agent runs `auths-mcp export-spen
 
 And the negative space: Running `verify-spend` on a fresh, untampered export prints `consistent — N call(s), $X re-derived from signed costs`; a tampered export does not.
 
-## MC-3 — A1.3 the gateway injects its own git identity on clean machines
+## MC-3 — A1.3 the gateway injects its own git identity on clean machines (CLOSED)
 
-What this suite claims should happen: A wrap on a HOME with no gitconfig and no GIT_AUTHOR_NAME env still builds its signing chain: the gateway injects an agent-derived git identity into every git invocation.
+Closed 2026-07-18. Every chain subprocess (git and the auths CLI) receives a
+default `GIT_AUTHOR_NAME/EMAIL` + `GIT_COMMITTER_NAME/EMAIL` identity
+(`auths-mcp-gateway <gateway@auths.local>`) whenever the machine provides none —
+caller-provided env always wins. A wrap on a HOME with no gitconfig and no GIT_*
+env builds its signing chain and answers `initialize` (reproduced before, green
+after).
 
-And the negative space: The old failure — git auto-detect email aborting the chain build — must be impossible on a clean machine.
+And the negative space: an operator-supplied identity is never overridden.
 
 ## MC-4 — A2.1 a declined x402 settle surfaces the facilitator errorReason
 
