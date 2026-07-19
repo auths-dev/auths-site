@@ -3,13 +3,7 @@ import { constructMetadata } from '@/lib/metadata';
 import { SectionMark, InkTerminal, InkLink, Prompt, Dim, Allow } from '@auths/ledger-ui';
 import { WitnessNetworkDiagram } from '@/components/witness-network-diagram';
 import { witnessDirectory } from '@/lib/network/witnesses';
-import {
-  fetchWatcherFeed,
-  marketApiBase,
-  probeWitness,
-  type MarketObservation,
-  type ProbedWitness,
-} from '@/lib/network/live';
+import { probeWitness, type ProbedWitness } from '@/lib/network/live';
 
 const TITLE = 'The witness network — freshness you can hold someone to';
 const DESC =
@@ -17,25 +11,8 @@ const DESC =
 
 export const metadata: Metadata = constructMetadata({ title: TITLE, description: DESC });
 
-/** Live reads (witness health, the watcher feed) refresh once a minute. */
+/** Live reads (witness health) refresh once a minute. */
 export const revalidate = 60;
-
-function cents(c: number): string {
-  return `$${(c / 100).toFixed(2)}`;
-}
-
-function utc(ts: string): string {
-  const d = new Date(ts);
-  if (Number.isNaN(d.getTime())) return ts;
-  return `${d.toISOString().slice(0, 10)} ${d.toISOString().slice(11, 16)}Z`;
-}
-
-function tierLabel(o: MarketObservation): string {
-  if (o.anchor_tier === 'witness' && o.anchor_threshold && o.anchor_witnesses) {
-    return `quorum ${o.anchor_threshold}-of-${o.anchor_witnesses}`;
-  }
-  return 'market-witnessed';
-}
 
 function LivenessMark({ witness }: { witness: ProbedWitness }) {
   const { liveness } = witness;
@@ -75,10 +52,7 @@ const CLOUD_TIERS = [
 ];
 
 export default async function NetworkPage() {
-  const [witnesses, feed] = await Promise.all([
-    Promise.all(witnessDirectory().map(probeWitness)),
-    fetchWatcherFeed(12),
-  ]);
+  const witnesses = await Promise.all(witnessDirectory().map(probeWitness));
 
   return (
     <div className="min-h-screen">
@@ -101,123 +75,7 @@ export default async function NetworkPage() {
 
       <section className="px-6 py-20 sm:py-24">
         <div className="mx-auto max-w-5xl">
-          <SectionMark n="01" title="What witnesses actually solve." id="how" />
-          <div className="mt-10 grid gap-12 lg:grid-cols-[5fr_6fr]">
-            <div className="space-y-6 text-lg leading-8 text-ink-soft">
-              <p>
-                A dishonest counterparty doesn&rsquo;t need to forge anything — forgery is already
-                futile. The cheap attacks are <span className="text-ink">withholding</span>{' '}
-                (pretend the recent records don&rsquo;t exist) and{' '}
-                <span className="text-ink">equivocation</span> (show two consistent histories to
-                two different verifiers). Both are freshness problems, and no amount of offline
-                math on a stale copy can catch them.
-              </p>
-              <p>
-                So the network witnesses exactly one claim, over and over:{' '}
-                <em>this history only grows</em>. An agent periodically anchors its aggregate —
-                head, count, cumulative — with a set of witnesses it declared in advance. Each
-                witness accepts only monotone growth. Present the same index with a different head
-                to any of them and what you get back is not a cosignature but a{' '}
-                <span className="text-ink">duplicity proof</span>: a self-contained, signed
-                contradiction any stranger can verify.
-              </p>
-              <p>
-                Verification itself never changes hands: it stays offline, free, and dependency-less.
-                A finalized anchor simply adds one labeled fact beside the verdicts —{' '}
-                <span className="font-mono text-base text-ink">fresh · stale · unanchored</span> —
-                and witnesses never see a per-call row, only the aggregate.
-              </p>
-            </div>
-            <div>
-              <WitnessNetworkDiagram />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-6 py-20 sm:py-24">
-        <div className="mx-auto max-w-5xl">
-          <SectionMark n="02" title="The market is already watching." id="watchers" />
-          <p className="mt-10 max-w-3xl text-lg leading-8 text-ink-soft">
-            Accountability needs watchers — parties who read many logs and compare. The Auths
-            market is the first: it re-verifies every live listing&rsquo;s signed activity
-            aggregate against the seller&rsquo;s public registry, credits only growth it witnessed
-            itself, and publishes its own observation record so you can hold{' '}
-            <em>the market</em> to what it saw and when.
-          </p>
-
-          {feed && feed.observations.length > 0 ? (
-            <>
-              <div className="mt-8 flex flex-wrap gap-x-10 gap-y-2 font-mono text-sm text-ink">
-                <span>
-                  {feed.totals.listings_watched}{' '}
-                  <span className="text-ink-faint">listings watched</span>
-                </span>
-                <span>
-                  {feed.totals.observations}{' '}
-                  <span className="text-ink-faint">observations on record</span>
-                </span>
-              </div>
-              <div className="mt-6 overflow-x-auto">
-                <table className="w-full min-w-[42rem] text-left font-mono text-[13px]">
-                  <thead>
-                    <tr className="border-b border-rule text-[11px] uppercase tracking-wider text-ink-faint">
-                      <th className="py-2 pr-4 font-medium">observed (utc)</th>
-                      <th className="py-2 pr-4 font-medium">listing</th>
-                      <th className="py-2 pr-4 font-medium">head</th>
-                      <th className="py-2 pr-4 text-right font-medium">calls</th>
-                      <th className="py-2 pr-4 text-right font-medium">settled</th>
-                      <th className="py-2 font-medium">anchor</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {feed.observations.map((o) => (
-                      <tr
-                        key={`${o.listing}-${o.observed_at}`}
-                        className="border-b border-rule/60 text-ink-soft last:border-0"
-                      >
-                        <td className="py-2.5 pr-4 whitespace-nowrap">{utc(o.observed_at)}</td>
-                        <td className="py-2.5 pr-4">
-                          <a
-                            href={`https://market.auths.dev/e/${o.listing}`}
-                            className="text-ink transition-colors hover:text-seal"
-                          >
-                            {o.listing}
-                          </a>
-                        </td>
-                        <td className="py-2.5 pr-4 text-ink-faint">{o.head.slice(0, 8)}…</td>
-                        <td className="py-2.5 pr-4 text-right">{o.count}</td>
-                        <td className="py-2.5 pr-4 text-right">{cents(o.cumulative_cents)}</td>
-                        <td className="py-2.5 whitespace-nowrap">
-                          <span className={o.anchor_tier === 'witness' ? 'text-seal-deep' : ''}>
-                            {tierLabel(o)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          ) : (
-            <p className="mt-8 max-w-2xl font-mono text-sm leading-6 text-ink-faint">
-              The watcher feed is unreachable from here right now. It publishes at{' '}
-              <span className="text-ink">{marketApiBase()}/api/v1/network/observations</span> — the
-              observations are the market&rsquo;s own record, so its absence is itself visible.
-            </p>
-          )}
-
-          <div className="mt-8">
-            <InkLink href={`${marketApiBase()}/api/v1/network/observations`}>
-              The raw feed — coarse aggregates only, never a per-call row
-            </InkLink>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-6 py-20 sm:py-24">
-        <div className="mx-auto max-w-5xl">
-          <SectionMark n="03" title="The witness directory." id="directory" />
+          <SectionMark n="01" title="The witness directory." id="directory" />
           <p className="mt-10 max-w-3xl text-lg leading-8 text-ink-soft">
             A quorum is only as honest as its operators are independent. The directory lists
             conformant witnesses with the facts a declared set is chosen by — operator,
@@ -267,7 +125,7 @@ export default async function NetworkPage() {
 
       <section className="px-6 py-20 sm:py-24">
         <div className="mx-auto max-w-5xl">
-          <SectionMark n="04" title="Run a witness." id="run" />
+          <SectionMark n="02" title="Run a witness." id="run" />
           <div className="mt-10 grid gap-12 lg:grid-cols-[6fr_5fr]">
             <div>
               <InkTerminal
@@ -315,9 +173,45 @@ export default async function NetworkPage() {
         </div>
       </section>
 
+      <section className="px-6 py-20 sm:py-24">
+        <div className="mx-auto max-w-5xl">
+          <SectionMark n="03" title="What witnesses actually solve." id="how" />
+          <div className="mt-10 grid gap-12 lg:grid-cols-[5fr_6fr]">
+            <div className="space-y-6 text-lg leading-8 text-ink-soft">
+              <p>
+                A dishonest counterparty doesn&rsquo;t need to forge anything — forgery is already
+                futile. The cheap attacks are <span className="text-ink">withholding</span>{' '}
+                (pretend the recent records don&rsquo;t exist) and{' '}
+                <span className="text-ink">equivocation</span> (show two consistent histories to
+                two different verifiers). Both are freshness problems, and no amount of offline
+                math on a stale copy can catch them.
+              </p>
+              <p>
+                So the network witnesses exactly one claim, over and over:{' '}
+                <em>this history only grows</em>. An agent periodically anchors its aggregate —
+                head, count, cumulative — with a set of witnesses it declared in advance. Each
+                witness accepts only monotone growth. Present the same index with a different head
+                to any of them and what you get back is not a cosignature but a{' '}
+                <span className="text-ink">duplicity proof</span>: a self-contained, signed
+                contradiction any stranger can verify.
+              </p>
+              <p>
+                Verification itself never changes hands: it stays offline, free, and dependency-less.
+                A finalized anchor simply adds one labeled fact beside the verdicts —{' '}
+                <span className="font-mono text-base text-ink">fresh · stale · unanchored</span> —
+                and witnesses never see a per-call row, only the aggregate.
+              </p>
+            </div>
+            <div>
+              <WitnessNetworkDiagram />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="px-6 py-20 sm:pb-32">
         <div className="mx-auto max-w-5xl">
-          <SectionMark n="05" title="The cloud network." id="cloud" />
+          <SectionMark n="04" title="The cloud network." id="cloud" />
           <p className="mt-10 max-w-3xl text-lg leading-8 text-ink-soft">
             Everything that proves is open and free: the protocol, the verifier, the full witness
             node, the watcher. What we sell is operation — uptime, a curated quorum, storage, and
