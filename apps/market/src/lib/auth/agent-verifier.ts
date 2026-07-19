@@ -82,13 +82,16 @@ export function loadVerifier(): SdkModule | null {
       // can see these requires — a dynamic specifier deploys a function with no
       // verifier, and every authenticated path fails closed.
       const requireHere = nodeModule.createRequire(import.meta.url);
-      if (process.env.AUTHS_SDK_TRACE_HINT) {
-        // Never executed: a tracer-visible reference to the platform binary the
-        // addon's own loader resolves dynamically (bun hoists it to the repo
-        // root, outside any project-relative tracing glob).
-        requireHere('@auths-dev/sdk-linux-x64-gnu');
+      try {
+        mod = requireHere('@auths-dev/sdk') as SdkModule;
+      } catch (wrapperErr) {
+        // The wrapper's platform detection can mis-route under serverless
+        // runtimes (glibc probing via process.report). The platform package's
+        // main IS the native binding — load it directly. This literal require
+        // also makes nft ship the binary.
+        console.error('agent-verifier: wrapper loader failed, trying the platform binding directly:', wrapperErr);
+        mod = requireHere('@auths-dev/sdk-linux-x64-gnu') as SdkModule;
       }
-      mod = requireHere('@auths-dev/sdk') as SdkModule;
     }
     cached = typeof mod.authenticatePresentation === 'function' ? mod : null;
     if (!cached) console.error(`agent-verifier: ${specifier} loaded but exports no authenticatePresentation`);
