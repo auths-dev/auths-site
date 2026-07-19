@@ -71,8 +71,19 @@ export function loadVerifier(): SdkModule | null {
   try {
     const nodeModule = process.getBuiltinModule?.('node:module');
     if (!nodeModule) throw new Error('Node builtin loader unavailable in this runtime');
-    const requireFromCwd = nodeModule.createRequire(`${process.cwd()}/package.json`);
-    const mod = requireFromCwd(specifier) as SdkModule;
+    let mod: SdkModule;
+    if (process.env.AUTHS_SDK_PATH) {
+      // Dev override: an explicit checkout build, loaded from the working dir.
+      const requireFromCwd = nodeModule.createRequire(`${process.cwd()}/package.json`);
+      mod = requireFromCwd(specifier) as SdkModule;
+    } else {
+      // The npm dependency. The LITERAL specifier matters: Vercel's file tracer
+      // (nft) only ships the addon + its platform binary into the lambda when it
+      // can see this require — a dynamic specifier deploys a function with no
+      // verifier, and every authenticated path fails closed.
+      const requireHere = nodeModule.createRequire(import.meta.url);
+      mod = requireHere('@auths-dev/sdk') as SdkModule;
+    }
     cached = typeof mod.authenticatePresentation === 'function' ? mod : null;
     if (!cached) console.error(`agent-verifier: ${specifier} loaded but exports no authenticatePresentation`);
   } catch (err) {
