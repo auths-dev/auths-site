@@ -31,7 +31,25 @@ export interface AttestationCheckpoint {
   count: number;
   as_of: string;
   anchor_tier: string;
+  anchor_threshold: number | null;
+  anchor_witnesses: number | null;
   observed_at: string;
+}
+
+/**
+ * The quorum shape behind a `witness`-tier observation, restated by the SDK
+ * only AFTER it verified the embedded finalized anchor (threshold met, every
+ * counted cosigner inside the declared set, inclusion proofs replayed). Absent
+ * on unanchored documents and on SDK builds predating the witness network —
+ * in both cases the tier stays `first-seen`. Never read from the document.
+ */
+interface VerifiedAnchorSummary {
+  tier: string;
+  threshold: number;
+  witnesses: number;
+  cosigners: number;
+  seedId: string;
+  witnessSetSaid: string;
 }
 
 interface AuditManifest {
@@ -58,7 +76,7 @@ async function deriveListing(
   listing: Listing,
   lastCheckpoint: AttestationCheckpoint | null,
 ): Promise<
-  | { ok: true; doc: ActivityDoc; anchorTier: string }
+  | { ok: true; doc: ActivityDoc; anchor: VerifiedAnchorSummary | null }
   | { ok: false; reason: string }
 > {
   const res = await fetch(listing.attestation_url!, { signal: AbortSignal.timeout(20_000) });
@@ -107,10 +125,13 @@ async function deriveListing(
     sdk.fetchRegistry(manifest.registry_git_url, registryPath);
 
     // 1. Authenticity: the signature must verify under the agent's CURRENT keys
-    //    from the public KEL, and the agent must be delegated by the claimed root.
+    //    from the public KEL, and the agent must be delegated by the claimed
+    //    root. When the document embeds a quorum anchor, the SDK re-checks the
+    //    finalization too — an anchored document with a bad anchor fails whole.
     const check = JSON.parse(sdk.verifyActivityAttestation(rawDoc, registryPath)) as {
       ok: boolean;
       reason?: string;
+      anchor?: VerifiedAnchorSummary | null;
     };
     if (!check.ok) {
       return { ok: false, reason: `attestation signature: ${check.reason ?? 'invalid'}` };
@@ -129,9 +150,14 @@ async function deriveListing(
       if (violation) return { ok: false, reason: `attestation ${violation}` };
     }
 
-    const anchor = (doc.as_of?.anchor ?? null) as { tier?: unknown } | null;
-    const anchorTier = typeof anchor?.tier === 'string' ? anchor.tier : 'first-seen';
-    return { ok: true, doc, anchorTier };
+    // 3. The tier is derived, never claimed: `witness` comes only from the
+    //    SDK's verified-anchor summary. A tier string inside the document
+    //    itself is a seller claim and is never credited.
+    const anchor =
+      check.anchor && check.anchor.tier === 'witness' && check.anchor.threshold >= 1
+        ? check.anchor
+        : null;
+    return { ok: true, doc, anchor };
   } finally {
     rmSync(work, { recursive: true, force: true });
   }
@@ -177,7 +203,9 @@ export async function deriveAll(): Promise<{ derived: number; invalid: number }>
       cumulative_cents: result.doc.cumulative_cents,
       count: result.doc.count,
       as_of: result.doc.as_of.ts,
-      anchor_tier: result.anchorTier,
+      anchor_tier: result.anchor ? 'witness' : 'first-seen',
+      anchor_threshold: result.anchor?.threshold ?? null,
+      anchor_witnesses: result.anchor?.witnesses ?? null,
       observed_at: observedAt,
     });
 

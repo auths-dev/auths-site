@@ -7,11 +7,10 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizeCss: true,
   },
-  // Unpublished surfaces: the witness network and the hosted registry are
-  // deliberately not sold yet; commit-signing comparisons are not the pitch.
+  // Unpublished surfaces: the hosted registry is deliberately not sold yet;
+  // commit-signing comparisons are not the pitch. (/network is live.)
   async redirects() {
     return [
-      { source: "/network", destination: "/", permanent: false },
       { source: "/registry", destination: "/", permanent: false },
       { source: "/registry/:path*", destination: "/", permanent: false },
       { source: "/explorer", destination: "/", permanent: false },

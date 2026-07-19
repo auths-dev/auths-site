@@ -39,6 +39,9 @@ export interface ActivitySnapshot {
   as_of: string;
   observed_at: string;
   anchor_tier: string;
+  /** Verified quorum shape when `anchor_tier` is `witness`; null otherwise. */
+  anchor_threshold: number | null;
+  anchor_witnesses: number | null;
 }
 
 export async function getLiveListings(rail?: Rail): Promise<Listing[]> {

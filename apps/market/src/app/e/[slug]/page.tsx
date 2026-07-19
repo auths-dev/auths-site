@@ -41,7 +41,18 @@ export default async function ListingPage({ params }: Props) {
           <h1 className="font-display text-4xl font-medium tracking-tight text-ink sm:text-5xl">
             {listing.name}
           </h1>
-          <ListingBadges listing={listing} />
+          <ListingBadges
+            listing={listing}
+            anchor={
+              latest
+                ? {
+                    tier: latest.anchor_tier,
+                    threshold: latest.anchor_threshold,
+                    witnesses: latest.anchor_witnesses,
+                  }
+                : null
+            }
+          />
         </div>
         <p className="mt-4 max-w-2xl text-lg leading-8 text-ink-soft">{listing.description}</p>
         <p className="mt-4 font-mono text-sm text-ink">
@@ -94,7 +105,11 @@ export default async function ListingPage({ params }: Props) {
         </div>
         <p className="mt-4 max-w-2xl font-mono text-[12px] leading-5 text-ink-faint">
           {snapshots.length > 0
-            ? `Signed activity attestation, verified against the seller's public identity registry (head ${latestHead?.slice(0, 12)}…). Growth figures count only what this market witnessed — never the seller's claim.`
+            ? `Signed activity attestation, verified against the seller's public identity registry (head ${latestHead?.slice(0, 12)}…). Growth figures count only what this market witnessed — never the seller's claim.${
+                latest?.anchor_tier === 'witness' && latest.anchor_threshold && latest.anchor_witnesses
+                  ? ` Latest observation carries a quorum anchor verified against ${latest.anchor_threshold} of ${latest.anchor_witnesses} declared witnesses.`
+                  : ''
+              }`
             : 'No attestation verified yet — figures appear once the receipts worker has checked the published activity.json.'}
         </p>
 

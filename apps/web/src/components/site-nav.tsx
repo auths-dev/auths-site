@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 
 const NAV_LINKS = [
   { label: 'Product', href: '/' },
+  { label: 'Network', href: '/network' },
   // { label: 'Verify', href: '/verify' }, // hidden for now — may return later
   // Blog lives only in the footer now — see LedgerFooter defaults.
 ] as const;

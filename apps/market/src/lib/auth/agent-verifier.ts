@@ -48,7 +48,10 @@ interface SdkModule {
   /**
    * Verify a published `activity/v1` attestation against a fetched registry copy
    * (identity resolution only). Returns JSON: `{ok, reason?, head, count, …}`.
-   * Optional: absent on SDK builds predating the evidence surface.
+   * Witness-network-enabled builds also verify an embedded quorum anchor and
+   * restate its proven shape as `anchor: {tier, threshold, witnesses, …} | null`
+   * — older builds simply omit the field, and consumers treat that as
+   * unanchored. Optional: absent on SDK builds predating the evidence surface.
    */
   verifyActivityAttestation?(attestationJson: string, registryPath: string): string;
   /**

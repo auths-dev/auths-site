@@ -25,6 +25,8 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
         cumulative_cents: s.cumulative_cents,
         as_of: s.as_of,
         anchor_tier: s.anchor_tier,
+        anchor_threshold: s.anchor_threshold,
+        anchor_witnesses: s.anchor_witnesses,
       })),
       note: 'signed activity/v1 aggregates verified against the seller public identity registry; growth is credited only when witnessed by this market across observations',
     },
