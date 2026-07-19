@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readdirSync, existsSync } from 'node:fs';
+import { readdirSync, existsSync, readFileSync } from 'node:fs';
 
 /**
  * Temporary diagnostic: report the deployed function's filesystem view so the
@@ -33,8 +33,31 @@ export async function GET(req: Request) {
     load.hasVerifyOffline = typeof mod.verifyOffline;
     load.exportSample = Object.keys(mod).slice(0, 30);
   } catch (e) {
-    load.error = (e as Error).stack?.split('\n').slice(0, 6);
+    load.error = (e as Error).stack?.split('\n').slice(0, 4);
+    const chain: string[] = [];
+    let cur: unknown = (e as Error).cause;
+    while (cur instanceof Error && chain.length < 10) {
+      chain.push(cur.message);
+      cur = cur.cause;
+    }
+    load.causeChain = chain;
   }
+  const gnuDir = `${cwd}/vendor/auths-sdk/node_modules/@auths-dev/sdk-linux-x64-gnu`;
+  let gnuMain: string | undefined;
+  try {
+    gnuMain = JSON.parse(readFileSync(`${gnuDir}/package.json`, 'utf8')).main;
+  } catch { /* darwin build */ }
+  load.gnu = {
+    files: list(gnuDir),
+    main: gnuMain,
+    mainExists: gnuMain ? existsSync(`${gnuDir}/${gnuMain}`) : null,
+  };
+  load.muslSignals = {
+    lddReadable: existsSync('/usr/bin/ldd'),
+    reportAvailable: typeof process.report?.getReport === 'function',
+    arch: process.arch,
+    platform: process.platform,
+  };
   const version = (p: string) => {
     try {
       return JSON.parse(require('node:fs').readFileSync(p, 'utf8')).version;
