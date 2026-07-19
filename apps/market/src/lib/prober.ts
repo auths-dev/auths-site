@@ -122,32 +122,40 @@ async function probeListing(listing: Listing): Promise<ProbeResult> {
   const downstream = endpointArgv(listing);
   if (!downstream) return { verdict: 'fail', failReason: 'endpoint is malformed', detail };
 
-  // (c) published spend log reachable + JSONL-shaped
+  // (c) published activity attestation reachable + activity/v1-shaped. The raw
+  // per-call log is never published (it exposes the counterparty graph); the
+  // signature + monotonicity + witnessed-growth checks are the receipts worker's
+  // job — the prober gates only on reachability and shape.
   try {
-    const res = await fetch(listing.spend_log_url!, { signal: AbortSignal.timeout(15_000) });
+    const res = await fetch(listing.attestation_url!, { signal: AbortSignal.timeout(15_000) });
     if (!res.ok) {
-      checks.spend_log = `unreachable (${res.status})`;
+      checks.attestation = `unreachable (${res.status})`;
       return {
         verdict: 'fail',
-        failReason: `the listing's spend-log URL (${listing.spend_log_url}) returned HTTP ${res.status} — dashboards can only render re-derived numbers, so the log must be publicly fetchable; fix the URL and relist`,
+        failReason: `the listing's attestation URL (${listing.attestation_url}) returned HTTP ${res.status} — the market verifies the signed activity aggregate, so it must be publicly fetchable; fix the URL and relist`,
         detail,
       };
     }
-    const head = (await res.text()).slice(0, 4096).trim();
-    const firstLine = head.split('\n')[0] ?? '';
-    if (head && firstLine) {
-      try {
-        JSON.parse(firstLine);
-        checks.spend_log = 'reachable, JSONL-shaped';
-      } catch {
-        checks.spend_log = 'reachable, not yet JSONL';
+    const body = (await res.text()).slice(0, 65_536).trim();
+    try {
+      const doc = JSON.parse(body) as { version?: unknown; head?: unknown; signature?: unknown };
+      if (doc.version === 'activity/v1' && typeof doc.head === 'string' && typeof doc.signature === 'string') {
+        checks.attestation = 'reachable, activity/v1-shaped';
+      } else {
+        checks.attestation = 'reachable, not activity/v1';
+        return {
+          verdict: 'fail',
+          failReason: `the attestation URL must serve an activity/v1 document ({version, subject, head, count, cumulative_cents, as_of, signature}) — produce one with \`auths-mcp export-attestation\``,
+          detail,
+        };
       }
-    } else {
-      checks.spend_log = 'reachable, empty (no receipts yet)';
+    } catch {
+      checks.attestation = 'reachable, not JSON';
+      return { verdict: 'fail', failReason: 'the attestation URL did not serve JSON', detail };
     }
   } catch (e) {
-    checks.spend_log = `fetch failed: ${(e as Error).message}`;
-    return { verdict: 'fail', failReason: 'spend-log URL could not be fetched', detail };
+    checks.attestation = `fetch failed: ${(e as Error).message}`;
+    return { verdict: 'fail', failReason: 'attestation URL could not be fetched', detail };
   }
 
   // (a) tools/list through a real test-mode wrap

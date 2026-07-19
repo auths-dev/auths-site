@@ -14,7 +14,7 @@ export interface ListingInput {
   rails: string[];
   transport: 'stdio' | 'url';
   endpointValue: string;
-  spendLogUrl: string;
+  attestationUrl: string;
   docsUrl: string;
   tools: { name: string; description?: string }[];
 }
@@ -30,7 +30,7 @@ export function parseListingInput(raw: {
   rails?: unknown;
   transport?: unknown;
   endpointValue?: unknown;
-  spendLogUrl?: unknown;
+  attestationUrl?: unknown;
   docsUrl?: unknown;
   tools?: unknown;
 }): ParsedListing {
@@ -43,7 +43,7 @@ export function parseListingInput(raw: {
     : [];
   const transport = raw.transport === 'url' ? 'url' : 'stdio';
   const endpointValue = String(raw.endpointValue ?? '').trim();
-  const spendLogUrl = String(raw.spendLogUrl ?? '').trim();
+  const attestationUrl = String(raw.attestationUrl ?? '').trim();
   const docsUrl = String(raw.docsUrl ?? '').trim();
   const tools = Array.isArray(raw.tools)
     ? raw.tools
@@ -84,11 +84,12 @@ export function parseListingInput(raw: {
   if (transport === 'url' && !endpointValue.startsWith('https://')) {
     return { ok: false, error: 'URL endpoints must be https.' };
   }
-  if (!spendLogUrl.startsWith('https://')) {
+  if (!attestationUrl.startsWith('https://')) {
     return {
       ok: false,
       error:
-        'A public spend-log URL (https) is required — dashboards render only re-derived numbers, so the log must be fetchable.',
+        'A public activity attestation URL (https) is required — the market verifies the signed '
+        + 'aggregate (activity/v1), never a raw per-call log, so the attestation must be fetchable.',
     };
   }
   if (tools.length === 0) {
@@ -105,7 +106,7 @@ export function parseListingInput(raw: {
       rails,
       transport,
       endpointValue,
-      spendLogUrl,
+      attestationUrl,
       docsUrl,
       tools,
     },

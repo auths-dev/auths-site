@@ -28,7 +28,7 @@ export async function insertListing(
       input.transport === 'url'
         ? { transport: 'url', url: input.endpointValue }
         : { transport: 'stdio', command: input.endpointValue },
-    spend_log_url: input.spendLogUrl,
+    attestation_url: input.attestationUrl,
     docs_url: input.docsUrl || null,
     status: 'pending_verification',
   });

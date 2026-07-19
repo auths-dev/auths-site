@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { auth } from '@/lib/auth/supabase-github';
-import { getReceiptSummaries, getSellerListings } from '@/lib/listings';
+import { getActivitySnapshots, getSellerListings } from '@/lib/listings';
 import { ListingBadges } from '@/components/badges';
 
 export const metadata = { title: 'Dashboard' };
@@ -21,11 +21,13 @@ export default async function DashboardPage({
   const listings = await getSellerListings(seller.id);
   const earnings = new Map<string, { calls: number; cents: number; hash?: string }>();
   for (const l of listings.filter((l) => l.status === 'live')) {
-    const days = await getReceiptSummaries(l.id);
+    const snapshots = await getActivitySnapshots(l.id);
+    const latest = snapshots.at(-1);
+    const first = snapshots[0];
     earnings.set(l.id, {
-      calls: days.reduce((a, d) => a + d.calls, 0),
-      cents: days.reduce((a, d) => a + d.cents_settled, 0),
-      hash: days.at(-1)?.log_hash,
+      calls: latest && first ? latest.count - first.count : 0,
+      cents: latest && first ? latest.cumulative_cents - first.cumulative_cents : 0,
+      hash: latest?.head,
     });
   }
 
@@ -41,9 +43,9 @@ export default async function DashboardPage({
 
         {submitted ? (
           <p className="mt-6 max-w-xl rounded-lg border border-seal/40 bg-seal/[0.06] p-4 text-sm leading-6 text-ink-soft">
-            Submitted. The prober will make one test-mode call against your
-            endpoint and re-derive your price from the published log; the
-            listing goes live when it passes, and the result lands here
+            Submitted. The prober will check your endpoint serves every listed
+            tool and that your activity attestation is reachable and well-formed;
+            the listing goes live when it passes, and the result lands here
             either way.
           </p>
         ) : null}

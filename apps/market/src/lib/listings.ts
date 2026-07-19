@@ -19,7 +19,8 @@ export interface Listing {
   price_cents: number;
   rails: Rail[];
   endpoint: { transport: 'stdio' | 'url'; command?: string; url?: string };
-  spend_log_url: string | null;
+  attestation_url: string | null;
+  dormant?: boolean;
   docs_url: string | null;
   status: ListingStatus;
   verification_stale: boolean;
@@ -30,15 +31,14 @@ export interface Listing {
   created_at: string;
 }
 
-export interface ReceiptSummary {
+export interface ActivitySnapshot {
   listing_id: string;
-  day: string;
-  calls: number;
-  refused: number;
-  cents_settled: number;
-  rail_split: Record<string, number>;
-  log_hash: string;
-  derived_at: string;
+  head: string;
+  cumulative_cents: number;
+  count: number;
+  as_of: string;
+  observed_at: string;
+  anchor_tier: string;
 }
 
 export async function getLiveListings(rail?: Rail): Promise<Listing[]> {
@@ -71,22 +71,30 @@ export async function getSellerListings(sellerId: string): Promise<Listing[]> {
   return (data ?? []) as Listing[];
 }
 
-export async function getReceiptSummaries(
+export async function getActivitySnapshots(
   listingId: string,
   days = 30,
-): Promise<ReceiptSummary[]> {
+): Promise<ActivitySnapshot[]> {
   const supabase = await createSupabaseServerClient();
-  const since = new Date(Date.now() - days * 86400_000).toISOString().slice(0, 10);
+  const since = new Date(Date.now() - days * 86400_000).toISOString();
   const { data } = await supabase
-    .from('receipt_summaries')
+    .from('attestation_checkpoints')
     .select('*')
     .eq('listing_id', listingId)
-    .gte('day', since)
-    .order('day');
-  return (data ?? []) as ReceiptSummary[];
+    .gte('observed_at', since)
+    .order('observed_at');
+  return (data ?? []) as ActivitySnapshot[];
 }
 
-/** The exact command a stranger runs to re-derive a listing's spend. */
+/**
+ * The exact steps a stranger runs to re-check a listing's published activity
+ * attestation (the raw per-call log is never published — it stays private and
+ * is disclosed only point-to-point inside an EvidenceBundle).
+ */
 export function verifySpendCommand(listing: Listing): string {
-  return `npx -y @auths-dev/mcp verify-spend --log <spend.jsonl from ${listing.spend_log_url ?? 'the seller'}> --registry <registry> --agent <agent> --root <root>`;
+  return [
+    `curl -s ${listing.attestation_url ?? '<attestation url>'} > activity.json`,
+    `# verify the signed aggregate against the seller's public identity registry:`,
+    `node -e "const s=require('@auths-dev/sdk');console.log(s.verifyActivityAttestation(require('fs').readFileSync('activity.json','utf8'),'<fetched registry dir>'))"`,
+  ].join('\n');
 }

@@ -1,39 +1,40 @@
 /**
- * The receipts worker (US-007): dashboards render only numbers this module
- * re-derived. It pulls each live listing's published spend log, runs the
- * gateway's offline auditor (`verify-spend`) against it, and upserts one
- * aggregate row per day carrying the log's content hash — every figure is
- * reproducible from the referenced log, or it does not render.
+ * The receipts worker — the attestation path. The market is a pull-based
+ * verifier: it fetches each live listing's published `activity/v1` attestation
+ * (a signed aggregate `{head, count, cumulative_cents, as_of}`), verifies the
+ * signature against the seller's PUBLIC identity registry (key resolution only —
+ * never a spend log), enforces monotonicity against its own stored history, and
+ * earns `proven-live` from growth the market itself WITNESSED across probes.
  *
- * Published-bundle format (documented on /sell): the spend-log URL points
- * at `spend.jsonl`; an `audit.json` beside it (same directory) names the
- * verify-spend inputs: {"registry_git_url": …, "agent": …, "root": …}.
- * A log that fails re-derivation marks the listing receipts_invalid with
- * the exact verdict — failures are loud, never hidden.
+ * What this worker never does (the privacy contract): fetch or parse a per-call
+ * row. The raw log stays on the seller's infra; the counterparty graph is never
+ * published. A rollback / bad signature marks the listing `verification_stale`
+ * with the exact reason — failures are loud, never hidden.
  *
- * v0 granularity: one row per run-day holding all-time totals (the spend
- * log's own timestamps will drive true day-bucketing once per-entry
- * parsing lands). log_hash keeps the aggregates reproducible either way.
+ * Sibling `audit.json` beside the attestation names `{registry_git_url, agent,
+ * root}` for IDENTITY resolution only.
  */
 
-import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, dirname } from 'node:path';
+import { join } from 'node:path';
 import { createServiceClient } from '@/lib/supabase/service';
+import { loadVerifier } from '@/lib/auth/agent-verifier';
 import type { Listing } from '@/lib/listings';
 
 const run = promisify(execFile);
 
-/** The worker's proven end-state for one listing's log (see receipt_checkpoints). */
-export interface ReceiptCheckpoint {
-  log_hash: string;
-  prefix_bytes: number;
-  verified_len: number;
-  last_binding: string;
-  last_cents: number;
+/** One append-only witnessing observation (see attestation_checkpoints). */
+export interface AttestationCheckpoint {
+  listing_id: string;
+  head: string;
+  cumulative_cents: number;
+  count: number;
+  as_of: string;
+  anchor_tier: string;
+  observed_at: string;
 }
 
 interface AuditManifest {
@@ -42,47 +43,63 @@ interface AuditManifest {
   root: string;
 }
 
-async function deriveListing(listing: Listing, checkpoint?: ReceiptCheckpoint | null): Promise<
-  | {
-      ok: true;
-      calls: number;
-      cents: number;
-      logHash: string;
-      days: Map<string, { calls: number; cents: number; rails: Record<string, number> }>;
-      checkpoint: ReceiptCheckpoint | null;
-    }
+interface ActivityDoc {
+  version: string;
+  suite: string;
+  subject: { root: string; agent: string };
+  head: string;
+  count: number;
+  cumulative_cents: number;
+  as_of: { ts: string; anchor?: unknown };
+  signature: string;
+}
+
+/** The trailing window growth must be witnessed inside (badge rule). */
+const WITNESS_WINDOW_DAYS = 90;
+
+async function deriveListing(
+  listing: Listing,
+  lastCheckpoint: AttestationCheckpoint | null,
+): Promise<
+  | { ok: true; doc: ActivityDoc; anchorTier: string }
   | { ok: false; reason: string }
 > {
-  const logRes = await fetch(listing.spend_log_url!, { signal: AbortSignal.timeout(20_000) });
-  if (!logRes.ok) return { ok: false, reason: `spend log fetch: ${logRes.status}` };
-  const logText = await logRes.text();
-  if (!logText.trim()) return { ok: false, reason: 'spend log is empty' };
-  const logHash = createHash('sha256').update(logText).digest('hex');
+  const res = await fetch(listing.attestation_url!, { signal: AbortSignal.timeout(20_000) });
+  if (!res.ok) return { ok: false, reason: `attestation fetch: ${res.status}` };
+  const rawDoc = await res.text();
+  let doc: ActivityDoc;
+  try {
+    doc = JSON.parse(rawDoc) as ActivityDoc;
+  } catch {
+    return { ok: false, reason: 'attestation is not JSON' };
+  }
+  if (doc.version !== 'activity/v1') {
+    return { ok: false, reason: `attestation version ${doc.version ?? '(none)'} is not activity/v1` };
+  }
 
-  const auditUrl = new URL('audit.json', listing.spend_log_url!).toString();
+  const auditUrl = new URL('audit.json', listing.attestation_url!).toString();
   const auditRes = await fetch(auditUrl, { signal: AbortSignal.timeout(15_000) });
   if (!auditRes.ok) {
-    return { ok: false, reason: `audit.json beside the log is required (got ${auditRes.status})` };
+    return { ok: false, reason: `audit.json beside the attestation is required (got ${auditRes.status})` };
   }
   const manifest = (await auditRes.json()) as AuditManifest;
   if (!manifest.registry_git_url || !manifest.agent || !manifest.root) {
     return { ok: false, reason: 'audit.json must name registry_git_url, agent, root' };
   }
+  if (doc.subject?.root !== manifest.root || doc.subject?.agent !== manifest.agent) {
+    return { ok: false, reason: 'attestation subject does not match audit.json' };
+  }
 
-  const work = mkdtempSync(join(tmpdir(), 'market-receipts-'));
+  const sdk = loadVerifier();
+  if (!sdk?.verifyActivityAttestation) {
+    return { ok: false, reason: 'verifier unavailable (SDK addon missing verifyActivityAttestation)' };
+  }
+
+  const work = mkdtempSync(join(tmpdir(), 'market-attest-'));
   try {
-    const logPath = join(work, 'spend.jsonl');
-    writeFileSync(logPath, logText);
+    // Fetch the PUBLIC identity registry — bounded refspecs, identity refs +
+    // heads only. This is key resolution; no spend data exists at this URL.
     const registryPath = join(work, 'registry');
-    // The registry lives under refs/auths/* (git-as-storage) with the durable
-    // budget counter and spend log as committed working files: a plain clone
-    // neither fetches the identity refs nor tolerates a repo with no HEAD, so
-    // init, fetch ONLY the identity refs plus the published branch (never the
-    // remote's whole refspace), and materialize the branch when one exists
-    // (verify-spend reads the counter from the working tree). A blob filter is
-    // attempted first to skip historical blobs; remotes that cannot serve
-    // partial fetches (dumb HTTP) fall back to the same bounded refspecs,
-    // unfiltered — the boundedness comes from the refspecs either way.
     const boundedRefspecs = ['refs/auths/*:refs/auths/*', 'refs/heads/*:refs/heads/*'];
     await run('git', ['init', '--quiet', registryPath], { timeout: 15_000 });
     try {
@@ -99,104 +116,33 @@ async function deriveListing(listing: Listing, checkpoint?: ReceiptCheckpoint | 
         { timeout: 60_000 },
       );
     }
-    const { stdout: heads } = await run(
-      'git',
-      ['-C', registryPath, 'for-each-ref', 'refs/heads', '--format=%(refname:short)'],
-      { timeout: 15_000 },
-    );
-    const head = heads.split('\n').find(Boolean);
-    if (head) {
-      await run('git', ['-C', registryPath, 'checkout', '--quiet', '--force', head], {
-        timeout: 30_000,
-      });
+
+    // 1. Authenticity: the signature must verify under the agent's CURRENT keys
+    //    from the public KEL, and the agent must be delegated by the claimed root.
+    const check = JSON.parse(sdk.verifyActivityAttestation(rawDoc, registryPath)) as {
+      ok: boolean;
+      reason?: string;
+    };
+    if (!check.ok) {
+      return { ok: false, reason: `attestation signature: ${check.reason ?? 'invalid'}` };
     }
 
-    // Same launcher rule as the prober: `AUTHS_MCP_LAUNCHER` pins a local
-    // `auths-mcp.mjs` (no npm fetch inside the verification window); the default
-    // cold-installs the published package under the worker's fresh HOME.
-    const launcher = process.env.AUTHS_MCP_LAUNCHER;
-    const verifyArgs = [
-      'verify-spend',
-      '--log', logPath,
-      '--registry', registryPath,
-      '--agent', manifest.agent,
-      '--root', manifest.root,
-    ];
-    // Incremental re-verification: when the stored prefix hash still matches the
-    // fetched bytes, resume after the records this worker already proved — only
-    // the suffix re-verifies. Any prefix mutation misses the hash → full audit.
-    const logBuf = Buffer.from(logText);
-    const prefixUnchanged = !!checkpoint
-      && logBuf.length >= checkpoint.prefix_bytes
-      && createHash('sha256').update(logBuf.subarray(0, checkpoint.prefix_bytes)).digest('hex')
-        === checkpoint.log_hash;
-    if (checkpoint && prefixUnchanged) {
-      verifyArgs.push(
-        '--resume-index', String(checkpoint.verified_len),
-        '--resume-binding', checkpoint.last_binding,
-        '--resume-cents', String(checkpoint.last_cents),
+    // 2. Monotonicity vs the market's own last stored observation — the seller's
+    //    absolute claim is never credited; regressions are named and fail loud.
+    if (lastCheckpoint && sdk.attestationMonotonicityViolation) {
+      const violation = sdk.attestationMonotonicityViolation(
+        lastCheckpoint.head,
+        lastCheckpoint.count,
+        lastCheckpoint.cumulative_cents,
+        lastCheckpoint.as_of,
+        rawDoc,
       );
+      if (violation) return { ok: false, reason: `attestation ${violation}` };
     }
-    const { stdout, stderr } = await run(
-      launcher ? process.execPath : 'npx',
-      launcher ? [launcher, ...verifyArgs] : ['-y', '@auths-dev/mcp', ...verifyArgs],
-      { timeout: 120_000, env: { ...process.env, HOME: work } },
-    ).catch((e: Error & { stdout?: string; stderr?: string }) => ({
-      stdout: e.stdout ?? '',
-      stderr: `${e.stderr ?? ''}\n${e.message}`,
-    }));
 
-    const out = `${stdout}\n${stderr}`;
-    const consistent = out.match(/consistent — (\d+) call\(s\), \$([0-9.]+) re-derived/);
-    if (!consistent) {
-      const verdict = out.match(/(tampered-proof|dropped-call|budget-mismatch|cost-mismatch|revoked)/);
-      return {
-        ok: false,
-        reason: verdict ? `verify-spend: ${verdict[1]}` : `verify-spend did not re-derive consistent`,
-      };
-    }
-    const calls = Number.parseInt(consistent[1], 10);
-    const cents = Math.round(Number.parseFloat(consistent[2]) * 100);
-    // Per-day breakdown from each record's OWN timestamp (display aggregation of the
-    // just-verified log; the authoritative total stays verify-spend's). A settled
-    // call's cents are the cumulative delta; its rail attributes the rail_split.
-    const days = new Map<string, { calls: number; cents: number; rails: Record<string, number> }>();
-    let prevCumulative = 0;
-    for (const line of readFileSync(logPath, 'utf8').split('\n')) {
-      if (!line.trim()) continue;
-      const receipt = JSON.parse(line).receipt ?? {};
-      const day = String(receipt.at ?? '').slice(0, 10);
-      if (day.length !== 10) continue;
-      const bucket = days.get(day) ?? { calls: 0, cents: 0, rails: {} };
-      bucket.calls += 1;
-      const cumulative = Number(receipt.cumulative_cents ?? prevCumulative);
-      const delta = cumulative - prevCumulative;
-      prevCumulative = cumulative;
-      if (delta > 0) {
-        bucket.cents += delta;
-        const rail = String(receipt.rail ?? 'unmetered');
-        bucket.rails[rail] = (bucket.rails[rail] ?? 0) + delta;
-      }
-      days.set(day, bucket);
-    }
-    const daySum = [...days.values()].reduce((a, b) => a + b.cents, 0);
-    if (daySum !== cents) {
-      return {
-        ok: false,
-        reason: `per-day breakdown (${daySum}c) diverged from the re-derived total (${cents}c)`,
-      };
-    }
-    const cp = out.match(/checkpoint: records=(\d+) settled_cents=(\d+) binding=([0-9a-f]+)/);
-    const nextCheckpoint: ReceiptCheckpoint | null = cp
-      ? {
-          log_hash: logHash,
-          prefix_bytes: logBuf.length,
-          verified_len: Number.parseInt(cp[1], 10),
-          last_binding: cp[3],
-          last_cents: Number.parseInt(cp[2], 10),
-        }
-      : null;
-    return { ok: true, calls, cents, logHash, days, checkpoint: nextCheckpoint };
+    const anchor = (doc.as_of?.anchor ?? null) as { tier?: unknown } | null;
+    const anchorTier = typeof anchor?.tier === 'string' ? anchor.tier : 'first-seen';
+    return { ok: true, doc, anchorTier };
   } finally {
     rmSync(work, { recursive: true, force: true });
   }
@@ -207,54 +153,71 @@ export async function deriveAll(): Promise<{ derived: number; invalid: number }>
   const { data, error } = await supabase.from('listings').select('*').eq('status', 'live');
   if (error) throw new Error(`listing query failed: ${error.message}`);
 
-  const listingIds = ((data ?? []) as Listing[]).map((l) => l.id);
-  const { data: checkpointRows } = listingIds.length
-    ? await supabase.from('receipt_checkpoints').select('*').in('listing_id', listingIds)
-    : { data: [] };
-  const checkpoints = new Map<string, ReceiptCheckpoint>(
-    (checkpointRows ?? []).map((row) => [row.listing_id as string, row as ReceiptCheckpoint]),
-  );
-
   let derived = 0;
   let invalid = 0;
   for (const listing of (data ?? []) as Listing[]) {
-    if (!listing.spend_log_url) continue;
-    const result = await deriveListing(listing, checkpoints.get(listing.id) ?? null).catch(
-      (e: Error) => ({ ok: false as const, reason: `derivation error: ${e.message}` }),
-    );
-    if (result.ok) {
-      derived += 1;
-      const derivedAt = new Date().toISOString();
-      const rows = [...result.days.entries()].map(([day, bucket]) => ({
-        listing_id: listing.id,
-        day,
-        calls: bucket.calls,
-        cents_settled: bucket.cents,
-        rail_split: bucket.rails,
-        log_hash: result.logHash,
-        derived_at: derivedAt,
-      }));
-      // The whole breakdown re-derives from the log each run — replace, never accrete.
-      await supabase.from('receipt_summaries').delete().eq('listing_id', listing.id);
-      if (rows.length > 0) await supabase.from('receipt_summaries').insert(rows);
-      if (result.checkpoint) {
-        await supabase
-          .from('receipt_checkpoints')
-          .upsert({ listing_id: listing.id, ...result.checkpoint, derived_at: derivedAt });
-      }
-      const update: Record<string, unknown> = { receipts_invalid: false };
-      // Badge tier 2: first re-derived settled cents prove the live rail.
-      if (!listing.live_proven_at && result.cents > 0) {
-        update.live_proven_at = new Date().toISOString();
-      }
-      await supabase.from('listings').update(update).eq('id', listing.id);
-    } else {
+    if (!listing.attestation_url) continue;
+    const { data: history } = await supabase
+      .from('attestation_checkpoints')
+      .select('*')
+      .eq('listing_id', listing.id)
+      .order('observed_at', { ascending: false })
+      .limit(1);
+    const last = ((history ?? [])[0] as AttestationCheckpoint | undefined) ?? null;
+
+    const result = await deriveListing(listing, last).catch((e: Error) => ({
+      ok: false as const,
+      reason: `derivation error: ${e.message}`,
+    }));
+    if (!result.ok) {
       invalid += 1;
       await supabase
         .from('listings')
-        .update({ receipts_invalid: true, fail_reason: result.reason })
+        .update({ verification_stale: true, receipts_invalid: true, fail_reason: result.reason })
         .eq('id', listing.id);
+      continue;
     }
+
+    derived += 1;
+    const observedAt = new Date().toISOString();
+    // 3. Witnessing: append this observation to the history (append-only — the
+    //    market's own record of what it saw, when).
+    await supabase.from('attestation_checkpoints').insert({
+      listing_id: listing.id,
+      head: result.doc.head,
+      cumulative_cents: result.doc.cumulative_cents,
+      count: result.doc.count,
+      as_of: result.doc.as_of.ts,
+      anchor_tier: result.anchorTier,
+      observed_at: observedAt,
+    });
+
+    // 4. The badge: proven-live iff the market itself WITNESSED cumulative growth
+    //    within the trailing window — never the seller's absolute claim. One
+    //    observation proves nothing; growth needs two points the market saw.
+    const windowStart = new Date(Date.now() - WITNESS_WINDOW_DAYS * 86_400_000).toISOString();
+    const { data: windowRows } = await supabase
+      .from('attestation_checkpoints')
+      .select('cumulative_cents, observed_at')
+      .eq('listing_id', listing.id)
+      .gte('observed_at', windowStart)
+      .order('observed_at');
+    const window = (windowRows ?? []) as { cumulative_cents: number }[];
+    const witnessedDelta =
+      window.length >= 2
+        ? window[window.length - 1].cumulative_cents - window[0].cumulative_cents
+        : 0;
+
+    const update: Record<string, unknown> = {
+      receipts_invalid: false,
+      verification_stale: false,
+      fail_reason: null,
+      dormant: witnessedDelta <= 0,
+    };
+    if (!listing.live_proven_at && witnessedDelta > 0) {
+      update.live_proven_at = observedAt;
+    }
+    await supabase.from('listings').update(update).eq('id', listing.id);
   }
   return { derived, invalid };
 }

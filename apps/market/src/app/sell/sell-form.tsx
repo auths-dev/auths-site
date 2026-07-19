@@ -102,12 +102,12 @@ export function SellForm() {
 
       <div className="grid gap-5 sm:grid-cols-2">
         <label>
-          <span className={LABEL}>Spend-log URL (public, https)</span>
+          <span className={LABEL}>Activity attestation URL (public, https)</span>
           <input
-            name="spend_log_url"
+            name="attestation_url"
             required
             type="url"
-            placeholder="https://raw.githubusercontent.com/acme/receipts/main/spend.jsonl"
+            placeholder="https://raw.githubusercontent.com/acme/receipts/main/activity.json"
             className={`${FIELD} font-mono`}
           />
         </label>

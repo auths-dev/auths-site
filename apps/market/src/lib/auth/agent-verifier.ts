@@ -45,6 +45,22 @@ interface SdkModule {
   mintChallengeNonce(): string;
   /** Raw verifier entrypoint — used by the conformance-vector check, not the adapter. */
   verifyPresentation(requestJson: string): { status: string };
+  /**
+   * Verify a published `activity/v1` attestation against a fetched registry copy
+   * (identity resolution only). Returns JSON: `{ok, reason?, head, count, …}`.
+   * Optional: absent on SDK builds predating the evidence surface.
+   */
+  verifyActivityAttestation?(attestationJson: string, registryPath: string): string;
+  /** The named monotonicity violation between a stored checkpoint and a fresh doc, or null. */
+  attestationMonotonicityViolation?(
+    prevHead: string,
+    prevCount: number,
+    prevCents: number,
+    prevTsIso: string,
+    nextJson: string,
+  ): string | null;
+  /** Fully-offline verification of a receipts/v1 EvidenceBundle (JSON in/out). */
+  verifyOffline?(bundleJson: string): Promise<string>;
 }
 
 let cached: SdkModule | null | undefined;

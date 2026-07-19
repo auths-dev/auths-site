@@ -30,7 +30,7 @@ export async function createListing(
     rails: ['x402', 'stripe'].filter((r) => form.get(`rail_${r}`) === 'on'),
     transport: form.get('transport') ?? 'stdio',
     endpointValue: form.get('endpoint_value'),
-    spendLogUrl: form.get('spend_log_url'),
+    attestationUrl: form.get('attestation_url'),
     docsUrl: form.get('docs_url'),
     tools: String(form.get('tools') ?? '')
       .split('\n')

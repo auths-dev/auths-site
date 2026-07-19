@@ -20,7 +20,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
       rails: l.rails,
       tools: l.tools,
       docs_url: l.docs_url,
-      spend_log_url: l.spend_log_url,
+      attestation_url: l.attestation_url,
       verified_at: l.verified_at,
       live_proven_at: l.live_proven_at,
       integration: {

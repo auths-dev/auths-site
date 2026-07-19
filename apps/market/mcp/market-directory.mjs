@@ -46,7 +46,7 @@ const TOOLS = [
         subject_alias: { type: 'string', description: 'local signing alias (default "main")' },
         listing: {
           type: 'object',
-          description: 'slug, name, description, priceCents, rails, transport, endpointValue (BARE downstream command), spendLogUrl, docsUrl, tools',
+          description: 'slug, name, description, priceCents, rails, transport, endpointValue (BARE downstream command), attestationUrl (activity/v1), docsUrl, tools',
         },
       },
       required: ['credential_said', 'listing'],

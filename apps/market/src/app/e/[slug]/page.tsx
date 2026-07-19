@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { CodeBlock } from '@auths/ledger-ui';
-import { getListingBySlug, getReceiptSummaries, verifySpendCommand } from '@/lib/listings';
+import { getActivitySnapshots, getListingBySlug, verifySpendCommand } from '@/lib/listings';
 import { ListingBadges } from '@/components/badges';
 import { IntegrationPane } from '@/components/integration-pane';
 
@@ -26,16 +26,13 @@ export default async function ListingPage({ params }: Props) {
   const listing = await getListingBySlug(slug);
   if (!listing) notFound();
 
-  const summaries = await getReceiptSummaries(listing.id);
-  const totals = summaries.reduce(
-    (acc, s) => ({
-      calls: acc.calls + s.calls,
-      refused: acc.refused + s.refused,
-      cents: acc.cents + s.cents_settled,
-    }),
-    { calls: 0, refused: 0, cents: 0 },
-  );
-  const latestHash = summaries.at(-1)?.log_hash;
+  const snapshots = await getActivitySnapshots(listing.id);
+  const latest = snapshots.at(-1);
+  const first = snapshots[0];
+  const witnessed = latest && first
+    ? { calls: latest.count - first.count, cents: latest.cumulative_cents - first.cumulative_cents }
+    : { calls: 0, cents: 0 };
+  const latestHead = latest?.head;
 
   return (
     <div className="px-6 pt-36 pb-24">
@@ -77,28 +74,28 @@ export default async function ListingPage({ params }: Props) {
         </h2>
         <div className="mt-5 grid max-w-3xl gap-8 sm:grid-cols-3">
           <div>
-            <p className="font-mono text-3xl text-ink">{totals.calls}</p>
+            <p className="font-mono text-3xl text-ink">{witnessed.calls}</p>
             <p className="mt-1 font-mono text-[12px] uppercase tracking-wider text-ink-faint">
-              calls · 30d
+              witnessed calls · 30d
             </p>
           </div>
           <div>
-            <p className="font-mono text-3xl text-ink">{cents(totals.cents)}</p>
+            <p className="font-mono text-3xl text-ink">{cents(witnessed.cents)}</p>
             <p className="mt-1 font-mono text-[12px] uppercase tracking-wider text-ink-faint">
-              settled · 30d
+              witnessed settled · 30d
             </p>
           </div>
           <div>
-            <p className="font-mono text-3xl text-ink">{totals.refused}</p>
+            <p className="font-mono text-3xl text-ink">{latest ? cents(latest.cumulative_cents) : '—'}</p>
             <p className="mt-1 font-mono text-[12px] uppercase tracking-wider text-ink-faint">
-              refusals · 30d
+              attested lifetime
             </p>
           </div>
         </div>
         <p className="mt-4 max-w-2xl font-mono text-[12px] leading-5 text-ink-faint">
-          {summaries.length > 0
-            ? `Every figure re-derived via verify-spend from the seller's published log (hash ${latestHash?.slice(0, 12)}…).`
-            : 'No receipts re-derived yet — figures appear once the receipts worker has verified the published log.'}
+          {snapshots.length > 0
+            ? `Signed activity attestation, verified against the seller's public identity registry (head ${latestHead?.slice(0, 12)}…). Growth figures count only what this market witnessed — never the seller's claim.`
+            : 'No attestation verified yet — figures appear once the receipts worker has checked the published activity.json.'}
         </p>
 
         <h2 className="mt-14 font-display text-2xl font-medium text-ink">Use it, bounded</h2>
@@ -108,17 +105,19 @@ export default async function ListingPage({ params }: Props) {
 
         <h2 className="mt-14 font-display text-2xl font-medium text-ink">Audit this yourself</h2>
         <p className="mt-3 max-w-2xl text-base leading-7 text-ink-soft">
-          The receipts are signed and the log is public
-          {listing.spend_log_url ? (
+          The seller publishes a signed activity attestation
+          {listing.attestation_url ? (
             <>
               {' '}
-              (<a href={listing.spend_log_url} className="text-seal hover:text-seal-deep">
-                spend log
+              (<a href={listing.attestation_url} className="text-seal hover:text-seal-deep">
+                activity.json
               </a>)
             </>
           ) : null}
-          . A party who never called this endpoint can re-derive everything
-          above — offline, without trusting the seller or us:
+          {' '}— an aggregate committing to its private per-call log without
+          revealing any counterparty. A party who never called this endpoint can
+          re-check the signature and the market-witnessed growth, trusting
+          neither the seller nor us:
         </p>
         <div className="mt-4 max-w-3xl">
           <CodeBlock language="bash" code={verifySpendCommand(listing)} />

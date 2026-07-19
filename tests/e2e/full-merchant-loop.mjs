@@ -211,7 +211,13 @@ check('market dev server is up', (await api('/api/v1/endpoints')).status === 200
 
 const publishDir = mkdtempSync(join(tmpdir(), 'merchant-publish-'));
 tempDirs.push(publishDir);
-writeFileSync(join(publishDir, 'spend.jsonl'), '');
+writeFileSync(join(publishDir, 'activity.json'), JSON.stringify({
+  version: 'activity/v1', suite: 'json-canon/ed25519',
+  subject: { root: 'did:keri:pending', agent: 'did:keri:pending' },
+  head: 'genesis', count: 0, cumulative_cents: 0,
+  as_of: { ts: new Date().toISOString() },
+  signature: 'unsigned-placeholder',
+}));
 fileServer = createServer((req, res) => {
   const name = req.url?.split('?')[0].replace(/^\/+/, '') || '';
   const file = join(publishDir, name);
@@ -248,7 +254,7 @@ const created = await api('/api/v1/listings', {
       rails: ['x402'],
       transport: 'stdio',
       endpointValue: `node ${ADAPTER}`,
-      spendLogUrl: 'https://example.com/placeholder/spend.jsonl',
+      attestationUrl: 'https://example.com/placeholder/activity.json',
       docsUrl: '',
       tools: ['paid_call — settle an x402/USDC test payment and return the settlement'],
     },
@@ -258,7 +264,7 @@ check('seller agent listed a real x402 endpoint (201)', created.status === 201, 
 
 // Point the listing at the local publish server (create-time validation demands
 // https; the prober and receipts worker only demand fetchable).
-const patched = await db('PATCH', `listings?slug=eq.${slug}`, { spend_log_url: `${publishUrl}/spend.jsonl` });
+const patched = await db('PATCH', `listings?slug=eq.${slug}`, { attestation_url: `${publishUrl}/activity.json` });
 const challenge2 = await api('/api/v1/challenge', { method: 'POST' });
 const presented2 = seller.auths('credential', 'present', '--subject', 'main', '--said', cred.credential_said,
   '--audience', AUDIENCE, '--nonce', challenge2.body.nonce, '--with-evidence');
@@ -270,7 +276,7 @@ const mine = await api('/api/v1/me/listings', {
 check('the agent reads back its own listings (me/listings)',
   mine.status === 200 && (mine.body.listings ?? []).some((l) => l.slug === slug), mine.body);
 
-check('spend-log URL points at the publish server', patched?.[0]?.spend_log_url?.startsWith(publishUrl), patched);
+check('attestation URL points at the publish server', patched?.[0]?.attestation_url?.startsWith(publishUrl), patched);
 
 // ── phase 2: the prober takes it live ──────────────────────────────────────────
 const probe = await api('/api/cron/probe', {
@@ -279,7 +285,7 @@ const probe = await api('/api/cron/probe', {
 });
 check('prober ran', probe.status === 200 && probe.body.probed >= 1, probe);
 const afterProbe = (await db('GET', `listings?slug=eq.${slug}&select=status,verified_at,fail_reason`))[0];
-check('prober took the listing LIVE (tools served, log reachable)',
+check('prober took the listing LIVE (tools served, attestation shaped)',
   afterProbe?.status === 'live' && !!afterProbe.verified_at,
   afterProbe);
 
@@ -355,42 +361,69 @@ const rootDid = JSON.parse(
   }),
 ).data.controller_did;
 
-// Publish = ONE command: flatten the (rotated) log, write audit.json, and commit
-// the registry working state so the verifier's copy re-derives the same counter.
+// Publish = ONE command: re-derive the LOCAL private log and emit the signed
+// activity/v1 aggregate + the identity-only audit.json. No per-call row leaves.
+// (Commit the registry working state first so the market's fetched copy
+// resolves the same keys — the same step export-spend-bundle used to run.)
+execFileSync('git', ['-C', orgRepo, 'add', '-A'], { env: buyerEnv, encoding: 'utf8' });
+try {
+  execFileSync('git', ['-C', orgRepo, 'commit', '--quiet', '-m', 'attestation export'], { env: buyerEnv, encoding: 'utf8' });
+} catch { /* clean tree is fine */ }
 const exported = execFileSync(process.env.GATEWAY_BIN, [
-  'export-spend-bundle',
+  'export-attestation',
   '--live-dir', liveDir,
   '--agent', agentDid,
   '--root', rootDid,
   '--registry-url', orgRepo,
-  '--out', publishDir,
+  '--out', join(publishDir, 'activity.json'),
 ], { env: buyerEnv, encoding: 'utf8' });
-check('export-spend-bundle emitted the verifier-ready bundle',
-  exported.includes('spend.jsonl + audit.json')
-    && existsSync(join(publishDir, 'spend.jsonl'))
+check('export-attestation emitted the signed aggregate + audit.json',
+  exported.includes('export-attestation:')
+    && existsSync(join(publishDir, 'activity.json'))
     && existsSync(join(publishDir, 'audit.json')),
   exported.trim());
+const activityDoc = JSON.parse(readFileSync(join(publishDir, 'activity.json'), 'utf8'));
+check('the attestation exposes NO per-call data (privacy invariant)',
+  activityDoc.version === 'activity/v1'
+    && activityDoc.cumulative_cents >= 1
+    && !JSON.stringify(activityDoc).includes('args_hash')
+    && !JSON.stringify(activityDoc).includes('charge_ref'),
+  activityDoc);
+
+// Witnessed growth needs TWO observations the market itself saw. In production
+// the probe cadence supplies the earlier point; the e2e seeds that prior
+// observation (cumulative 0, an hour ago) so this run can witness 0 → C1.
+const listingIdRow = (await db('GET', `listings?slug=eq.${slug}&select=id`))[0];
+await db('POST', 'attestation_checkpoints', {
+  listing_id: listingIdRow.id,
+  head: 'genesis',
+  cumulative_cents: 0,
+  count: 0,
+  as_of: new Date(Date.now() - 3_600_000).toISOString(),
+  anchor_tier: 'first-seen',
+  observed_at: new Date(Date.now() - 3_600_000).toISOString(),
+});
 
 const receipts = await api('/api/cron/receipts', {
   method: 'GET',
   headers: { authorization: `Bearer ${CRON_SECRET}` },
 });
-check('receipts worker ran verify-spend over the published log', receipts.status === 200, receipts);
+check('receipts worker verified the published attestation', receipts.status === 200, receipts);
 const listingRow = (await db('GET', `listings?slug=eq.${slug}&select=id,receipts_invalid,fail_reason,live_proven_at`))[0];
-check('the log re-derived CONSISTENT (never seller-reported)',
+check('the attestation verified (signature chains to the root; monotone)',
   listingRow?.receipts_invalid === false, listingRow);
 const receiptsAgain = await api('/api/cron/receipts', {
   method: 'GET',
   headers: { authorization: `Bearer ${CRON_SECRET}` },
 });
 const listingRow2 = (await db('GET', `listings?slug=eq.${slug}&select=receipts_invalid`))[0];
-check('a second pass resumes from the stored checkpoint and stays consistent',
+check('a second pass stays verified against the stored observation',
   receiptsAgain.status === 200 && listingRow2?.receipts_invalid === false,
   { receiptsAgain: receiptsAgain.body, listingRow2 });
-const finalSummary = (await db('GET', `receipt_summaries?listing_id=eq.${listingRow.id}&select=calls,cents_settled,log_hash`))[0];
-check('re-derived receipts show settled calls and cents',
-  finalSummary?.calls >= 1 && finalSummary?.cents_settled >= 1, finalSummary);
-check('the listing earned Proven-live (first re-derived settled cents)',
+const observations = await db('GET', `attestation_checkpoints?listing_id=eq.${listingRow.id}&select=cumulative_cents,count&order=observed_at.asc`);
+check('the witnessing history records the verified aggregates',
+  observations.length >= 2 && observations.at(-1).cumulative_cents >= 1, observations);
+check('the listing earned Proven-live (market-witnessed growth, never the claim)',
   !!listingRow.live_proven_at, listingRow);
 
 // ── phase 5: the public story ───────────────────────────────────────────────────
@@ -399,8 +432,8 @@ check('public API shows the live listing as Proven-live',
   publicView.status === 200 && !!publicView.body.live_proven_at,
   publicView.body);
 const publicReceipts = await api(`/api/v1/endpoints/${slug}/receipts`);
-check('public receipts API serves the re-derived aggregates',
-  publicReceipts.status === 200 && JSON.stringify(publicReceipts.body).includes('cents'),
+check('public receipts API serves the witnessed observations',
+  publicReceipts.status === 200 && JSON.stringify(publicReceipts.body).includes('cumulative_cents'),
   publicReceipts.body);
 
 console.log(`\nfull merchant loop proven — ${passed} checks green`);
