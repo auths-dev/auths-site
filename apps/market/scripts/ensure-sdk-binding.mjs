@@ -17,7 +17,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VERSION = '0.1.11';
+const VERSION = '0.1.12';
 const here = dirname(fileURLToPath(import.meta.url));
 const appDir = join(here, '..');
 const require = createRequire(join(appDir, 'package.json'));
