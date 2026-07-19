@@ -15,8 +15,6 @@
  * root}` for IDENTITY resolution only.
  */
 
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -24,7 +22,6 @@ import { createServiceClient } from '@/lib/supabase/service';
 import { loadVerifier } from '@/lib/auth/agent-verifier';
 import type { Listing } from '@/lib/listings';
 
-const run = promisify(execFile);
 
 /** One append-only witnessing observation (see attestation_checkpoints). */
 export interface AttestationCheckpoint {
@@ -95,38 +92,19 @@ async function deriveListing(
     return { ok: false, reason: 'verifier unavailable (SDK addon missing verifyActivityAttestation)' };
   }
 
+  if (typeof sdk.fetchRegistry !== 'function') {
+    return { ok: false, reason: 'verifier unavailable (SDK addon missing fetchRegistry)' };
+  }
+
   const work = mkdtempSync(join(tmpdir(), 'market-attest-'));
   try {
-    // Fetch the PUBLIC identity registry — bounded refspecs, identity refs +
-    // heads only. This is key resolution; no spend data exists at this URL.
+    // Fetch the PUBLIC identity registry in-process (the SDK's libgit2 carries
+    // its own HTTPS transport — serverless hosts have no git binary). Identity
+    // refs + heads only: this is key resolution; no spend data exists at this
+    // URL. The SDK also materializes the branch's working files, the same
+    // layout the CLI writes.
     const registryPath = join(work, 'registry');
-    const boundedRefspecs = ['refs/auths/*:refs/auths/*', 'refs/heads/*:refs/heads/*'];
-    // An unused initial branch name: fetching the remote's refs/heads/main into
-    // a repo whose checked-out default is also `main` is refused by git.
-    await run('git', ['init', '--quiet', '--initial-branch=_verifier', registryPath], { timeout: 15_000 });
-    // No blob filter: the verifier reads identity blobs out of the refs/auths
-    // tree through libgit2, which cannot lazily fetch promisor blobs — a
-    // partial clone leaves it 'Not found' on every identity. Registries are
-    // small (KELs + state, no spend data), so a full fetch is the honest cost.
-    await run(
-      'git',
-      ['-C', registryPath, 'fetch', '--quiet', manifest.registry_git_url, ...boundedRefspecs],
-      { timeout: 60_000 },
-    );
-
-    // Materialize the branch's working files: the registry backend reads
-    // identity state from the working tree (the same layout the CLI writes).
-    const { stdout: heads } = await run(
-      'git',
-      ['-C', registryPath, 'for-each-ref', 'refs/heads', '--format=%(refname:short)'],
-      { timeout: 15_000 },
-    );
-    const head = heads.split('\n').find((h) => h && h !== '_verifier');
-    if (head) {
-      await run('git', ['-C', registryPath, 'checkout', '--quiet', '--force', head], {
-        timeout: 30_000,
-      });
-    }
+    sdk.fetchRegistry(manifest.registry_git_url, registryPath);
 
     // 1. Authenticity: the signature must verify under the agent's CURRENT keys
     //    from the public KEL, and the agent must be delegated by the claimed root.

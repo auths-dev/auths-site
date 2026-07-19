@@ -51,6 +51,12 @@ interface SdkModule {
    * Optional: absent on SDK builds predating the evidence surface.
    */
   verifyActivityAttestation?(attestationJson: string, registryPath: string): string;
+  /**
+   * Fetch a public identity registry into `dest` fully in-process (libgit2 with
+   * its own HTTPS transport — no `git` binary needed on the host). Throws on
+   * failure. Optional: absent on SDK builds predating 0.1.12.
+   */
+  fetchRegistry?(url: string, dest: string): void;
   /** The named monotonicity violation between a stored checkpoint and a fresh doc, or null. */
   attestationMonotonicityViolation?(
     prevHead: string,
