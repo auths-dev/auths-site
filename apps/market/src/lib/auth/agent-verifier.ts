@@ -77,11 +77,17 @@ export function loadVerifier(): SdkModule | null {
       const requireFromCwd = nodeModule.createRequire(`${process.cwd()}/package.json`);
       mod = requireFromCwd(specifier) as SdkModule;
     } else {
-      // The npm dependency. The LITERAL specifier matters: Vercel's file tracer
+      // The npm dependency. The LITERAL specifiers matter: Vercel's file tracer
       // (nft) only ships the addon + its platform binary into the lambda when it
-      // can see this require — a dynamic specifier deploys a function with no
+      // can see these requires — a dynamic specifier deploys a function with no
       // verifier, and every authenticated path fails closed.
       const requireHere = nodeModule.createRequire(import.meta.url);
+      if (process.env.AUTHS_SDK_TRACE_HINT) {
+        // Never executed: a tracer-visible reference to the platform binary the
+        // addon's own loader resolves dynamically (bun hoists it to the repo
+        // root, outside any project-relative tracing glob).
+        requireHere('@auths-dev/sdk-linux-x64-gnu');
+      }
       mod = requireHere('@auths-dev/sdk') as SdkModule;
     }
     cached = typeof mod.authenticatePresentation === 'function' ? mod : null;
