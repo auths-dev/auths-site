@@ -7,13 +7,7 @@ const nextConfig: NextConfig = {
   // cannot discover it — include it (and its platform binary) explicitly or the
   // deployed functions ship without a verifier and every receipts-worker and
   // agent-auth path fails closed with "verifier unavailable".
-  serverExternalPackages: ["@auths-dev/sdk"],
-  outputFileTracingIncludes: {
-    "/**": [
-      "./node_modules/@auths-dev/sdk/**",
-      "./node_modules/@auths-dev/sdk-linux-x64-gnu/**",
-    ],
-  },
+  serverExternalPackages: ["@auths-dev/sdk", "@auths-dev/sdk-linux-x64-gnu"],
 };
 
 export default nextConfig;
