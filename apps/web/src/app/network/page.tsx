@@ -9,6 +9,9 @@ const TITLE = 'The witness network — freshness you can hold someone to';
 const DESC =
   'Independent witnesses co-sign every history’s growth, so rolling back or forking a spend history stops being deniable. Verification stays offline and free.';
 
+/** The witness-network docs section — every CTA on this page lands somewhere actionable. */
+const DOCS = 'https://docs.auths.dev/mcp/witness-network';
+
 export const metadata: Metadata = constructMetadata({ title: TITLE, description: DESC });
 
 /** Live reads (witness health) refresh once a minute. */
@@ -80,7 +83,14 @@ export default async function NetworkPage() {
             A quorum is only as honest as its operators are independent. The directory lists
             conformant witnesses with the facts a declared set is chosen by — operator,
             jurisdiction, infrastructure — and their live status. Listing has exactly one
-            requirement: pass the published conformance harness.
+            requirement: pass the published{' '}
+            <a
+              href={`${DOCS}/conformance`}
+              className="border-b border-seal/40 pb-0.5 text-seal transition-colors hover:border-seal hover:text-seal-deep"
+            >
+              conformance harness
+            </a>
+            .
           </p>
           <div className="mt-8 overflow-x-auto">
             <table className="w-full min-w-[38rem] text-left font-mono text-[13px]">
@@ -111,15 +121,12 @@ export default async function NetworkPage() {
           <p className="mt-6 max-w-3xl text-base leading-7 text-ink-soft">
             The network is young, and that is the honest state of it. Independence is what makes
             the honesty ceiling real — which is why the most valuable witness in this directory is
-            the one <em>we don&rsquo;t</em> run. Pass the harness, then{' '}
-            <a
-              href="mailto:network@auths.dev?subject=Witness%20directory%20listing"
-              className="border-b border-seal/40 pb-0.5 font-mono text-base text-seal transition-colors hover:border-seal hover:text-seal-deep"
-            >
-              network@auths.dev
-            </a>{' '}
-            with your conformance transcript.
+            the one <em>we don&rsquo;t</em> run.
           </p>
+          <div className="mt-6 flex flex-wrap gap-6">
+            <InkLink href={`${DOCS}/conformance`}>Get listed — conformance &amp; the directory</InkLink>
+            <InkLink href={`${DOCS}/choose-witnesses`}>Choosing a witness set</InkLink>
+          </div>
         </div>
       </section>
 
@@ -164,9 +171,8 @@ export default async function NetworkPage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-6">
-                <InkLink href="https://github.com/auths-dev/auths">
-                  The node, templates &amp; harness
-                </InkLink>
+                <InkLink href={`${DOCS}/run-a-witness`}>The full guide: run a witness</InkLink>
+                <InkLink href="https://github.com/auths-dev/auths">Source on GitHub</InkLink>
               </div>
             </div>
           </div>
@@ -201,6 +207,10 @@ export default async function NetworkPage() {
                 <span className="font-mono text-base text-ink">fresh · stale · unanchored</span> —
                 and witnesses never see a per-call row, only the aggregate.
               </p>
+              <div className="flex flex-wrap gap-6 pt-2">
+                <InkLink href={`${DOCS}/anchor-your-attestation`}>Anchor your attestation</InkLink>
+                <InkLink href={`${DOCS}/verify-freshness`}>How verifiers read freshness</InkLink>
+              </div>
             </div>
             <div>
               <WitnessNetworkDiagram />
@@ -229,16 +239,14 @@ export default async function NetworkPage() {
             ))}
           </div>
           <p className="mt-8 max-w-3xl text-base leading-7 text-ink-soft">
-            Pricing lands with the launch — pre-launch access is by conversation:{' '}
-            <a
-              href="mailto:network@auths.dev?subject=Cloud%20network%20access"
-              className="border-b border-seal/40 pb-0.5 font-mono text-base text-seal transition-colors hover:border-seal hover:text-seal-deep"
-            >
-              network@auths.dev
-            </a>
-            . And if you&rsquo;d rather not pay us at all: everything above this section runs from
-            published code, which is precisely the point.
+            Pricing lands with the launch. And if you&rsquo;d rather not pay us at all: everything
+            above this section runs from published code, which is precisely the point — the docs
+            walk every role through it.
           </p>
+          <div className="mt-6 flex flex-wrap gap-6">
+            <InkLink href={DOCS}>The witness network docs</InkLink>
+            <InkLink href={`${DOCS}/run-a-witness`}>Run it yourself instead</InkLink>
+          </div>
         </div>
       </section>
     </div>
