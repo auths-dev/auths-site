@@ -24,22 +24,19 @@ const platform = `${process.platform}-${process.arch}${
 }`;
 const pkg = `@auths-dev/sdk-${platform}`;
 
-try {
-  require.resolve(pkg);
-  console.log(`ensure-sdk-binding: ${pkg} present`);
-  process.exit(0);
-} catch {
-  console.log(`ensure-sdk-binding: ${pkg} missing — fetching ${VERSION} from npm`);
-}
+console.log(`ensure-sdk-binding: ensuring ${pkg}@${VERSION} beside every sdk copy`);
 
-// Install into EVERY location a resolver may walk:
-//  1. beside @auths-dev/sdk in the store (plain-node resolution from the sdk);
-//  2. the app's own node_modules (Turbopack inlines the sdk loader into
-//     .next/server/chunks, so its require walks chunks → app node_modules →
-//     repo root — the store is never on that path).
-const sdkDir = dirname(require.resolve('@auths-dev/sdk/package.json'));
-const storeTarget = join(dirname(sdkDir), `sdk-${platform}`);
-const appTarget = join(here, '..', 'node_modules', '@auths-dev', `sdk-${platform}`);
+// Install into EVERY location a resolver may walk: beside EACH copy of
+// @auths-dev/sdk anywhere under the workspace's node_modules trees (bun keeps
+// several store layouts), plus the app's own node_modules (Turbopack resolves
+// externals by walking up from .next/server/chunks).
+const repoRoot = join(here, '..', '..', '..');
+const sdkCopies = execFileSync('sh', ['-c',
+  `find "${repoRoot}/node_modules" "${join(here, '..', 'node_modules')}" -type d -name sdk -path '*@auths-dev/sdk' 2>/dev/null || true`,
+]).toString().split('\n').filter(Boolean);
+const targets = new Set(sdkCopies.map((copy) => join(dirname(copy), `sdk-${platform}`)));
+targets.add(join(here, '..', 'node_modules', '@auths-dev', `sdk-${platform}`));
+console.log(`ensure-sdk-binding: ${sdkCopies.length} sdk cop(ies) found`);
 
 const tarball = `https://registry.npmjs.org/${pkg}/-/sdk-${platform}-${VERSION}.tgz`;
 const work = join(here, `.sdk-${platform}.tmp`);
@@ -48,7 +45,7 @@ mkdirSync(work, { recursive: true });
 execFileSync('sh', ['-c', `curl -fsSL "${tarball}" | tar -xz -C "${work}"`], {
   stdio: 'inherit',
 });
-for (const targetDir of [storeTarget, appTarget]) {
+for (const targetDir of targets) {
   rmSync(targetDir, { recursive: true, force: true });
   mkdirSync(dirname(targetDir), { recursive: true });
   execFileSync('cp', ['-R', join(work, 'package'), targetDir]);
