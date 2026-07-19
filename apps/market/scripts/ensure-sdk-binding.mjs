@@ -1,102 +1,89 @@
 /**
- * Ensure the @auths-dev/sdk native platform binding is installed.
+ * Ensure the @auths-dev/sdk native binding is present everywhere a resolver —
+ * or our own runtime loader — will look.
  *
- * bun's installer can skip napi platform packages declared as
- * optionalDependencies (the classic npm/cli#4828 family of bugs), which leaves
- * `require('@auths-dev/sdk')` unable to find a binding — on the Vercel builder
- * AND in the deployed functions. This script makes the binding's presence a
- * build invariant: if the platform package is missing, fetch the exact pinned
- * version from the npm registry and unpack it into node_modules.
+ * bun's installer skips napi platform optionalDependencies (npm/cli#4828
+ * family), and Turbopack's external-module shim cannot resolve the binding no
+ * matter where it is installed. So this script (1) installs the platform
+ * package beside every sdk copy for plain-node resolution, and (2) vendors a
+ * self-contained @auths-dev tree under vendor/auths-sdk that the app loads at
+ * runtime BY ABSOLUTE PATH (see lib/auth/agent-verifier.ts) with the dir traced
+ * as ordinary project files.
  */
 
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { existsSync, mkdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const VERSION = '0.1.9';
 const here = dirname(fileURLToPath(import.meta.url));
-const require = createRequire(join(here, '..', 'package.json'));
+const appDir = join(here, '..');
+const require = createRequire(join(appDir, 'package.json'));
 
 const platform = `${process.platform}-${process.arch}${
   process.platform === 'linux' ? '-gnu' : ''
 }`;
 const pkg = `@auths-dev/sdk-${platform}`;
+console.log(`ensure-sdk-binding: ensuring ${pkg}@${VERSION}`);
 
-console.log(`ensure-sdk-binding: ensuring ${pkg}@${VERSION} beside every sdk copy`);
-
-// Install into EVERY location a resolver may walk: beside EACH copy of
-// @auths-dev/sdk anywhere under the workspace's node_modules trees (bun keeps
-// several store layouts), plus the app's own node_modules (Turbopack resolves
-// externals by walking up from .next/server/chunks).
-const repoRoot = join(here, '..', '..', '..');
-const sdkCopies = execFileSync('sh', ['-c',
-  `find "${repoRoot}/node_modules" "${join(here, '..', 'node_modules')}" -type d -name sdk -path '*@auths-dev/sdk' 2>/dev/null || true`,
-]).toString().split('\n').filter(Boolean);
-const targets = new Set(sdkCopies.map((copy) => join(dirname(copy), `sdk-${platform}`)));
-targets.add(join(here, '..', 'node_modules', '@auths-dev', `sdk-${platform}`));
-console.log(`ensure-sdk-binding: ${sdkCopies.length} sdk cop(ies) found`);
-
-const tarball = `https://registry.npmjs.org/${pkg}/-/sdk-${platform}-${VERSION}.tgz`;
+// 1. Download the platform package once.
 const work = join(here, `.sdk-${platform}.tmp`);
-// Vendor a self-contained copy INSIDE the project: plain files Next traces
-// like any other asset, required at runtime by absolute path — completely
-// outside every bundler/resolver code path.
-const vendorScope = join(here, '..', 'vendor', 'auths-sdk', 'node_modules', '@auths-dev');
-rmSync(join(here, '..', 'vendor'), { recursive: true, force: true });
-mkdirSync(vendorScope, { recursive: true });
-execFileSync('cp', ['-R', dirname(require.resolve('@auths-dev/sdk/package.json')), join(vendorScope, 'sdk')]);
-execFileSync('cp', ['-R', join(work, 'package'), join(vendorScope, `sdk-${platform}`)]);
-if (process.platform === 'linux') {
-  execFileSync('cp', ['-R', join(vendorScope, `sdk-${platform}`), join(vendorScope, 'sdk-linux-x64-musl')]);
-  const vp = join(vendorScope, 'sdk-linux-x64-musl', 'package.json');
-  const vpkg = JSON.parse(execFileSync('cat', [vp]).toString());
-  vpkg.name = vpkg.name.replace('-gnu', '-musl');
-  if (vpkg.main) {
-    const gnuMain = vpkg.main;
-    vpkg.main = gnuMain.replace('-gnu', '-musl');
-    execFileSync('cp', [join(vendorScope, 'sdk-linux-x64-musl', gnuMain), join(vendorScope, 'sdk-linux-x64-musl', vpkg.main)]);
-  }
-  execFileSync('sh', ['-c', `cat > "${vp}" <<'PKGEOF'
-${JSON.stringify(vpkg, null, 2)}
-PKGEOF`]);
-}
-console.log(`ensure-sdk-binding: vendored → ${vendorScope}`);
 rmSync(work, { recursive: true, force: true });
 mkdirSync(work, { recursive: true });
+const tarball = `https://registry.npmjs.org/${pkg}/-/sdk-${platform}-${VERSION}.tgz`;
 execFileSync('sh', ['-c', `curl -fsSL "${tarball}" | tar -xz -C "${work}"`], {
   stdio: 'inherit',
 });
+const unpacked = join(work, 'package');
+if (!existsSync(join(unpacked, 'package.json'))) {
+  console.error(`ensure-sdk-binding: download/unpack of ${pkg} failed`);
+  process.exit(1);
+}
+
+/** Mirror a -gnu binding dir under the musl name (same glibc ELF — the napi
+ * loader's musl probe misfires under bun, and Vercel is glibc either way). */
+function mirrorMusl(gnuDir) {
+  if (process.platform !== 'linux') return;
+  const muslDir = gnuDir.replace('-gnu', '-musl');
+  rmSync(muslDir, { recursive: true, force: true });
+  execFileSync('cp', ['-R', gnuDir, muslDir]);
+  const pkgPath = join(muslDir, 'package.json');
+  const meta = JSON.parse(readFileSync(pkgPath, 'utf8'));
+  meta.name = meta.name.replace('-gnu', '-musl');
+  if (meta.main) {
+    const gnuMain = meta.main;
+    meta.main = gnuMain.replace('-gnu', '-musl');
+    execFileSync('cp', [join(muslDir, gnuMain), join(muslDir, meta.main)]);
+  }
+  writeFileSync(pkgPath, JSON.stringify(meta, null, 2));
+  console.log(`ensure-sdk-binding: mirrored → ${muslDir}`);
+}
+
+// 2. Install beside every sdk copy under the workspace's node_modules trees,
+//    plus the app's own node_modules.
+const repoRoot = join(appDir, '..', '..');
+const sdkCopies = execFileSync('sh', ['-c',
+  `find "${join(repoRoot, 'node_modules')}" "${join(appDir, 'node_modules')}" -type d -name sdk -path '*@auths-dev/sdk' 2>/dev/null || true`,
+]).toString().split('\n').filter(Boolean);
+const targets = new Set(sdkCopies.map((copy) => join(dirname(copy), `sdk-${platform}`)));
+targets.add(join(appDir, 'node_modules', '@auths-dev', `sdk-${platform}`));
 for (const targetDir of targets) {
   rmSync(targetDir, { recursive: true, force: true });
   mkdirSync(dirname(targetDir), { recursive: true });
-  execFileSync('cp', ['-R', join(work, 'package'), targetDir]);
-  if (!existsSync(join(targetDir, 'package.json'))) {
-    console.error(`ensure-sdk-binding: unpack of ${pkg} into ${targetDir} failed`);
-    process.exit(1);
-  }
-  console.log(`ensure-sdk-binding: installed ${pkg}@${VERSION} → ${targetDir}`);
-  if (process.platform === 'linux') {
-    // Belt and braces: the napi loader's musl probe misfires under bun (no
-    // glibc field in process.report), sending it down the musl-only branch.
-    // Vercel is glibc, so the SAME ELF satisfies both names — mirror the
-    // package under the musl name so either branch resolves.
-    const muslDir = targetDir.replace('-gnu', '-musl');
-    rmSync(muslDir, { recursive: true, force: true });
-    execFileSync('cp', ['-R', targetDir, muslDir]);
-    const muslPkgPath = join(muslDir, 'package.json');
-    const muslPkg = JSON.parse(execFileSync('cat', [muslPkgPath]).toString());
-    muslPkg.name = muslPkg.name.replace('-gnu', '-musl');
-    if (muslPkg.main) {
-      const gnuMain = muslPkg.main;
-      muslPkg.main = gnuMain.replace('-gnu', '-musl');
-      execFileSync('cp', [join(muslDir, gnuMain), join(muslDir, muslPkg.main)]);
-    }
-    execFileSync('sh', ['-c', `cat > "${muslPkgPath}" <<'PKGEOF'
-${JSON.stringify(muslPkg, null, 2)}
-PKGEOF`]);
-    console.log(`ensure-sdk-binding: mirrored → ${muslDir}`);
-  }
+  execFileSync('cp', ['-R', unpacked, targetDir]);
+  console.log(`ensure-sdk-binding: installed → ${targetDir}`);
+  mirrorMusl(targetDir);
 }
+
+// 3. Vendor the self-contained runtime tree the app loads by absolute path.
+const vendorScope = join(appDir, 'vendor', 'auths-sdk', 'node_modules', '@auths-dev');
+rmSync(join(appDir, 'vendor'), { recursive: true, force: true });
+mkdirSync(vendorScope, { recursive: true });
+execFileSync('cp', ['-RL', dirname(require.resolve('@auths-dev/sdk/package.json')), join(vendorScope, 'sdk')]);
+execFileSync('cp', ['-R', unpacked, join(vendorScope, `sdk-${platform}`)]);
+mirrorMusl(join(vendorScope, `sdk-${platform}`));
+console.log(`ensure-sdk-binding: vendored → ${vendorScope}`);
+
 rmSync(work, { recursive: true, force: true });
