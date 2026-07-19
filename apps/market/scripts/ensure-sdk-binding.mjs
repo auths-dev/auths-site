@@ -54,5 +54,26 @@ for (const targetDir of targets) {
     process.exit(1);
   }
   console.log(`ensure-sdk-binding: installed ${pkg}@${VERSION} → ${targetDir}`);
+  if (process.platform === 'linux') {
+    // Belt and braces: the napi loader's musl probe misfires under bun (no
+    // glibc field in process.report), sending it down the musl-only branch.
+    // Vercel is glibc, so the SAME ELF satisfies both names — mirror the
+    // package under the musl name so either branch resolves.
+    const muslDir = targetDir.replace('-gnu', '-musl');
+    rmSync(muslDir, { recursive: true, force: true });
+    execFileSync('cp', ['-R', targetDir, muslDir]);
+    const muslPkgPath = join(muslDir, 'package.json');
+    const muslPkg = JSON.parse(execFileSync('cat', [muslPkgPath]).toString());
+    muslPkg.name = muslPkg.name.replace('-gnu', '-musl');
+    if (muslPkg.main) {
+      const gnuMain = muslPkg.main;
+      muslPkg.main = gnuMain.replace('-gnu', '-musl');
+      execFileSync('cp', [join(muslDir, gnuMain), join(muslDir, muslPkg.main)]);
+    }
+    execFileSync('sh', ['-c', `cat > "${muslPkgPath}" <<'PKGEOF'
+${JSON.stringify(muslPkg, null, 2)}
+PKGEOF`]);
+    console.log(`ensure-sdk-binding: mirrored → ${muslDir}`);
+  }
 }
 rmSync(work, { recursive: true, force: true });

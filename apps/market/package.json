@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3002",
-    "build": "node scripts/ensure-sdk-binding.mjs && next build",
+    "build": "node scripts/ensure-sdk-binding.mjs && node node_modules/next/dist/bin/next build",
     "start": "next start --port 3002",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
