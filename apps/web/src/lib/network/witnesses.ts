@@ -25,17 +25,24 @@ export interface WitnessEntry {
   statusPage: string | null;
 }
 
-const FIRST_PARTY: readonly WitnessEntry[] = [
-  {
-    name: 'auths-w1',
-    operator: 'Auths (first-party)',
-    jurisdiction: 'US',
-    infraClass: 'container · digest-pinned',
-    roles: ['anchor', 'kel', 'cosign'],
-    url: null,
-    statusPage: null,
-  },
-];
+/**
+ * The first-party seed witness. Its public endpoint is deployment config
+ * (`AUTHS_W1_URL`), not code: the node moves hosts without a commit, and an
+ * environment without the variable renders the honest "standing up" state.
+ */
+function firstParty(): WitnessEntry[] {
+  return [
+    {
+      name: 'auths-w1',
+      operator: 'Auths (first-party)',
+      jurisdiction: 'UK',
+      infraClass: 'self-hosted · seed node',
+      roles: ['anchor', 'kel', 'cosign'],
+      url: process.env.AUTHS_W1_URL?.replace(/\/$/, '') ?? null,
+      statusPage: null,
+    },
+  ];
+}
 
 /**
  * The directory as rendered: the checked-in entries, plus — when
@@ -44,7 +51,7 @@ const FIRST_PARTY: readonly WitnessEntry[] = [
  * page. Server-side only: the env read must never reach the client bundle.
  */
 export function witnessDirectory(): WitnessEntry[] {
-  const entries = [...FIRST_PARTY];
+  const entries = firstParty();
   const local = process.env.AUTHS_LOCAL_WITNESS_URL;
   if (local) {
     entries.push({
