@@ -11,7 +11,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { existsSync, mkdirSync, renameSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -32,25 +32,30 @@ try {
   console.log(`ensure-sdk-binding: ${pkg} missing — fetching ${VERSION} from npm`);
 }
 
-// Resolve where @auths-dev/sdk itself lives; install the sibling beside it so
-// its loader's require() finds the binding wherever the hoisting put things.
+// Install into EVERY location a resolver may walk:
+//  1. beside @auths-dev/sdk in the store (plain-node resolution from the sdk);
+//  2. the app's own node_modules (Turbopack inlines the sdk loader into
+//     .next/server/chunks, so its require walks chunks → app node_modules →
+//     repo root — the store is never on that path).
 const sdkDir = dirname(require.resolve('@auths-dev/sdk/package.json'));
-const scopeDir = dirname(sdkDir);
-const targetDir = join(scopeDir, `sdk-${platform}`);
+const storeTarget = join(dirname(sdkDir), `sdk-${platform}`);
+const appTarget = join(here, '..', 'node_modules', '@auths-dev', `sdk-${platform}`);
 
 const tarball = `https://registry.npmjs.org/${pkg}/-/sdk-${platform}-${VERSION}.tgz`;
-const work = join(scopeDir, `.sdk-${platform}.tmp`);
+const work = join(here, `.sdk-${platform}.tmp`);
 rmSync(work, { recursive: true, force: true });
 mkdirSync(work, { recursive: true });
 execFileSync('sh', ['-c', `curl -fsSL "${tarball}" | tar -xz -C "${work}"`], {
   stdio: 'inherit',
 });
-rmSync(targetDir, { recursive: true, force: true });
-renameSync(join(work, 'package'), targetDir);
-rmSync(work, { recursive: true, force: true });
-
-if (!existsSync(join(targetDir, 'package.json'))) {
-  console.error(`ensure-sdk-binding: unpack of ${pkg} failed`);
-  process.exit(1);
+for (const targetDir of [storeTarget, appTarget]) {
+  rmSync(targetDir, { recursive: true, force: true });
+  mkdirSync(dirname(targetDir), { recursive: true });
+  execFileSync('cp', ['-R', join(work, 'package'), targetDir]);
+  if (!existsSync(join(targetDir, 'package.json'))) {
+    console.error(`ensure-sdk-binding: unpack of ${pkg} into ${targetDir} failed`);
+    process.exit(1);
+  }
+  console.log(`ensure-sdk-binding: installed ${pkg}@${VERSION} → ${targetDir}`);
 }
-console.log(`ensure-sdk-binding: installed ${pkg}@${VERSION} → ${targetDir}`);
+rmSync(work, { recursive: true, force: true });
