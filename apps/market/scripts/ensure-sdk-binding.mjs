@@ -40,6 +40,29 @@ console.log(`ensure-sdk-binding: ${sdkCopies.length} sdk cop(ies) found`);
 
 const tarball = `https://registry.npmjs.org/${pkg}/-/sdk-${platform}-${VERSION}.tgz`;
 const work = join(here, `.sdk-${platform}.tmp`);
+// Vendor a self-contained copy INSIDE the project: plain files Next traces
+// like any other asset, required at runtime by absolute path — completely
+// outside every bundler/resolver code path.
+const vendorScope = join(here, '..', 'vendor', 'auths-sdk', 'node_modules', '@auths-dev');
+rmSync(join(here, '..', 'vendor'), { recursive: true, force: true });
+mkdirSync(vendorScope, { recursive: true });
+execFileSync('cp', ['-R', dirname(require.resolve('@auths-dev/sdk/package.json')), join(vendorScope, 'sdk')]);
+execFileSync('cp', ['-R', join(work, 'package'), join(vendorScope, `sdk-${platform}`)]);
+if (process.platform === 'linux') {
+  execFileSync('cp', ['-R', join(vendorScope, `sdk-${platform}`), join(vendorScope, 'sdk-linux-x64-musl')]);
+  const vp = join(vendorScope, 'sdk-linux-x64-musl', 'package.json');
+  const vpkg = JSON.parse(execFileSync('cat', [vp]).toString());
+  vpkg.name = vpkg.name.replace('-gnu', '-musl');
+  if (vpkg.main) {
+    const gnuMain = vpkg.main;
+    vpkg.main = gnuMain.replace('-gnu', '-musl');
+    execFileSync('cp', [join(vendorScope, 'sdk-linux-x64-musl', gnuMain), join(vendorScope, 'sdk-linux-x64-musl', vpkg.main)]);
+  }
+  execFileSync('sh', ['-c', `cat > "${vp}" <<'PKGEOF'
+${JSON.stringify(vpkg, null, 2)}
+PKGEOF`]);
+}
+console.log(`ensure-sdk-binding: vendored → ${vendorScope}`);
 rmSync(work, { recursive: true, force: true });
 mkdirSync(work, { recursive: true });
 execFileSync('sh', ['-c', `curl -fsSL "${tarball}" | tar -xz -C "${work}"`], {

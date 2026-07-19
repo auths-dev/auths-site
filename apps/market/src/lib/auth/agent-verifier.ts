@@ -12,11 +12,6 @@
  * traced into a bundle.
  */
 
-// Static, bundler-visible import: with serverExternalPackages, Next leaves this
-// as a runtime require and TRACES the package + its platform binary into the
-// deployed functions — the sanctioned pattern for native addons (sharp, prisma).
-import * as nativeSdk from '@auths-dev/sdk';
-
 export interface PresentationPeek {
   nonce: string;
   audience: string;
@@ -77,13 +72,22 @@ export function loadVerifier(): SdkModule | null {
     const nodeModule = process.getBuiltinModule?.('node:module');
     if (!nodeModule) throw new Error('Node builtin loader unavailable in this runtime');
     let mod: SdkModule;
+    const requireFromCwd = nodeModule.createRequire(`${process.cwd()}/package.json`);
     if (process.env.AUTHS_SDK_PATH) {
       // Dev override: an explicit checkout build, loaded from the working dir.
-      const requireFromCwd = nodeModule.createRequire(`${process.cwd()}/package.json`);
       mod = requireFromCwd(specifier) as SdkModule;
     } else {
-      // The statically imported npm addon (externalized + traced by Next).
-      mod = nativeSdk as unknown as SdkModule;
+      // The VENDORED addon: plain project files (see scripts/ensure-sdk-binding.mjs),
+      // required at runtime by absolute path — no bundler, no external shim, no
+      // package-manager resolution anywhere on this path. Falls back to the npm
+      // package for local dev servers started without a build.
+      const { existsSync } = nodeModule.createRequire(import.meta.url)('node:fs') as typeof import('node:fs');
+      const candidates = [
+        `${process.cwd()}/vendor/auths-sdk/node_modules/@auths-dev/sdk`,
+        `${process.cwd()}/apps/market/vendor/auths-sdk/node_modules/@auths-dev/sdk`,
+      ];
+      const vendored = candidates.find((dir) => existsSync(`${dir}/package.json`));
+      mod = requireFromCwd(vendored ?? '@auths-dev/sdk') as SdkModule;
     }
     cached = typeof mod.authenticatePresentation === 'function' ? mod : null;
     if (!cached) console.error(`agent-verifier: ${specifier} loaded but exports no authenticatePresentation`);

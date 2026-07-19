@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
   // deployed functions ship without a verifier and every receipts-worker and
   // agent-auth path fails closed with "verifier unavailable".
   serverExternalPackages: ["@auths-dev/sdk", "@auths-dev/sdk-linux-x64-gnu"],
+  outputFileTracingIncludes: {
+    "/**": ["./vendor/auths-sdk/**"],
+  },
 };
 
 export default nextConfig;
