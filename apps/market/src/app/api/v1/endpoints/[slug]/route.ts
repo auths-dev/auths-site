@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getListingBySlug, verifySpendCommand } from '@/lib/listings';
+import { TEST_MODE_NOTE, wrapCommand } from '@/lib/integration';
 
 /** Public read: one listing + its integration snippets. */
 export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }> }) {
@@ -24,8 +25,13 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
       verified_at: l.verified_at,
       live_proven_at: l.live_proven_at,
       integration: {
-        test_mode: `npx -y @auths-dev/mcp wrap --scope paid.call --budget '$1' --ttl 30m --rail ${rail} --test-mode -- ${downstream}`,
-        live: `npx -y @auths-dev/mcp wrap --scope paid.call --budget '$1' --ttl 30m --rail ${rail} -- ${downstream}`,
+        // The command alone reads like a real settle; carry the honesty note
+        // alongside it so a machine consumer sees the fixture caveat too.
+        test_mode: {
+          command: wrapCommand(rail, downstream ?? '<command>', true),
+          note: TEST_MODE_NOTE,
+        },
+        live: wrapCommand(rail, downstream ?? '<command>', false),
         // One runnable metered call, priced from the listing itself:
         // amount_atomic is USDC 6-decimals (price_cents × 10_000).
         example_call: {

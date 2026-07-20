@@ -32,7 +32,9 @@ import {
   Dim,
   Allow,
   Deny,
+  BashLines,
 } from '@auths/ledger-ui';
+import { VERIFY_SPEND_CMD } from '@/lib/demo-commands';
 
 // ---------------------------------------------------------------------------
 // Hero — one product: the bounded agent. The terminal shows a refusal.
@@ -53,7 +55,7 @@ const HERO_LINES: HeroLine[] = [
   { kind: 'ok', text: '✓ payments.charge $12.00 → allowed · spent $12.00 / $20.00 · rcpt_1a2b', delay: 2.5 },
   { kind: 'deny', text: '✗ payments.charge $940.00 → usage-cap-exceeded · refused · rcpt_8f2a', delay: 3.4 },
   { kind: 'dim', text: '# the receipt is signed — anyone can re-derive the spend, offline', delay: 4.55, pad: true },
-  { kind: 'cmd', text: 'auths-mcp-gateway verify-spend --log spend.jsonl …', delay: 5.1 },
+  { kind: 'cmd', text: 'npx -y @auths-dev/mcp verify-spend --log spend.jsonl …', delay: 5.1 },
   { kind: 'ok', text: '✓ consistent — 2 call(s), $12.00 re-derived from signed costs', delay: 5.7 },
 ];
 
@@ -262,7 +264,7 @@ function TamperDemo() {
         <span className="text-[#9a948c]">&quot;</span>
         <span className="pl-3 text-[#9a948c]">{tampered ? '← one byte flipped' : ''}</span>
       </p>
-      <Prompt>auths-mcp-gateway verify-spend --log tampered.jsonl …</Prompt>
+      <Prompt>npx -y @auths-dev/mcp verify-spend --log tampered.jsonl …</Prompt>
       <div
         className={`transition-opacity duration-300 ${stage === 'verdict' ? 'opacity-100' : 'opacity-0'}`}
         aria-hidden={stage !== 'verdict'}
@@ -295,7 +297,7 @@ export function LedgerAudit() {
               Tamper with one byte of a signed proof and the audit says so.
             </motion.p>
             <motion.div {...fadeUp(0.35)} className="mt-8">
-              <InkLink href="https://github.com/auths-dev/auths">How the audit works</InkLink>
+              <InkLink href="https://docs.auths.dev/mcp/concepts/receipts">How the audit works</InkLink>
             </motion.div>
           </div>
 
@@ -303,15 +305,10 @@ export function LedgerAudit() {
             <InkTerminal
               label="an auditor who does not operate the agent"
               tag="offline"
-              copy="auths-mcp-gateway verify-spend --log spend.jsonl --registry ./registry --agent <agent> --root <root>"
+              copy={VERIFY_SPEND_CMD}
             >
               <Dim># re-derive the spend from the signed receipts alone</Dim>
-              <Prompt>
-                auths-mcp-gateway verify-spend --log spend.jsonl \
-              </Prompt>
-              <Prompt className="pl-4">
-                --registry ./registry --agent &lt;agent&gt; --root &lt;root&gt;
-              </Prompt>
+              <BashLines code={VERIFY_SPEND_CMD} />
               <Allow>consistent — 2 call(s), $12.00 re-derived from signed costs</Allow>
               <Dim className="pt-2"># now flip one byte of a signed proof and re-run</Dim>
               <TamperDemo />
@@ -482,7 +479,7 @@ export function LedgerWrap() {
               one.
             </motion.p>
             <motion.div {...fadeUp(0.4)} className="mt-8">
-              <InkLink href="https://github.com/auths-dev/auths">Read the quickstart</InkLink>
+              <InkLink href="https://docs.auths.dev/mcp/quickstart">Read the quickstart</InkLink>
             </motion.div>
           </div>
 
@@ -644,7 +641,7 @@ export function LedgerCTA() {
             <Dim># wrap any MCP server — the agent keeps working, now bounded</Dim>
             <Prompt>npx @auths-dev/mcp wrap --budget &apos;$5&apos; --ttl 30m -- my-mcp-server</Prompt>
             <Dim className="pt-1"># then, as anyone: re-derive the spend from the receipts</Dim>
-            <Prompt>auths-mcp-gateway verify-spend --log spend.jsonl …</Prompt>
+            <Prompt>npx -y @auths-dev/mcp verify-spend --log spend.jsonl …</Prompt>
             <Allow>consistent — re-derived from signed costs, offline</Allow>
           </InkTerminal>
         </motion.div>

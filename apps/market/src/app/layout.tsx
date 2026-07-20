@@ -14,7 +14,7 @@ const fraunces = Fraunces({
 
 const TITLE = 'Auths Market — sell tool calls. Buy them bounded.';
 const DESC =
-  'Paid MCP endpoints with proven prices: sellers meter per call over Stripe or x402, buying agents pay under a hard budget, and every cent re-derives from signed receipts.';
+  'Paid MCP endpoints with proven prices: sellers meter per call over Stripe or x402, buying agents pay under a hard budget, and growth is credited only when this market witnesses it.';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://market.auths.dev'),

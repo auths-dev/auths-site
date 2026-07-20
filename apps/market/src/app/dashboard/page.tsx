@@ -2,14 +2,9 @@ import Link from 'next/link';
 import { auth } from '@/lib/auth/supabase-github';
 import { getActivitySnapshots, getSellerListings } from '@/lib/listings';
 import { ListingBadges } from '@/components/badges';
+import { PROBE_SCHEDULE, STATUS_LABEL } from '@/lib/schedule';
 
 export const metadata = { title: 'Dashboard' };
-
-const STATUS_LABEL: Record<string, string> = {
-  pending_verification: 'pending verification',
-  live: 'live',
-  failed: 'failed',
-};
 
 export default async function DashboardPage({
   searchParams,
@@ -43,10 +38,10 @@ export default async function DashboardPage({
 
         {submitted ? (
           <p className="mt-6 max-w-xl rounded-lg border border-seal/40 bg-seal/[0.06] p-4 text-sm leading-6 text-ink-soft">
-            Submitted. The prober will check your endpoint serves every listed
-            tool and that your activity attestation is reachable and well-formed;
-            the listing goes live when it passes, and the result lands here
-            either way.
+            Submitted. The market prober (an automated check, {PROBE_SCHEDULE}) will
+            confirm your endpoint serves every listed tool and that your activity
+            attestation is reachable and well-formed; the listing goes live when it
+            passes, and the result lands here either way.
           </p>
         ) : null}
 
