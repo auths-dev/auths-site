@@ -36,7 +36,7 @@ function firstParty(): WitnessEntry[] {
       name: 'auths-w1',
       operator: 'Auths (first-party)',
       jurisdiction: 'UK',
-      infraClass: 'self-hosted · seed node',
+      infraClass: 'fly.io · lhr',
       roles: ['anchor', 'kel', 'cosign'],
       url: process.env.AUTHS_W1_URL?.replace(/\/$/, '') ?? null,
       statusPage: null,
