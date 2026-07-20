@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { constructMetadata } from '@/lib/metadata';
-import { SectionMark, InkTerminal, InkLink, Prompt, Dim, Allow } from '@auths/ledger-ui';
+import { SectionMark, InkTerminal, InkLink, BashLines, Dim, Allow } from '@auths/ledger-ui';
+import { RUN_WITNESS } from '@/lib/demo-commands';
 import { WitnessNetworkDiagram } from '@/components/witness-network-diagram';
 import { witnessDirectory } from '@/lib/network/witnesses';
 import { probeWitness, type ProbedWitness } from '@/lib/network/live';
@@ -135,19 +136,13 @@ export default async function NetworkPage() {
           <SectionMark n="02" title="Run a witness." id="run" />
           <div className="mt-10 grid gap-12 lg:grid-cols-[6fr_5fr]">
             <div>
-              <InkTerminal
-                label="one operator artifact, three roles"
-                tag="docker"
-                copy={'WITNESS_SEED=$(openssl rand -hex 32) docker compose up -d'}
-              >
+              <InkTerminal label="one operator artifact, three roles" tag="docker" copy={RUN_WITNESS}>
                 <Dim># the node: spend anchors + receipt witnessing + cosigning</Dim>
-                <Prompt>git clone https://github.com/auths-dev/auths</Prompt>
-                <Prompt>cd auths/deploy/witness</Prompt>
-                <Prompt>WITNESS_SEED=$(openssl rand -hex 32) docker compose up -d</Prompt>
-                <Allow>witness-node: listening on 0.0.0.0:3333</Allow>
-                <Dim className="pt-2"># prove conformance — the directory&rsquo;s only entry bar</Dim>
-                <Prompt>cargo xtask witness-conformance --url http://127.0.0.1:3333</Prompt>
-                <Allow>live endpoint passed 4/4 transport checks</Allow>
+                <BashLines code={RUN_WITNESS} />
+                <Allow>
+                  witness-node: listening on 0.0.0.0:3333 · live endpoint passed 4/4 transport
+                  checks
+                </Allow>
               </InkTerminal>
             </div>
             <div className="space-y-6 text-base leading-7 text-ink-soft">
@@ -243,7 +238,13 @@ export default async function NetworkPage() {
             above this section runs from published code, which is precisely the point — the docs
             walk every role through it.
           </p>
-          <div className="mt-6 flex flex-wrap gap-6">
+          <div className="mt-6 flex flex-wrap items-center gap-6">
+            <a
+              href="mailto:network@auths.dev?subject=Cloud%20witness%20network%20%E2%80%94%20notify%20me%20at%20launch"
+              className="rounded-sm bg-seal px-5 py-2.5 text-sm font-semibold text-paper transition-colors hover:bg-seal-deep"
+            >
+              Notify me at launch
+            </a>
             <InkLink href={DOCS}>The witness network docs</InkLink>
             <InkLink href={`${DOCS}/run-a-witness`}>Run it yourself instead</InkLink>
           </div>
