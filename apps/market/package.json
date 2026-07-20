@@ -8,6 +8,7 @@
     "start": "next start --port 3002",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
+    "test": "vitest run",
     "check": "node scripts/check-market.mjs"
   },
   "dependencies": {
@@ -27,8 +28,10 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^10.7.0",
+    "happy-dom": "^12.10.3",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "typescript-eslint": "^8.64.0"
+    "typescript-eslint": "^8.64.0",
+    "vitest": "^1.6.0"
   }
 }

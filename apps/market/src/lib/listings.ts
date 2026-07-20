@@ -28,6 +28,7 @@ export interface Listing {
   fail_reason: string | null;
   verified_at: string | null;
   live_proven_at: string | null;
+  last_growth_at: string | null;
   created_at: string;
 }
 
