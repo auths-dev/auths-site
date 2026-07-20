@@ -13,7 +13,7 @@
       "name": "@auths/market",
       "version": "0.1.0",
       "dependencies": {
-        "@auths-dev/sdk": "0.1.12",
+        "@auths-dev/sdk": "0.1.13",
         "@auths/ledger-ui": "workspace:*",
         "@supabase/ssr": "^0.12.3",
         "@supabase/supabase-js": "^2.110.7",
@@ -97,17 +97,17 @@
   "packages": {
     "@alloc/quick-lru": ["@alloc/quick-lru@5.2.0", "", {}, "sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw=="],
 
-    "@auths-dev/sdk": ["@auths-dev/sdk@0.1.12", "", { "optionalDependencies": { "@auths-dev/sdk-darwin-arm64": "0.1.12", "@auths-dev/sdk-linux-arm64-gnu": "0.1.12", "@auths-dev/sdk-linux-x64-gnu": "0.1.12", "@auths-dev/sdk-win32-arm64-msvc": "0.1.12", "@auths-dev/sdk-win32-x64-msvc": "0.1.12" } }, "sha512-3TZPMnBpXh/7YFXQXvSlHRJlIBvmrSIjCLTJMeHlNuapnXBJXuhPi+YoLIpKrJ+LyHU4sKgnY3y2PSMo5Otaag=="],
+    "@auths-dev/sdk": ["@auths-dev/sdk@0.1.13", "", { "optionalDependencies": { "@auths-dev/sdk-darwin-arm64": "0.1.13", "@auths-dev/sdk-linux-arm64-gnu": "0.1.13", "@auths-dev/sdk-linux-x64-gnu": "0.1.13", "@auths-dev/sdk-win32-arm64-msvc": "0.1.13", "@auths-dev/sdk-win32-x64-msvc": "0.1.13" } }, "sha512-iIzRPGOTY7Mb7JLtU0JwsNcyc2kf+Ar9nCITFyEGQOipYFbFNHcJh2TLxkpc17ei+UQPH8ygVn73dpNuTVMm7A=="],
 
-    "@auths-dev/sdk-darwin-arm64": ["@auths-dev/sdk-darwin-arm64@0.1.12", "", { "os": "darwin", "cpu": "arm64" }, "sha512-VIiJUqryWA9auQx3jLVqh9i0Pft4+dIwDaVHa0KzXqabQHd+SNlrhq0gV2l3jij6IxXw0QNkJu45fhuk1XtR/A=="],
+    "@auths-dev/sdk-darwin-arm64": ["@auths-dev/sdk-darwin-arm64@0.1.13", "", { "os": "darwin", "cpu": "arm64" }, "sha512-fm7HJa5kA+eR/DJXAu1tMe7Ism8ywmVtPVLUVKg/0wzSmFflG3dZxy5KYfLW50Co8MlTIUhhvmrFe20dSfnqiA=="],
 
-    "@auths-dev/sdk-linux-arm64-gnu": ["@auths-dev/sdk-linux-arm64-gnu@0.1.12", "", { "os": "linux", "cpu": "arm64" }, "sha512-6Bc/G9mSv/uAnjuBf3DNHpxConuXBEzEQXlim5LDtVVoiFsMXvzuC6678Ktgvlgfmbbmb1l7jjvmEXaqayM+bA=="],
+    "@auths-dev/sdk-linux-arm64-gnu": ["@auths-dev/sdk-linux-arm64-gnu@0.1.13", "", { "os": "linux", "cpu": "arm64" }, "sha512-UUDLMnfq3f+Mgb+issUhyMePSXpyDCDtH1b+UgjPpF1ssJR4uwhdInZDcMQmecdQoWajtAo+5yCpof/0jgtarA=="],
 
-    "@auths-dev/sdk-linux-x64-gnu": ["@auths-dev/sdk-linux-x64-gnu@0.1.12", "", { "os": "linux", "cpu": "x64" }, "sha512-wpCrkoIzxFH9Mz4U4rSVCAnMdJ9U6nMGfmG4bcIdNAPZp0aESDsmKSQlwBXwqiA51b5yTDXqFVEEIH2a152RcQ=="],
+    "@auths-dev/sdk-linux-x64-gnu": ["@auths-dev/sdk-linux-x64-gnu@0.1.13", "", { "os": "linux", "cpu": "x64" }, "sha512-tlVI4YTla0KnJRMcvH1TeqHUT0ZuQE1bOxuUASke0xFKxwIsV+C8Bx9NuRKSj1LWcpyqkkrMHGVCzZCr8IYTxg=="],
 
-    "@auths-dev/sdk-win32-arm64-msvc": ["@auths-dev/sdk-win32-arm64-msvc@0.1.12", "", { "os": "win32", "cpu": "arm64" }, "sha512-9VqFRzG9XZqL9X6/j6APy6ohG3A1M3rK7Kd34tJuHsw/csXeWbOUt4qb9z+8Kdl1KU8uJxCAXsjI0q4omu6ByQ=="],
+    "@auths-dev/sdk-win32-arm64-msvc": ["@auths-dev/sdk-win32-arm64-msvc@0.1.13", "", { "os": "win32", "cpu": "arm64" }, "sha512-k9jNX6rzA+/z11/EuXcreX9v3s6rfn7cDil4EUG6NGmzRzLwbV00PXWi2/WUBMQhHJTo62K6gb2xKgmqllsqjw=="],
 
-    "@auths-dev/sdk-win32-x64-msvc": ["@auths-dev/sdk-win32-x64-msvc@0.1.12", "", { "os": "win32", "cpu": "x64" }, "sha512-W+tVQRge37u4z5Rp2wu6TZevN5iqNXaQdwMt4aParqtoui0JpXjiXgBQRcGVlztqjsT4CE9Y9AJD0Owr73RG0Q=="],
+    "@auths-dev/sdk-win32-x64-msvc": ["@auths-dev/sdk-win32-x64-msvc@0.1.13", "", { "os": "win32", "cpu": "x64" }, "sha512-QKic/YoVlQi3JoKR4Bt+oTt6O4QXZvvosw5CRKyzeqLvhmi5CkhtHqf1mE8AP4APuiRz1YFLv1+16x1hE6VpdQ=="],
 
     "@auths/ledger-ui": ["@auths/ledger-ui@workspace:packages/ledger-ui"],
 
