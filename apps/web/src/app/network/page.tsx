@@ -106,7 +106,17 @@ export default async function NetworkPage() {
               <tbody>
                 {witnesses.map((w) => (
                   <tr key={w.name} className="border-b border-rule/60 text-ink-soft last:border-0">
-                    <td className="py-2.5 pr-4 text-ink">{w.name}</td>
+                    <td className="py-2.5 pr-4 text-ink">
+                      {w.name}
+                      {w.memberKey ? (
+                        <span
+                          title={`Member key — pass to \`--witness ${w.name}=${w.memberKey}\``}
+                          className="mt-0.5 block max-w-[15rem] truncate font-mono text-[10px] text-ink-faint"
+                        >
+                          {w.memberKey}
+                        </span>
+                      ) : null}
+                    </td>
                     <td className="py-2.5 pr-4">{w.operator}</td>
                     <td className="py-2.5 pr-4">{w.jurisdiction}</td>
                     <td className="py-2.5 pr-4">{w.infraClass}</td>

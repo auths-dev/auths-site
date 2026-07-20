@@ -20,6 +20,9 @@ export interface WitnessEntry {
   /**
    * Public base URL, probed for liveness. `null` while the witness is not yet
    * publicly reachable — rendered honestly as “standing up”, never as “up”.
+   * The witness's member key is NOT checked in here — it is a property of the
+   * running node (derived from its seed), read live from `/health` at probe
+   * time (see `live.ts`), so the directory can never advertise a stale key.
    */
   url: string | null;
   statusPage: string | null;
