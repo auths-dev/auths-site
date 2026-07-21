@@ -70,9 +70,17 @@ export function resolveWitness(segment: string, override?: string | null): Resol
     return { name: entry.name, url: entry.url.replace(/\/$/, ''), fromDirectory: true, entry };
   }
 
-  // …or as a URL-encoded custom witness (a stranger's node).
-  const url = asHttpsUrl(segment);
-  if (url) return { name: new URL(url).host, url, fromDirectory: false };
+  // …or as a bare host (`auths-network-2.fly.dev`, `their-node.example`) or a
+  // full URL — an unlisted node addressed directly in the path. A host that
+  // matches a listed node adopts its curated name + facts, so a node's own
+  // host-based "browse me" link still resolves to its directory identity.
+  const url = looksLikeHost(segment) ? asHttpsUrl(`https://${segment}`) : asHttpsUrl(segment);
+  if (url) {
+    const known = witnessDirectory().find((w) => w.url?.replace(/\/$/, '') === url);
+    return known
+      ? { name: known.name, url, fromDirectory: true, entry: known }
+      : { name: new URL(url).host, url, fromDirectory: false };
+  }
 
   return null;
 }
