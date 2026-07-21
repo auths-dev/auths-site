@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
     return [
       { source: "/registry", destination: "/", permanent: false },
       { source: "/registry/:path*", destination: "/", permanent: false },
+      // The witness network moved to its own verifying explorer.
+      { source: "/network", destination: "https://explorer.auths.dev", permanent: false },
       { source: "/explorer", destination: "/", permanent: false },
       { source: "/compare", destination: "/", permanent: false },
       { source: "/community", destination: "https://github.com/auths-dev/auths", permanent: false },

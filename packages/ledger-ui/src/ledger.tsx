@@ -160,7 +160,7 @@ export interface FooterLink {
 // either domain.
 const LEDGER_FOOTER_LINKS: readonly FooterLink[] = [
   { label: 'Verify a release', href: 'https://auths.dev/verify' },
-  { label: 'Network', href: 'https://auths.dev/network' },
+  { label: 'Explorer', href: 'https://explorer.auths.dev' },
   { label: 'Blog', href: 'https://auths.dev/blog' },
   { label: 'Security', href: 'https://auths.dev/trust' },
   { label: 'Market', href: 'https://market.auths.dev/' },

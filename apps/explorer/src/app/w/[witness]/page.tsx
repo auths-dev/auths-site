@@ -7,7 +7,7 @@ import { SearchBox } from '@/components/search-box';
 import { OfflineParity } from '@/components/offline-parity';
 import { truncateId } from '@/lib/format';
 
-const DOCS = 'https://docs.auths.dev/mcp/witness-network';
+const DOCS = 'https://docs.auths.dev/witness-network';
 
 interface RosterEntry {
   prefix: string;
@@ -165,8 +165,8 @@ export default async function WitnessPage({ params, searchParams }: PageParams) 
             ]}
           />
           <div className="flex flex-wrap gap-6">
-            <InkLink href={`${DOCS}/onboard-as-a-seller`}>Add your identity to a witness</InkLink>
-            <InkLink href="https://auths.dev/network">The witness directory</InkLink>
+            <InkLink href={`${DOCS}/operators/get-listed`}>Add your identity to a witness</InkLink>
+            <InkLink href="/">The witness directory</InkLink>
           </div>
         </div>
       </div>

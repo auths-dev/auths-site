@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 
 const NAV_LINKS = [
   { label: 'Search', href: '/' },
-  { label: 'Directory', href: 'https://auths.dev/network', external: true },
   { label: 'Evidence', href: '/evidence' },
 ] as const;
 
@@ -35,27 +34,17 @@ export function ExplorerNav() {
         </Link>
 
         <div className="flex items-center gap-4 sm:gap-6">
-          {NAV_LINKS.map((link) =>
-            'external' in link && link.external ? (
-              <a
-                key={link.href}
-                href={link.href}
-                className="font-mono text-[13px] text-ink-faint transition-colors hover:text-ink sm:text-sm"
-              >
-                {link.label}
-              </a>
-            ) : (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`font-mono text-[13px] transition-colors sm:text-sm ${
-                  isActive(link.href) ? 'text-ink' : 'text-ink-faint hover:text-ink'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ),
-          )}
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`font-mono text-[13px] transition-colors sm:text-sm ${
+                isActive(link.href) ? 'text-ink' : 'text-ink-faint hover:text-ink'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
 
           <a
             href="https://auths.dev"

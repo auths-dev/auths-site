@@ -4,9 +4,30 @@ import { SectionMark, InkLink } from '@auths/ledger-ui';
 import { witnessDirectory } from '@auths/witnesses';
 import { probeWitness } from '@auths/witnesses';
 import { SearchBox } from '@/components/search-box';
-import { OfflineParity } from '@/components/offline-parity';
 
-const DOCS = 'https://docs.auths.dev/mcp/witness-network';
+const DOCS = 'https://docs.auths.dev/witness-network';
+
+/** The hosted network offerings — everything that *proves* stays open and free; what's sold is operation. */
+const CLOUD_TIERS = [
+  {
+    name: 'Anchoring',
+    meter: 'metered by anchors / month',
+    detail:
+      'Submit your agents’ aggregates to a curated quorum that spans the diversity policy’s floors — distinct operators, jurisdictions, and clouds — and get back finalized, offline-checkable anchors.',
+  },
+  {
+    name: 'Monitoring',
+    meter: 'metered by seeds watched',
+    detail:
+      'A hosted watcher over the histories you care about: duplicity and withholding alerts the moment a fork or a silence appears, dashboards over the same open artifacts anyone can re-check.',
+  },
+  {
+    name: 'Pinning',
+    meter: 'metered by GiB-months',
+    detail:
+      'Ciphertext-only custody of your records keyed by (head, index), with availability proofs — and a signed non-response artifact if we ever fail to serve one. Honesty, contracted.',
+  },
+];
 
 /** Live witness health refreshes once a minute. */
 export const revalidate = 60;
@@ -14,8 +35,6 @@ export const revalidate = 60;
 export default async function HomePage() {
   const witnesses = await Promise.all(witnessDirectory().map(probeWitness));
   const options = witnesses.map((w) => ({ name: w.name, live: w.liveness.state === 'up' }));
-  const firstLiveUrl =
-    witnesses.find((w) => w.liveness.state === 'up')?.url ?? 'https://network.auths.dev';
 
   return (
     <div className="min-h-screen">
@@ -103,8 +122,7 @@ export default async function HomePage() {
             </table>
           </div>
           <div className="mt-6 flex flex-wrap gap-6">
-            <InkLink href="https://auths.dev/network">The full directory on auths.dev</InkLink>
-            <InkLink href={`${DOCS}/onboard-as-a-seller`}>Run a witness · get listed</InkLink>
+            <InkLink href={`${DOCS}/operators/run-a-node`}>Run a witness · get listed</InkLink>
           </div>
         </div>
       </section>
@@ -113,60 +131,83 @@ export default async function HomePage() {
       <section className="px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-5xl">
           <SectionMark n="02" title="Or bring your own evidence." id="evidence" />
-          <div className="mt-10 grid gap-10 lg:grid-cols-[6fr_5fr]">
-            <div className="space-y-6 text-lg leading-8 text-ink-soft">
-              <p>
-                Have an <span className="font-mono text-base text-ink">activity.json</span>, a
-                presentation, or an evidence bundle already? Drop it in — it never leaves your
-                machine. The verifier checks it entirely client-side and shows you exactly what it
-                proves, the same result <span className="font-mono text-base text-ink">auths verify</span>{' '}
-                gives at a terminal.
-              </p>
-              <Link
-                href="/evidence"
-                className="inline-flex items-center gap-2 rounded-sm bg-ink px-6 py-3 font-mono text-[13px] font-medium text-paper transition-opacity hover:opacity-90"
-              >
-                <FileSearch size={15} aria-hidden="true" /> Open the evidence drop-zone
-              </Link>
-            </div>
-            <OfflineParity
-              label="the same claim, without this page"
-              lines={[
-                {
-                  comment: 'mirror a witness’s key histories locally',
-                  cmd: `git fetch '${firstLiveUrl}' '+refs/auths/kel/*:refs/auths/kel/*'`,
-                },
-                { comment: 'verify a commit against its pinned root', cmd: 'auths verify <commit>' },
-                { comment: 'verify a co-signed anchor', cmd: 'auths anchor verify <seed>' },
-              ]}
-            />
+          <div className="mt-10 max-w-2xl space-y-6 text-lg leading-8 text-ink-soft">
+            <p>
+              Have an <span className="font-mono text-base text-ink">activity.json</span>, a
+              presentation, or an evidence bundle already? Drop it in — it never leaves your
+              machine. The verifier checks it entirely in your browser and shows you exactly what it
+              proves, the same result <span className="font-mono text-base text-ink">auths verify</span>{' '}
+              gives at a terminal.
+            </p>
+            <Link
+              href="/evidence"
+              className="inline-flex items-center gap-2 rounded-sm bg-ink px-6 py-3 font-mono text-[13px] font-medium text-paper transition-opacity hover:opacity-90"
+            >
+              <FileSearch size={15} aria-hidden="true" /> Open the evidence drop-zone
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Trust note */}
-      <section className="px-6 py-16 sm:pb-32">
+      <section className="px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-5xl">
           <SectionMark n="03" title="Why you can distrust this page." id="trust" />
           <div className="mt-10 grid gap-10 lg:grid-cols-2">
             <p className="text-lg leading-8 text-ink-soft">
-              The explorer&rsquo;s server is transport, never a verdict source. It fetches bytes and
-              hands them to your browser; the WASM verifier recomputes SAIDs, replays chains, and
-              checks signatures before any green state renders. A compromised explorer can{' '}
-              <em>omit</em> — withhold an event, hide a receipt — which the freshness labels and
-              receipt quorum surface. It cannot <em>forge</em>: the math runs on your side.
+              The explorer&rsquo;s server only moves data around — it never decides whether anything
+              is valid. It fetches the records a witness holds and hands them to your browser, and
+              your browser re-checks each one against the relevant cryptographic keys before a
+              single thing shows as verified. A dishonest explorer could <em>hide</em> a record from
+              you — which the freshness labels are there to surface — but it can&rsquo;t <em>forge</em>{' '}
+              one, because the checking happens on your side, not ours.
             </p>
             <p className="text-lg leading-8 text-ink-soft">
-              This is the same property the node itself has, and it&rsquo;s why the node stays a
-              small, dumb signer you check rather than a service you trust. Verdict vocabulary comes
-              from the conformance manifest shipped in the SDK — the explorer never invents a
-              verdict string. Everything here is a convenience over evidence you can re-check with
-              published code.
+              That re-check runs right here in the page — it&rsquo;s a small WebAssembly (WASM) build
+              of the very same verifier the command line uses — so trusting this site is optional by
+              design. It&rsquo;s the same idea the whole network rests on: a witness is a small,
+              plain signer you can check, not a service you&rsquo;re asked to trust. And every label
+              you see is drawn from a fixed list that ships with the tools, so the explorer can never
+              make one up.
             </p>
           </div>
           <div className="mt-8 flex flex-wrap gap-6">
-            <InkLink href="https://github.com/auths-dev/auths">The verifier &amp; node source</InkLink>
-            <InkLink href={`${DOCS}/verify-freshness`}>How verifiers read freshness</InkLink>
+            <InkLink href="https://github.com/auths-dev/auths">See source on GitHub</InkLink>
+            <InkLink href={`${DOCS}/users/verify-an-anchored-attestation`}>
+              How verifiers read freshness
+            </InkLink>
+          </div>
+        </div>
+      </section>
+
+      {/* The cloud network */}
+      <section className="px-6 py-16 sm:pb-32">
+        <div className="mx-auto max-w-5xl">
+          <SectionMark n="04" title="The cloud network." id="cloud" />
+          <p className="mt-10 max-w-3xl text-lg leading-8 text-ink-soft">
+            Everything that proves is open and free: the protocol, the verifier, the full witness
+            node, the watcher. What we sell is operation — uptime, a curated quorum, storage, and
+            alerting. The gate is an account, never a code path.
+          </p>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {CLOUD_TIERS.map((t) => (
+              <div key={t.name} className="rounded-sm border border-rule bg-paper-deep/40 p-6">
+                <h3 className="font-display text-2xl font-medium text-ink">{t.name}</h3>
+                <p className="mt-1 font-mono text-[12px] uppercase tracking-wider text-ink-faint">
+                  {t.meter}
+                </p>
+                <p className="mt-4 text-base leading-7 text-ink-soft">{t.detail}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-8 max-w-3xl text-base leading-7 text-ink-soft">
+            Pricing lands with the launch. And if you&rsquo;d rather not pay us at all: everything
+            above this section runs from published code, which is precisely the point — the docs
+            walk every role through it.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-6">
+            <InkLink href={DOCS}>The witness network docs</InkLink>
+            <InkLink href={`${DOCS}/operators/run-a-node`}>Run it yourself instead</InkLink>
           </div>
         </div>
       </section>

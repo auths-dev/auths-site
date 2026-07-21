@@ -7,7 +7,7 @@ import { OfflineParity } from '@/components/offline-parity';
 import { VerdictChip } from '@/components/verdict-chip';
 import { truncateId } from '@/lib/format';
 
-const DOCS = 'https://docs.auths.dev/mcp/witness-network';
+const DOCS = 'https://docs.auths.dev/witness-network';
 
 interface PageParams {
   params: Promise<{ witness: string; seed: string }>;
@@ -189,8 +189,10 @@ export default async function AnchorsPage({ params, searchParams }: PageParams) 
             ]}
           />
           <div className="flex flex-wrap gap-6">
-            <InkLink href={`${DOCS}/anchor-your-attestation`}>Anchor your attestation</InkLink>
-            <InkLink href={`${DOCS}/verify-freshness`}>How verifiers read freshness</InkLink>
+            <InkLink href={`${DOCS}/users/anchor-your-attestation`}>Anchor your attestation</InkLink>
+            <InkLink href={`${DOCS}/users/verify-an-anchored-attestation`}>
+              How verifiers read freshness
+            </InkLink>
           </div>
         </div>
       </div>

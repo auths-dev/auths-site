@@ -7,7 +7,7 @@ import { MemberKelView } from '@/components/member-kel-view';
 import { OfflineParity } from '@/components/offline-parity';
 import { truncateId } from '@/lib/format';
 
-const DOCS = 'https://docs.auths.dev/mcp/witness-network';
+const DOCS = 'https://docs.auths.dev/witness-network';
 
 interface PageParams {
   params: Promise<{ witness: string; prefix: string }>;
@@ -112,7 +112,9 @@ export default async function MemberPage({ params, searchParams }: PageParams) {
               >
                 browse this witness’s roster <ArrowUpRight size={13} />
               </Link>
-              <InkLink href={`${DOCS}/verify-freshness`}>How verifiers read freshness</InkLink>
+              <InkLink href={`${DOCS}/users/verify-an-anchored-attestation`}>
+                How verifiers read freshness
+              </InkLink>
             </div>
           </div>
         ) : null}

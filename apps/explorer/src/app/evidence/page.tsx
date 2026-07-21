@@ -3,7 +3,7 @@ import { SectionMark, InkLink } from '@auths/ledger-ui';
 import { EvidenceDropzone } from '@/components/evidence-dropzone';
 import { OfflineParity } from '@/components/offline-parity';
 
-const DOCS = 'https://docs.auths.dev/mcp/witness-network';
+const DOCS = 'https://docs.auths.dev/witness-network';
 
 export const metadata: Metadata = {
   title: 'Evidence drop-zone',
@@ -36,19 +36,27 @@ export default function EvidencePage() {
           <SectionMark n="01" title="The same check, at a terminal." id="offline" />
           <p className="mt-8 max-w-2xl text-base leading-7 text-ink-soft">
             Prefer not to trust a browser tab either? The published CLI runs the identical
-            verification offline.
+            verification offline — and the same commands re-check anything the explorer shows you:
+            a member&rsquo;s key history, a signed commit, or a co-signed anchor.
           </p>
           <div className="mt-6">
             <OfflineParity
-              label="verify a bundle offline"
+              label="the same claims, without this page"
               lines={[
                 { comment: 'verify a presentation or evidence bundle file', cmd: 'auths verify ./bundle.json' },
                 { comment: 'verify a signed commit against its pinned root', cmd: 'auths verify <commit>' },
+                {
+                  comment: 'mirror a witness’s key histories locally',
+                  cmd: `git fetch 'https://network.auths.dev' '+refs/auths/kel/*:refs/auths/kel/*'`,
+                },
+                { comment: 'verify a co-signed anchor', cmd: 'auths anchor verify <seed>' },
               ]}
             />
           </div>
           <div className="mt-8 flex flex-wrap gap-6">
-            <InkLink href={`${DOCS}/verify-freshness`}>How verifiers read freshness</InkLink>
+            <InkLink href={`${DOCS}/users/verify-an-anchored-attestation`}>
+              How verifiers read freshness
+            </InkLink>
             <InkLink href="https://github.com/auths-dev/auths">The verifier source</InkLink>
           </div>
         </div>
