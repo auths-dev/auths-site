@@ -1,0 +1,34 @@
+{
+  "name": "@auths/explorer",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3003",
+    "build": "node scripts/ensure-sdk-binding.mjs && node node_modules/next/dist/bin/next build",
+    "start": "next start --port 3003",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "check": "node scripts/check-explorer.mjs",
+    "build:wasm": "cd ../../../auths/crates/auths-verifier && wasm-pack build --target web --out-dir pkg-web --no-default-features --features wasm && cp pkg-web/auths_verifier.js pkg-web/auths_verifier.d.ts pkg-web/auths_verifier_bg.wasm.d.ts pkg-web/auths_verifier_bg.wasm ../../../auths-site/apps/explorer/src/lib/verify/wasm/"
+  },
+  "dependencies": {
+    "@auths-dev/sdk": "0.1.15",
+    "@auths/ledger-ui": "workspace:*",
+    "@auths/witnesses": "workspace:*",
+    "lucide-react": "^0.575.0",
+    "motion": "^12",
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^10.7.0",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "typescript-eslint": "^8.64.0"
+  }
+}

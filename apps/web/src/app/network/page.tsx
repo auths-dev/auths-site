@@ -12,6 +12,9 @@ const DESC =
 /** The witness-network docs section — every CTA on this page lands somewhere actionable. */
 const DOCS = 'https://docs.auths.dev/mcp/witness-network';
 
+/** The explorer — a verifying lens over each witness's KELs, receipts, and anchors. */
+const EXPLORER = 'https://explorer.auths.dev';
+
 export const metadata: Metadata = constructMetadata({ title: TITLE, description: DESC });
 
 /** Live reads (witness health) refresh once a minute. */
@@ -121,7 +124,17 @@ export default async function NetworkPage() {
                     <td className="py-2.5 pr-4">{w.jurisdiction}</td>
                     <td className="py-2.5 pr-4">{w.infraClass}</td>
                     <td className="py-2.5">
-                      <LivenessMark witness={w} />
+                      <div className="flex flex-col gap-1">
+                        <LivenessMark witness={w} />
+                        {w.url ? (
+                          <a
+                            href={`${EXPLORER}/w/${encodeURIComponent(w.name)}`}
+                            className="font-mono text-[11px] text-seal transition-colors hover:text-seal-deep"
+                          >
+                            explore ↗
+                          </a>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -134,6 +147,7 @@ export default async function NetworkPage() {
             the one <em>we don&rsquo;t</em> run.
           </p>
           <div className="mt-6 flex flex-wrap gap-6">
+            <InkLink href={EXPLORER}>Open the network explorer</InkLink>
             <InkLink href={`${DOCS}/conformance`}>Get listed — conformance &amp; the directory</InkLink>
             <InkLink href={`${DOCS}/choose-witnesses`}>Choosing a witness set</InkLink>
           </div>
