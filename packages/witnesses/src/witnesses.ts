@@ -33,9 +33,12 @@ export interface WitnessEntry {
 }
 
 /**
- * The first-party seed witness. Its public endpoint is deployment config
- * (`AUTHS_W1_URL`), not code: the node moves hosts without a commit, and an
- * environment without the variable renders the honest "standing up" state.
+ * The first-party witnesses. Their public URLs live HERE, in version control —
+ * not in a deploy-time env var. A hidden `AUTHS_W1_URL` env is exactly how the
+ * directory silently drifted from reality (unset → `url: null` → "standing up"
+ * forever): this file is the single reviewable source of truth, so moving a
+ * first-party host is an honest, tracked commit. (Local dev can still add a node
+ * via `AUTHS_LOCAL_WITNESS_URL` below.)
  */
 function firstParty(): WitnessEntry[] {
   return [
@@ -54,10 +57,22 @@ function firstParty(): WitnessEntry[] {
       jurisdiction: 'UK',
       infraClass: 'fly.io · lhr',
       roles: ['anchor', 'kel', 'cosign'],
-      url: process.env.AUTHS_W1_URL?.replace(/\/$/, '') ?? null,
+      url: 'https://auths-w1.fly.dev',
       statusPage: null,
     },
   ];
+}
+
+// Guard against the drift that broke the directory: every first-party witness
+// must carry a concrete, version-controlled URL. A null here means someone
+// reintroduced a hidden env-var indirection — fail loudly at build/boot instead
+// of shipping a witness that renders "standing up" forever.
+for (const w of firstParty()) {
+  if (!w.url) {
+    throw new Error(
+      `witness directory: first-party '${w.name}' has no URL — hardcode it here, never behind an env var`,
+    );
+  }
 }
 
 /**

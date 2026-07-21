@@ -7,11 +7,11 @@
  *  2. a URL-encoded `https://…` in the segment itself, or a `?witness=` query
  *     override → that arbitrary conformant witness, verbatim.
  *
- * Server-only: `witnessByName` reads deployment env (AUTHS_W1_URL, …) that must
- * never reach the client bundle.
+ * Server-only: the directory may read a local-dev env override that must never
+ * reach the client bundle.
  */
 
-import { witnessByName, type WitnessEntry } from '@auths/witnesses';
+import { witnessByName, witnessDirectory, type WitnessEntry } from '@auths/witnesses';
 
 export interface ResolvedWitness {
   /** Display name — the directory name, or the host for a custom URL. */
@@ -39,19 +39,29 @@ function asHttpsUrl(candidate: string): string | null {
  * @param override an optional `?witness=` query value (arbitrary URL)
  */
 export function resolveWitness(segment: string, override?: string | null): ResolvedWitness | null {
-  // Explicit override always wins — this is the "point it at a stranger's
-  // witness" affordance the whole federation story rests on.
+  // An explicit `?witness=` URL is authoritative for *where* to fetch: a node
+  // knows its own current URL (its status page passes it) even if the checked-in
+  // directory is stale or the node was renamed. If that URL matches a listed
+  // witness, adopt its name and declared facts for display; otherwise fall back
+  // to the host. This is what makes browsing rename-/move-proof: a node's own
+  // link always resolves by its own URL, never a drifted directory entry.
   if (override) {
     const url = asHttpsUrl(override);
-    if (url) return { name: new URL(url).host, url, fromDirectory: false };
+    if (url) {
+      const known = witnessDirectory().find((w) => w.url?.replace(/\/$/, '') === url);
+      return known
+        ? { name: known.name, url, fromDirectory: true, entry: known }
+        : { name: new URL(url).host, url, fromDirectory: false };
+    }
   }
 
+  // No override: resolve the segment as a checked-in directory name…
   const entry = witnessByName(segment);
   if (entry?.url) {
     return { name: entry.name, url: entry.url.replace(/\/$/, ''), fromDirectory: true, entry };
   }
 
-  // The segment itself may be a URL-encoded custom witness.
+  // …or as a URL-encoded custom witness (a stranger's node).
   const url = asHttpsUrl(segment);
   if (url) return { name: new URL(url).host, url, fromDirectory: false };
 
