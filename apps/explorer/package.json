@@ -12,7 +12,7 @@
     "build:wasm": "cd ../../../auths/crates/auths-verifier && wasm-pack build --target web --out-dir pkg-web --no-default-features --features wasm && cp pkg-web/auths_verifier.js pkg-web/auths_verifier.d.ts pkg-web/auths_verifier_bg.wasm.d.ts pkg-web/auths_verifier_bg.wasm ../../../auths-site/apps/explorer/src/lib/verify/wasm/"
   },
   "dependencies": {
-    "@auths-dev/sdk": "0.1.15",
+    "@auths-dev/sdk": "0.1.16",
     "@auths/ledger-ui": "workspace:*",
     "@auths/witnesses": "workspace:*",
     "lucide-react": "^0.575.0",

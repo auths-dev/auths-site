@@ -17,9 +17,10 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// Keep in lockstep with the `@auths-dev/sdk` pin in package.json. Bump both to
-// 0.1.16 once the readKelJson-bearing SDK ships (see docs/plans/network).
-const VERSION = '0.1.15';
+// Keep in lockstep with the `@auths-dev/sdk` pin in package.json. 0.1.16 is the
+// first SDK with readKelJson (see docs/plans/network), so the explorer's
+// git-object KEL read is live on it.
+const VERSION = '0.1.16';
 const here = dirname(fileURLToPath(import.meta.url));
 const appDir = join(here, '..');
 const require = createRequire(join(appDir, 'package.json'));
