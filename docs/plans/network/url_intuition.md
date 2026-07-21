@@ -141,17 +141,17 @@ Step 4 is the only irreversible-ish beat; steps 1–3 make it safe.
 
 ## 9. Build checklist
 
-- [ ] **Explorer** — `/w/…` → `/node/…` (+ `/member/`, `/anchor/`); resolver: name → directory, host → `https://host`, `?witness=` escape hatch; graceful roster-less node page; "members held" relabel.
-- [ ] **Directory** (`packages/witnesses`) — `auths-network` (url = node-1 host) + `auths-network-2` (url = its host); URLs in code + null guard (done); operator label notes "first-party".
-- [ ] **`auths-network-2`** — deploy in a different region with `--roles anchor,kel,cosign,registry` and `--witness-name auths-network-2`; retire `auths-w1`.
-- [ ] **Node status page** — link `/node/<self-host>` (drop `?witness=`); "browse in the network".
-- [ ] **Migration §8** — node-1 alt URL + repoint refs; **then** flip `network.auths.dev` DNS + redeploy explorer there.
-- [ ] Redeploy + verify the whole stack.
+- [x] **Explorer** — `/w/…` → `/node/…` (+ `/member/`, `/anchor/`); resolver: name → directory, host → `https://host`, `?witness=` escape hatch; graceful roster-less node page; "members held" relabel. *(live at explorer.auths.dev)*
+- [x] **Directory** (`packages/witnesses`) — `auths-network` (url `auths-network.fly.dev`) + `auths-network-2` (url `auths-network-2.fly.dev`); URLs in code + null guard; both labelled "Auths (first-party)".
+- [x] **`auths-network-2`** — deployed in `iad` (distinct region) with `--roles anchor,kel,cosign,registry`, its own seed (member key `z6Mkg94iG…`), syncing its registry from `auths-network`; `auths-w1` destroyed.
+- [x] **Node status page** — links `/node/<self-host>` at `explorer.auths.dev`; "browse in the network"; "registry entries" relabel. *(live on both nodes)*
+- [~] **Migration §8** — steps 1–3 done: node 1 answers at `auths-network.fly.dev`, all witness refs repoint there, `--witness-name auths-network`. **Step 4 (DNS flip) is the one gated beat — not done.**
+- [x] Redeploy + verify the whole stack. *(both nodes `/health` 200; explorer resolves both by name and by host)*
 
 ---
 
 ## 10. Current state (honest)
 
-- **Live already** (aligns with this spec, keep): first-party URLs hardcoded in the directory, the `AUTHS_W1_URL` env var deleted, resolver matches `?witness=` URLs to the directory.
-- **This pass implements:** §9 items — the `/node/` scheme, `auths-network-2` as a real diverse node, the directory + status-page changes.
-- **Gated on an explicit go (the one live-domain move):** §8 step 4, flipping `network.auths.dev` DNS from the witness to the explorer. Everything up to it is safe and reversible; that beat repoints a production domain the network depends on, so it's the last thing, done deliberately.
+- **Done and live (this pass):** the `/node/` scheme, `auths-network-2` as a real diverse node (iad, registry role, distinct key), the directory + status-page changes, `auths-w1` retired. Verified end-to-end.
+- **The network today:** two genuinely-distinct first-party nodes — `auths-network` (`z6Mkqt4EJ…`, lhr) and `auths-network-2` (`z6Mkg94iG…`, iad) — both full-role, each with its own roster; `auths-network-2` mirrors the primary's registry. Still same operator; the directory says so. The most valuable witness remains the one we don't run.
+- **The one thing left, gated on an explicit go:** §8 step 4 — flipping `network.auths.dev` DNS from the witness (fly) to the explorer (Vercel). Everything up to it is done and reversible; that beat repoints a production domain the network depends on, so it stays deliberate. `explorer.auths.dev` is the explorer's stable home meanwhile, and every browse link already points there, so the flip is cosmetic-front-door only, not load-bearing.
