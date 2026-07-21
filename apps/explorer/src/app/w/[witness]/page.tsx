@@ -165,7 +165,7 @@ export default async function WitnessPage({ params, searchParams }: PageParams) 
             ]}
           />
           <div className="flex flex-wrap gap-6">
-            <InkLink href={`${DOCS}/operators/get-listed`}>Add your identity to a witness</InkLink>
+            <InkLink href={`${DOCS}/users/onboard-as-a-seller`}>Add your identity to a witness</InkLink>
             <InkLink href="/">The witness directory</InkLink>
           </div>
         </div>
