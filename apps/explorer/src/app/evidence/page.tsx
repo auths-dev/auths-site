@@ -8,7 +8,7 @@ const DOCS = 'https://docs.auths.dev/witness-network';
 export const metadata: Metadata = {
   title: 'Evidence drop-zone',
   description:
-    'Drop an activity.json, presentation, or evidence bundle and verify it entirely in your browser. Nothing is uploaded.',
+    'Drop an evidence pack and verify it entirely in your browser. Nothing is uploaded.',
 };
 
 export default function EvidencePage() {
@@ -22,10 +22,10 @@ export default function EvidencePage() {
           Verify a bundle without handing it to anyone.
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-8 text-ink-soft">
-          The whole thesis, in one interaction: drop a presentation or an evidence pack, and the
-          verifier recomputes it in this browser tab. No server sees the file. The verdict you get
-          is the verdict <span className="font-mono text-base text-ink">auths verify</span> gives —
-          because it is the same verifier, compiled to WASM.
+          The whole thesis, in one interaction: drop an evidence pack, and the verifier recomputes
+          it in this browser tab. No server sees the file. The verdict you get is the verdict{' '}
+          <span className="font-mono text-base text-ink">auths verify</span> gives — because it is
+          the same verifier, compiled to WASM.
         </p>
 
         <div className="mt-12">
@@ -43,7 +43,7 @@ export default function EvidencePage() {
             <OfflineParity
               label="the same claims, without this page"
               lines={[
-                { comment: 'verify a presentation or evidence bundle file', cmd: 'auths verify ./bundle.json' },
+                { comment: 'verify an evidence pack file', cmd: 'auths verify ./bundle.json' },
                 { comment: 'verify a signed commit against its pinned root', cmd: 'auths verify <commit>' },
                 {
                   comment: 'mirror a witness’s key histories locally',

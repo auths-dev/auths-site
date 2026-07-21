@@ -121,7 +121,7 @@ export function EvidenceDropzone() {
       >
         <Upload size={22} className="text-ink-faint" aria-hidden="true" />
         <p className="font-mono text-[13px] text-ink">
-          {busy ? 'verifying in your browser…' : 'drop an activity.json / presentation / evidence bundle'}
+          {busy ? 'verifying in your browser…' : 'drop an evidence pack or activity.json'}
         </p>
         <p className="max-w-md font-mono text-[11px] text-ink-faint">
           read locally with the FileReader API — it never leaves this machine, there is no upload

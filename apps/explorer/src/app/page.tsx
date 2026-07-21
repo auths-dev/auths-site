@@ -48,10 +48,9 @@ export default async function HomePage() {
             The witness network, verified in your browser.
           </h1>
           <p className="mt-8 max-w-2xl text-lg leading-8 text-ink-soft">
-            A lens over every conformant witness. Point it at an identifier and the explorer
-            fetches the raw key history, receipts, and anchors — then the verifier recomputes every
-            SAID, replays every chain, and checks every receipt quorum{' '}
-            <em>in this browser</em> before a single thing renders as valid.
+            A window into the witness network. Give it an identifier and the explorer pulls that
+            identity&rsquo;s records, then re-checks every one of them <em>in your browser</em>{' '}
+            before showing anything as verified — so you never have to take the result on trust.
           </p>
           <div className="mt-10 max-w-3xl">
             <SearchBox witnesses={options} />
@@ -68,10 +67,10 @@ export default async function HomePage() {
         <div className="mx-auto max-w-5xl">
           <SectionMark n="01" title="Browse the federation." id="directory" />
           <p className="mt-10 max-w-3xl text-lg leading-8 text-ink-soft">
-            The explorer runs against any witness that passes the conformance harness — the
-            federation, not the node, is the product. Pick one to browse its roster, or paste a
-            stranger&rsquo;s witness URL into any member page with{' '}
-            <span className="font-mono text-base text-ink">?witness=https://…</span>.
+            The explorer works with any witness that meets the open standard — the network is the
+            product, not any one node. Pick one below to browse the identities it holds, or open any
+            node directly by its address at{' '}
+            <span className="font-mono text-base text-ink">/node/&lt;address&gt;</span>.
           </p>
           <div className="mt-8 overflow-x-auto">
             <table className="w-full min-w-[36rem] text-left font-mono text-[13px]">
@@ -133,11 +132,10 @@ export default async function HomePage() {
           <SectionMark n="02" title="Or bring your own evidence." id="evidence" />
           <div className="mt-10 max-w-2xl space-y-6 text-lg leading-8 text-ink-soft">
             <p>
-              Have an <span className="font-mono text-base text-ink">activity.json</span>, a
-              presentation, or an evidence bundle already? Drop it in — it never leaves your
-              machine. The verifier checks it entirely in your browser and shows you exactly what it
-              proves, the same result <span className="font-mono text-base text-ink">auths verify</span>{' '}
-              gives at a terminal.
+              Have an <span className="font-mono text-base text-ink">activity.json</span> or an
+              evidence pack already? Drop it in — it never leaves your machine. The verifier checks
+              it entirely in your browser and shows you exactly what it proves, the same result{' '}
+              <span className="font-mono text-base text-ink">auths verify</span> gives at a terminal.
             </p>
             <Link
               href="/evidence"

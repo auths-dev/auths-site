@@ -14,7 +14,7 @@ const fraunces = Fraunces({
 
 const TITLE = 'Auths Explorer — the witness network, verified in your browser';
 const DESC =
-  'A sigstore-style lens over the Auths witness network. The server only fetches bytes; the verifier recomputes every SAID, chain, and receipt quorum in your browser before anything renders as valid.';
+  'A window into the Auths witness network. The server only moves data; your browser re-checks every record before anything shows as verified — so you never have to take the result on trust.';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://explorer.auths.dev'),
