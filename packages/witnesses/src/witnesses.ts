@@ -7,9 +7,9 @@
  * Listing requires passing the published conformance harness
  * (`cargo xtask witness-conformance`) — a test, not a document.
  *
- * This is the single source of truth: auths.dev's `/network` directory page and
- * the explorer (`explorer.auths.dev`) both read it, so a witness added here
- * shows up in both surfaces without a second edit.
+ * This is the single source of truth for the explorer (`explorer.auths.dev`) —
+ * the network directory surface — so a witness added here shows up there without
+ * a second edit.
  */
 
 export interface WitnessEntry {

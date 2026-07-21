@@ -2,7 +2,7 @@
   "name": "@auths/witnesses",
   "version": "0.1.0",
   "private": true,
-  "description": "The witness directory — the single checked-in source for the conformant-witness list and its live /health probe, shared by auths.dev's /network page and the explorer. Source-shipped; consumers transpile via Next's transpilePackages.",
+  "description": "The witness directory — the single checked-in source for the conformant-witness list and its live /health probe, read by the explorer (explorer.auths.dev). Source-shipped; consumers transpile via Next's transpilePackages.",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
