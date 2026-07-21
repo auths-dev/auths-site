@@ -36,6 +36,15 @@ export interface WitnessEntry {
 function firstParty(): WitnessEntry[] {
   return [
     {
+      name: 'network.auths.dev',
+      operator: 'Auths (first-party)',
+      jurisdiction: 'UK',
+      infraClass: 'fly.io · lhr',
+      roles: ['anchor', 'kel', 'cosign', 'registry'],
+      url: 'https://network.auths.dev',
+      statusPage: null,
+    },
+    {
       name: 'auths-w1',
       operator: 'Auths (first-party)',
       jurisdiction: 'UK',

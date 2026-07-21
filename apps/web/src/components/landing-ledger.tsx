@@ -33,6 +33,7 @@ import {
   Allow,
   Deny,
 } from '@auths/ledger-ui';
+import { assertKnownVerdicts } from '@/lib/verdicts';
 
 // ---------------------------------------------------------------------------
 // Hero — one product: the bounded agent. The terminal shows a refusal.
@@ -387,6 +388,11 @@ const VERDICTS = [
   { rule: 'revocation', deny: 'revoked', note: 'the root recorded a revocation; every verifier honors it' },
   { rule: 'authenticity', deny: 'proof-unauthentic', note: 'the signature does not verify against the agent’s key' },
 ];
+
+assertKnownVerdicts(
+  'landing ledger VERDICTS',
+  VERDICTS.map((v) => v.deny),
+);
 
 export function LedgerBound() {
   return (

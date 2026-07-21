@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { constructMetadata } from '@/lib/metadata';
+import { assertKnownVerdicts } from '@/lib/verdicts';
 import {
   SectionMark,
   InkTerminal,
@@ -48,6 +49,11 @@ const CHECKS = [
       'A revocation is a signed event in the root’s key history. Once recorded, every verifier refuses the agent’s calls — no distribution to wait on.',
   },
 ];
+
+assertKnownVerdicts(
+  'trust page CHECKS',
+  CHECKS.map((c) => c.verdict),
+);
 
 export default function TrustPage() {
   return (
