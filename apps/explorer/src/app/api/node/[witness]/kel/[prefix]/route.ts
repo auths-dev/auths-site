@@ -6,7 +6,7 @@ import type { FetchStamp } from '@/lib/transport/stamp';
 import type { KelReadResult } from '@/lib/verify/types';
 
 /**
- * `GET /api/w/[witness]/kel/[prefix]` — mirror the witness's registry and read
+ * `GET /api/node/[witness]/kel/[prefix]` — mirror the witness's registry and read
  * one member's KEL (events + per-event HEX CESR attachments) out of it as JSON.
  *
  * This is TRANSPORT: it returns raw bytes and a freshness stamp. It does NOT

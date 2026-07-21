@@ -50,7 +50,7 @@ export function useVerifiedKel(witness: string, prefix: string, witnessUrl?: str
       try {
         const qs = witnessUrl ? `?witness=${encodeURIComponent(witnessUrl)}` : '';
         const res = await fetch(
-          `/api/w/${encodeURIComponent(witness)}/kel/${encodeURIComponent(prefix)}${qs}`,
+          `/api/node/${encodeURIComponent(witness)}/kel/${encodeURIComponent(prefix)}${qs}`,
         );
         httpStatus = res.status;
         body = await res.json();

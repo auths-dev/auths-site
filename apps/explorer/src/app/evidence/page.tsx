@@ -47,7 +47,7 @@ export default function EvidencePage() {
                 { comment: 'verify a signed commit against its pinned root', cmd: 'auths verify <commit>' },
                 {
                   comment: 'mirror a witness’s key histories locally',
-                  cmd: `git fetch 'https://network.auths.dev' '+refs/auths/kel/*:refs/auths/kel/*'`,
+                  cmd: `git fetch 'https://auths-network.fly.dev' '+refs/auths/kel/*:refs/auths/kel/*'`,
                 },
                 { comment: 'verify a co-signed anchor', cmd: 'auths anchor verify <seed>' },
               ]}

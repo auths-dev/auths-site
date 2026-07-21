@@ -39,7 +39,7 @@ export default async function MemberPage({ params, searchParams }: PageParams) {
           <span aria-hidden="true">/</span>
           {resolved ? (
             <Link
-              href={`/w/${encodeURIComponent(resolved.fromDirectory ? resolved.name : decodedWitness)}`}
+              href={`/node/${encodeURIComponent(resolved.fromDirectory ? resolved.name : decodedWitness)}`}
               className="transition-colors hover:text-ink"
             >
               {resolved.name}
@@ -107,7 +107,7 @@ export default async function MemberPage({ params, searchParams }: PageParams) {
             />
             <div className="flex flex-wrap gap-6 pt-2">
               <Link
-                href={`/w/${encodeURIComponent(resolved.fromDirectory ? resolved.name : decodedWitness)}`}
+                href={`/node/${encodeURIComponent(resolved.fromDirectory ? resolved.name : decodedWitness)}`}
                 className="inline-flex items-center gap-1 border-b border-seal/40 pb-0.5 font-mono text-sm text-seal transition-colors hover:border-seal hover:text-seal-deep"
               >
                 browse this witness’s roster <ArrowUpRight size={13} />

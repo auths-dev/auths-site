@@ -100,12 +100,13 @@ export default async function WitnessPage({ params, searchParams }: PageParams) 
             <div className="rounded-sm border border-rule bg-paper-deep/40 p-6">
               <p className="flex items-center gap-2 font-mono text-[13px] font-medium text-ink">
                 <ServerOff size={15} aria-hidden="true" />
-                Roster unavailable
+                No roster to list here
               </p>
               <p className="mt-2 text-sm leading-6 text-ink-soft">
-                This witness didn’t answer <span className="font-mono">/v1/registry/roster</span>.
-                It may be standing up, or not serving the registry role. You can still resolve a
-                specific member by prefix above.
+                This node didn’t publish a roster at{' '}
+                <span className="font-mono">/v1/registry/roster</span> — it may not serve the
+                registry role, or it’s still standing up. That’s fine: resolve any member directly
+                by prefix in the search above, and its KEL still verifies in your browser.
               </p>
             </div>
           ) : roster.length === 0 ? (
@@ -134,7 +135,7 @@ export default async function WitnessPage({ params, searchParams }: PageParams) 
                       <td className="py-2.5 pr-4">#{m.sequence}</td>
                       <td className="py-2.5">
                         <Link
-                          href={`/w/${encodeURIComponent(segment)}/m/${encodeURIComponent(m.prefix)}${
+                          href={`/node/${encodeURIComponent(segment)}/member/${encodeURIComponent(m.prefix)}${
                             override ? `?witness=${encodeURIComponent(override)}` : ''
                           }`}
                           className="inline-flex items-center gap-1 border-b border-seal/40 pb-0.5 text-seal transition-colors hover:border-seal hover:text-seal-deep"

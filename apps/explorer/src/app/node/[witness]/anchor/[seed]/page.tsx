@@ -85,7 +85,7 @@ export default async function AnchorsPage({ params, searchParams }: PageParams) 
           </Link>
           <span aria-hidden="true">/</span>
           <Link
-            href={`/w/${encodeURIComponent(resolved.fromDirectory ? resolved.name : decodedWitness)}`}
+            href={`/node/${encodeURIComponent(resolved.fromDirectory ? resolved.name : decodedWitness)}`}
             className="transition-colors hover:text-ink"
           >
             {resolved.name}

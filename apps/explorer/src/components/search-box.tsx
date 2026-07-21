@@ -29,7 +29,7 @@ export function SearchBox({ witnesses }: { witnesses: WitnessOption[] }) {
     if (!t) return;
     if (looksLikePrefix(t)) {
       const prefix = toBarePrefix(t);
-      router.push(`/w/${encodeURIComponent(witness)}/m/${encodeURIComponent(prefix)}`);
+      router.push(`/node/${encodeURIComponent(witness)}/member/${encodeURIComponent(prefix)}`);
       return;
     }
     if (looksLikeCommitSha(t)) {

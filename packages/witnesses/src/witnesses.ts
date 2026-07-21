@@ -43,22 +43,29 @@ export interface WitnessEntry {
 function firstParty(): WitnessEntry[] {
   return [
     {
-      name: 'network.auths.dev',
+      // The primary. Its witness URL is its own fly host — NOT `network.auths.dev`,
+      // which is becoming the explorer's front door (see docs/plans/network/
+      // url_intuition.md §8). The name is the stable alias; the host can move.
+      name: 'auths-network',
       operator: 'Auths (first-party)',
       jurisdiction: 'UK',
       infraClass: 'fly.io · lhr',
       roles: ['anchor', 'kel', 'cosign', 'registry'],
-      url: 'https://network.auths.dev',
-      statusPage: null,
+      url: 'https://auths-network.fly.dev',
+      statusPage: 'https://auths-network.fly.dev',
     },
     {
-      name: 'auths-w1',
+      // The second leg — made real (§6): full roles incl. `registry` (so it has
+      // its own roster), in a different region for an independent failure domain.
+      // Still first-party (same operator) — the directory says so plainly; the
+      // most valuable witness is still the one we don't run.
+      name: 'auths-network-2',
       operator: 'Auths (first-party)',
-      jurisdiction: 'UK',
-      infraClass: 'fly.io · lhr',
-      roles: ['anchor', 'kel', 'cosign'],
-      url: 'https://auths-w1.fly.dev',
-      statusPage: null,
+      jurisdiction: 'US',
+      infraClass: 'fly.io · iad',
+      roles: ['anchor', 'kel', 'cosign', 'registry'],
+      url: 'https://auths-network-2.fly.dev',
+      statusPage: 'https://auths-network-2.fly.dev',
     },
   ];
 }

@@ -106,7 +106,7 @@ export default async function HomePage() {
                       <td className="py-2.5">
                         {w.url ? (
                           <Link
-                            href={`/w/${encodeURIComponent(w.name)}`}
+                            href={`/node/${encodeURIComponent(w.name)}`}
                             className="inline-flex items-center gap-1 border-b border-seal/40 pb-0.5 text-seal transition-colors hover:border-seal hover:text-seal-deep"
                           >
                             browse <ArrowUpRight size={12} />

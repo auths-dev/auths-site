@@ -35,6 +35,15 @@ function asHttpsUrl(candidate: string): string | null {
 }
 
 /**
+ * A bare hostname — `their-node.example`, `auths-network.fly.dev`, optional
+ * `:port` — i.e. a node addressed by host in the path, no scheme. A dot is
+ * required, which is what keeps directory names (`auths-network`) from matching.
+ */
+function looksLikeHost(s: string): boolean {
+  return /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:\d+)?$/i.test(s);
+}
+
+/**
  * @param segment the `[witness]` path segment (URL-decoded by Next already)
  * @param override an optional `?witness=` query value (arbitrary URL)
  */

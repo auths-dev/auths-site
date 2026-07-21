@@ -3,7 +3,7 @@ import { resolveWitness } from '@/lib/transport/witness';
 import type { FetchStamp } from '@/lib/transport/stamp';
 
 /**
- * `GET /api/w/[witness]/roster` — proxy the witness's public
+ * `GET /api/node/[witness]/roster` — proxy the witness's public
  * `/v1/registry/roster` and stamp it with when we fetched it.
  *
  * This is a PROXY, not a verdict: the roster is a list of prefixes the witness

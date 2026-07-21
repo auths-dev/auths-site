@@ -6,7 +6,7 @@ import { relativeAge } from '@/lib/format';
 import type { FetchStamp } from '@/lib/transport/stamp';
 
 /**
- * "fetched 3s ago from network.auths.dev" (plan X3.2). Renders the mirror's age
+ * "fetched 3s ago from auths-network.fly.dev" (plan X3.2). Renders the mirror's age
  * honestly and keeps ticking, so a stale mirror reads as stale. This is about
  * TRANSPORT freshness (when the explorer server last pulled bytes) — it is not a
  * verdict and not the witness-network freshness label, which the verifier
