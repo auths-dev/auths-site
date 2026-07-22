@@ -58,7 +58,7 @@ auths verify --artifact release.tar.gz --provenance provenance.slsa.json`,
     {
       tag: '[ZERO-CA]',
       title: 'Zero-CA Architecture',
-      desc: 'No reliance on central Certificate Authorities or third-party web servers. Uses Git commit graph & KERI logs.',
+      desc: 'No reliance on central Certificate Authorities or third-party web servers. Uses Git commit graph & key event logs.',
     },
     {
       tag: '[OFFLINE-VERIFY]',

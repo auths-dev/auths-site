@@ -48,7 +48,7 @@ auth required pam_auths.so registry=/etc/auths/registry.json
     },
     {
       tag: '[ISSUERLESS-KERI]',
-      title: 'Issuerless KERI Presentations',
+      title: 'Issuerless Presentations',
       desc: 'Relying party servers verify developer presentation tokens completely offline without contacting identity providers.',
     },
     {

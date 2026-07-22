@@ -135,19 +135,19 @@ export function NetworkMotionDiagram() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative items-stretch">
         {steps.map((s, idx) => {
           const Icon = s.icon;
           const isActive = activeStep === idx;
           const isFailedStep = simulationState === 'refused' && idx >= 1;
 
           return (
-            <div key={s.id} className="relative">
+            <div key={s.id} className="relative h-full">
               <motion.div
                 onClick={() => setActiveStep(idx)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`cursor-pointer p-4 rounded-xl border transition-all duration-300 ${
+                className={`cursor-pointer p-4 rounded-xl border transition-all duration-300 h-full flex flex-col justify-between ${
                   isActive
                     ? isFailedStep
                       ? 'border-red-500 bg-red-500/5 shadow-md'
@@ -155,23 +155,25 @@ export function NetworkMotionDiagram() {
                     : 'border-rule bg-paper hover:border-ink-faint'
                 }`}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span
-                    className={`p-2.5 rounded-lg border ${
-                      isFailedStep
-                        ? 'border-red-500/30 text-red-600 bg-red-500/10'
-                        : 'border-rule text-ink-soft bg-paper-elevated'
-                    }`}
-                  >
-                    <Icon size={18} />
-                  </span>
-                  <span className="font-mono text-[10px] text-ink-faint font-bold">0{idx + 1}</span>
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span
+                      className={`p-2.5 rounded-lg border ${
+                        isFailedStep
+                          ? 'border-red-500/30 text-red-600 bg-red-500/10'
+                          : 'border-rule text-ink-soft bg-paper-elevated'
+                      }`}
+                    >
+                      <Icon size={18} />
+                    </span>
+                    <span className="font-mono text-[10px] text-ink-faint font-bold">0{idx + 1}</span>
+                  </div>
+
+                  <div className="font-serif text-sm font-semibold text-ink mb-1 leading-snug">{s.title}</div>
+                  <div className="font-mono text-[11px] text-ink-soft mb-2">{s.sub}</div>
                 </div>
 
-                <div className="font-serif text-sm font-semibold text-ink mb-1">{s.title}</div>
-                <div className="font-mono text-[11px] text-ink-soft mb-2">{s.sub}</div>
-
-                <div className="mt-2 pt-2 border-t border-rule/60 flex items-center justify-between text-[11px] font-mono">
+                <div className="mt-4 pt-2 border-t border-rule/60 flex items-center justify-between text-[11px] font-mono">
                   {idx === 0 && <span className="text-ink-soft">Checkpointed</span>}
                   {idx === 1 && (
                     <span className={simulationState === 'pass' ? 'text-seal' : 'text-red-600 font-bold'}>

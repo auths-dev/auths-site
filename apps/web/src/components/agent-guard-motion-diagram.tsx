@@ -47,17 +47,13 @@ const LockIcon = svg(
 );
 const ReceiptIcon = svg(
   <>
-    <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" />
+    <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1-2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" />
     <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
     <path d="M12 17.5v-11" />
   </>
 );
-const ArrowRight = svg(<path d="M5 12h14m-7-7 7 7-7 7" />);
 const CheckIcon = svg(<path d="M20 6 9 17l-5-5" />);
 const XIcon = svg(<path d="M18 6 6 18M6 6l12 12" />);
-
-const SEAL = '#059669';
-const DENY = '#dc2626';
 
 export function AgentGuardMotionDiagram() {
   const [simulationState, setSimulationState] = useState<'pass' | 'refused'>('pass');
@@ -102,7 +98,6 @@ export function AgentGuardMotionDiagram() {
 
   return (
     <div className="bg-paper-elevated border border-rule rounded-2xl p-6 md:p-8 shadow-lg my-12">
-      {/* Top Controls Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-6 mb-6 border-b border-rule">
         <div>
           <div className="font-mono text-xs font-bold text-seal uppercase tracking-wider">
@@ -111,7 +106,6 @@ export function AgentGuardMotionDiagram() {
           <h3 className="font-serif text-2xl text-ink">Agent Guard Execution Gate</h3>
         </div>
 
-        {/* State Toggle Buttons */}
         <div className="flex items-center gap-2 bg-paper p-1.5 rounded-xl border border-rule font-mono text-xs">
           <button
             onClick={() => {
@@ -146,20 +140,19 @@ export function AgentGuardMotionDiagram() {
         </div>
       </div>
 
-      {/* 4-Step Diagram Flow Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative items-stretch">
         {steps.map((s, idx) => {
           const Icon = s.icon;
           const isActive = activeStep === idx;
           const isFailedStep = simulationState === 'refused' && idx >= 1;
 
           return (
-            <div key={s.id} className="relative">
+            <div key={s.id} className="relative h-full">
               <motion.div
                 onClick={() => setActiveStep(idx)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`cursor-pointer p-4 rounded-xl border transition-all duration-300 ${
+                className={`cursor-pointer p-4 rounded-xl border transition-all duration-300 h-full flex flex-col justify-between ${
                   isActive
                     ? isFailedStep
                       ? 'border-red-500 bg-red-500/5 shadow-md'
@@ -167,24 +160,25 @@ export function AgentGuardMotionDiagram() {
                     : 'border-rule bg-paper hover:border-ink-faint'
                 }`}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span
-                    className={`p-2.5 rounded-lg border ${
-                      isFailedStep
-                        ? 'border-red-500/30 text-red-600 bg-red-500/10'
-                        : 'border-rule text-ink-soft bg-paper-elevated'
-                    }`}
-                  >
-                    <Icon size={18} />
-                  </span>
-                  <span className="font-mono text-[10px] text-ink-faint font-bold">0{idx + 1}</span>
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span
+                      className={`p-2.5 rounded-lg border ${
+                        isFailedStep
+                          ? 'border-red-500/30 text-red-600 bg-red-500/10'
+                          : 'border-rule text-ink-soft bg-paper-elevated'
+                      }`}
+                    >
+                      <Icon size={18} />
+                    </span>
+                    <span className="font-mono text-[10px] text-ink-faint font-bold">0{idx + 1}</span>
+                  </div>
+
+                  <div className="font-serif text-sm font-semibold text-ink mb-1 leading-snug">{s.title}</div>
+                  <div className="font-mono text-[11px] text-ink-soft mb-2">{s.sub}</div>
                 </div>
 
-                <div className="font-serif text-sm font-semibold text-ink mb-1">{s.title}</div>
-                <div className="font-mono text-[11px] text-ink-soft mb-2">{s.sub}</div>
-
-                {/* Status Indicator Pill */}
-                <div className="mt-2 pt-2 border-t border-rule/60 flex items-center justify-between text-[11px] font-mono">
+                <div className="mt-4 pt-2 border-t border-rule/60 flex items-center justify-between text-[11px] font-mono">
                   {idx === 0 && <span className="text-ink-soft">Invoked</span>}
                   {idx === 1 && (
                     <span className={simulationState === 'pass' ? 'text-seal' : 'text-red-600 font-bold'}>
@@ -208,7 +202,6 @@ export function AgentGuardMotionDiagram() {
         })}
       </div>
 
-      {/* Step Detail Explanation Panel */}
       <AnimatePresence mode="wait">
         <motion.div
           key={`${activeStep}-${simulationState}`}
