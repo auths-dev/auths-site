@@ -29,7 +29,7 @@ export default async function HomePage({
           <p className="rise rise-d2 mt-8 max-w-xl text-lg leading-8 text-ink-soft">
             Paid MCP endpoints with proven prices. Sellers meter per call over
             Stripe or on-chain USDC; buying agents pay under a hard budget;
-            every cent re-derives from signed receipts.
+            growth is credited only when this market witnesses it.
           </p>
           <div className="rise rise-d3 mt-10 flex flex-wrap items-center gap-5">
             <Link

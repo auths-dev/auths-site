@@ -21,6 +21,11 @@ import { join } from 'node:path';
 import { createServiceClient } from '@/lib/supabase/service';
 import { loadVerifier } from '@/lib/auth/agent-verifier';
 import type { Listing } from '@/lib/listings';
+import {
+  computeLiveness,
+  resolveVerifiedAnchor,
+  type VerifiedAnchorSummary,
+} from '@/lib/attestation-view';
 
 
 /** One append-only witnessing observation (see attestation_checkpoints). */
@@ -34,22 +39,6 @@ export interface AttestationCheckpoint {
   anchor_threshold: number | null;
   anchor_witnesses: number | null;
   observed_at: string;
-}
-
-/**
- * The quorum shape behind a `witness`-tier observation, restated by the SDK
- * only AFTER it verified the embedded finalized anchor (threshold met, every
- * counted cosigner inside the declared set, inclusion proofs replayed). Absent
- * on unanchored documents and on SDK builds predating the witness network —
- * in both cases the tier stays `first-seen`. Never read from the document.
- */
-interface VerifiedAnchorSummary {
-  tier: string;
-  threshold: number;
-  witnesses: number;
-  cosigners: number;
-  seedId: string;
-  witnessSetSaid: string;
 }
 
 interface AuditManifest {
@@ -71,6 +60,39 @@ interface ActivityDoc {
 
 /** The trailing window growth must be witnessed inside (badge rule). */
 const WITNESS_WINDOW_DAYS = 90;
+
+/**
+ * Surface the loaded verifier's anchor posture in the logs before a derivation
+ * run. An anchor-aware addon restates a verified quorum as an `anchor` field;
+ * an addon that predates the witness network omits it, and every observation
+ * correctly stays `first-seen`. That is the accepted posture while the market
+ * runs on the pre-anchor SDK release, so this is a non-fatal log, not a hard
+ * stop: it flags a verifier that cannot resolve attestations at all (which
+ * would leave every listing invalid) and records that the witness tier lights
+ * up automatically once the anchor-aware release is pinned.
+ *
+ * Args:
+ * * `sdk`: the loaded verifier addon.
+ *
+ * Usage:
+ * ```ignore
+ * const sdk = loadVerifier();
+ * if (sdk) assertAnchorAwareSdk(sdk);
+ * ```
+ */
+export function assertAnchorAwareSdk(sdk: {
+  verifyActivityAttestation?: (attestationJson: string, registryPath: string) => string;
+}): void {
+  if (typeof sdk.verifyActivityAttestation !== 'function') {
+    console.error(
+      'receipts-worker: verifier addon exposes no verifyActivityAttestation — every listing will read invalid',
+    );
+    return;
+  }
+  console.info(
+    'receipts-worker: verifier loaded; witness tier is granted only when the addon restates a verified anchor — unanchored builds stay first-seen',
+  );
+}
 
 async function deriveListing(
   listing: Listing,
@@ -153,10 +175,7 @@ async function deriveListing(
     // 3. The tier is derived, never claimed: `witness` comes only from the
     //    SDK's verified-anchor summary. A tier string inside the document
     //    itself is a seller claim and is never credited.
-    const anchor =
-      check.anchor && check.anchor.tier === 'witness' && check.anchor.threshold >= 1
-        ? check.anchor
-        : null;
+    const anchor = resolveVerifiedAnchor(check);
     return { ok: true, doc, anchor };
   } finally {
     rmSync(work, { recursive: true, force: true });
@@ -225,15 +244,11 @@ export async function deriveAll(): Promise<{ derived: number; invalid: number }>
         ? window[window.length - 1].cumulative_cents - window[0].cumulative_cents
         : 0;
 
-    const update: Record<string, unknown> = {
-      receipts_invalid: false,
-      verification_stale: false,
-      fail_reason: null,
-      dormant: witnessedDelta <= 0,
-    };
-    if (!listing.live_proven_at && witnessedDelta > 0) {
-      update.live_proven_at = observedAt;
-    }
+    const update = computeLiveness({
+      live_proven_at: listing.live_proven_at,
+      witnessedDelta,
+      observedAt,
+    });
     await supabase.from('listings').update(update).eq('id', listing.id);
   }
   return { derived, invalid };

@@ -97,9 +97,13 @@ export default async function ListingPage({ params }: Props) {
             </p>
           </div>
           <div>
-            <p className="font-mono text-3xl text-ink">{latest ? cents(latest.cumulative_cents) : '—'}</p>
+            <p className="font-mono text-3xl text-ink">
+              {latest?.anchor_tier === 'witness' ? cents(latest.cumulative_cents) : '—'}
+            </p>
             <p className="mt-1 font-mono text-[12px] uppercase tracking-wider text-ink-faint">
-              attested lifetime
+              {latest?.anchor_tier === 'witness'
+                ? 'quorum-anchored lifetime'
+                : 'seller-claimed lifetime · unwitnessed'}
             </p>
           </div>
         </div>
