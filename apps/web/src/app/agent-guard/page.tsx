@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { AgentGuardMotionDiagram } from '@/components/agent-guard-motion-diagram';
+import { AgentGuardConfigSection } from '@/components/agent-guard-config-section';
 
 export const metadata: Metadata = {
   title: 'Auths Agent Guard — AI Agent Security & Spend Firewall',
@@ -12,8 +14,8 @@ export default function AgentGuardPage() {
       <div className="max-w-5xl mx-auto px-6">
         {/* Hero Section */}
         <div className="text-center max-w-3xl mx-auto">
-          <div className="inline-block px-3 py-1 font-mono text-[11px] uppercase tracking-wider font-bold text-seal bg-seal/10 border border-seal/20 rounded-full mb-6">
-            [AGENT-GUARD] · MCP SPEND FIREWALL
+          <div className="inline-block px-3.5 py-1 font-mono text-[11px] uppercase tracking-wider font-bold text-seal bg-seal/10 border border-seal/20 rounded-full mb-6">
+            [AGENT-GUARD] · MCP FIREWALL
           </div>
           <h1 className="font-serif text-4xl md:text-6xl font-normal text-ink tracking-tight leading-tight">
             Auths Agent Guard
@@ -43,23 +45,11 @@ export default function AgentGuardPage() {
           </div>
         </div>
 
-        {/* Quickstart Code Block */}
-        <div className="mt-16 bg-[#15130f] border border-zinc-800 rounded-2xl p-6 shadow-2xl font-mono text-xs text-amber-100/90 overflow-x-auto">
-          <div className="text-zinc-500 text-[11px] mb-3 pb-2 border-b border-zinc-800 flex justify-between items-center">
-            <span>CLAUDE DESKTOP / CURSOR MCP CONFIGURATION</span>
-            <span>npx @auths-dev/mcp</span>
-          </div>
-          <pre><code>{`"filesystem": {
-  "command": "npx",
-  "args": [
-    "-y", "@auths-dev/mcp", "wrap",
-    "--scope", "paid.call",
-    "--budget", "$50",
-    "--ttl", "30m",
-    "--", "npx", "-y", "@modelcontextprotocol/server-filesystem", "/workspace"
-  ]
-}`}</code></pre>
-        </div>
+        {/* 1. Interactive Protocol Motion Diagram */}
+        <AgentGuardMotionDiagram />
+
+        {/* 2. Tabbed Configuration & Annotated Parameter Cards */}
+        <AgentGuardConfigSection />
       </div>
     </main>
   );
