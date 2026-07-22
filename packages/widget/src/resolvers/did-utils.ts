@@ -38,12 +38,9 @@ function bytesToHex(bytes: Uint8Array): string {
 }
 
 /**
- * Extract Ed25519 public key hex from a did:key:z... identifier.
+ * Extract public key hex from a did:key:z... identifier.
  *
- * The multibase prefix 'z' indicates base58btc encoding.
- * After decoding, the first two bytes are the multicodec prefix:
- * 0xED 0x01 = Ed25519 public key.
- * The remaining 32 bytes are the raw public key.
+ * Supports Ed25519 (0xED 0x01) and P-256 (0x12 0x00).
  */
 export function didKeyToPublicKeyHex(didKey: string): string {
   if (!didKey.startsWith('did:key:z')) {
@@ -54,15 +51,17 @@ export function didKeyToPublicKeyHex(didKey: string): string {
   const encoded = didKey.slice('did:key:z'.length);
   const decoded = base58Decode(encoded);
 
-  // Verify multicodec prefix for Ed25519: 0xED 0x01
-  if (decoded.length < 34 || decoded[0] !== 0xed || decoded[1] !== 0x01) {
-    throw new Error(
-      `Expected Ed25519 multicodec prefix (0xED 0x01), got: 0x${bytesToHex(decoded.slice(0, 2))}`,
-    );
+  // Check Ed25519 (0xED 0x01) or P-256 (0x12 0x00) multicodec prefix
+  if (decoded.length >= 34 && decoded[0] === 0xed && decoded[1] === 0x01) {
+    return bytesToHex(decoded.slice(2, 34));
+  } else if (decoded.length >= 35 && decoded[0] === 0x12 && decoded[1] === 0x00) {
+    // P-256 compressed public key (33 bytes)
+    return bytesToHex(decoded.slice(2, 35));
   }
 
-  // Remaining 32 bytes are the public key
-  return bytesToHex(decoded.slice(2, 34));
+  throw new Error(
+    `Unsupported did:key multicodec prefix: 0x${bytesToHex(decoded.slice(0, 2))}`,
+  );
 }
 
 /**
