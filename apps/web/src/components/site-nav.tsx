@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation';
 
 const NAV_LINKS = [
   { label: 'Product', href: '/' },
-  { label: 'Network', href: '/network' },
+  // The witness network now lives at its own explorer (see the external link
+  // below); the old /network page redirects there.
   // { label: 'Verify', href: '/verify' }, // hidden for now — may return later
   // Blog lives only in the footer now — see LedgerFooter defaults.
 ] as const;
@@ -45,6 +46,13 @@ export function SiteNav() {
               {link.label}
             </Link>
           ))}
+
+          <a
+            href="https://explorer.auths.dev"
+            className="font-mono text-[13px] text-ink-faint transition-colors hover:text-ink sm:text-sm"
+          >
+            Explorer
+          </a>
 
           <a
             href="https://market.auths.dev/"

@@ -380,8 +380,21 @@ function APP() {
       + `<b>${fmt(mx.internal.signInproc)}</b> in-process — the metered hot path never forks git.` }));
   }
 
+  // ── Adversarial chain integrity ──
+  function chainSafety() {
+    const c = S.chain; if (!c || c.error) return;
+    const sec = section('chain', 'Adversarial — spend-log chain under concurrency',
+      'The spend log is a signed hash chain (`Auths-Prev` links each record to the prior), and <code>verify-spend</code> re-derives the whole spend by replaying it. Concurrent calls that both link to the same head <b>fork</b> the log and break the audit. Each agent here PIPELINES many concurrent calls — the exact case that breaks a non-atomic head advance (it did: pre-fix, 40 pipelined calls left verify-spend 0/1).');
+    sec.appendChild(E('p', { class: 'verify', html:
+      `<span class="badge ${c.chain_intact ? 'ok' : 'bad'}">${c.chain_intact ? '✓ chain intact' : '✗ chain polluted'}</span> `
+      + `${c.agents} agents × ${c.pipeline_depth} pipelined concurrent calls each → `
+      + `<b>${c.verify.consistent}/${c.verify.logs}</b> chains re-derive consistent, <b>${fmt(c.verify.rederivedCalls)}</b> `
+      + `records (expected ${fmt(c.expected_records)}) — no forks, no drops. The chain head is held atomically across `
+      + `sign→append→advance, so same-chain calls serialize while different agents stay concurrent.` }));
+  }
+
   // build
-  kpis(); ramp(); soak(); burst(); micro(); metricsDogfood();
+  kpis(); ramp(); soak(); burst(); micro(); metricsDogfood(); chainSafety();
   // theme toggle
   const root = document.documentElement;
   document.getElementById('theme').addEventListener('click', () => {

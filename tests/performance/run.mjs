@@ -23,17 +23,18 @@ import { runSoak } from './scenarios/soak.mjs';
 import { runBurst } from './scenarios/burst.mjs';
 import { runMicrobench } from './scenarios/microbench.mjs';
 import { runMetricsDogfood } from './scenarios/metrics.mjs';
+import { runChainConcurrency } from './scenarios/chain.mjs';
 import { buildReportHtml } from './lib/report.mjs';
 
 const HERE = import.meta.dirname;
 const argv = process.argv.slice(2);
 const quick = argv.includes('--quick');
 const names = argv.filter((a) => !a.startsWith('--'));
-const want = names.length ? names : ['microbench', 'ramp-solo', 'ramp-fleet', 'soak', 'burst', 'metrics'];
+const want = names.length ? names : ['microbench', 'ramp-solo', 'ramp-fleet', 'soak', 'burst', 'metrics', 'chain'];
 
 const cfg = quick
-  ? { rampLevels: [1, 2, 4], rampSecs: 2, soakConc: 4, soakSecs: 6, bursts: [16, 32, 64], burstFleet: 4, microMs: 800, metricsAgents: 3, metricsCalls: 100 }
-  : { rampLevels: [1, 2, 4, 8, 16, 32, 64, 128, 256], rampSecs: 5, soakConc: availableParallelism(), soakSecs: 45, bursts: [32, 64, 128, 256, 512, 1024], burstFleet: 16, microMs: 3000, metricsAgents: 4, metricsCalls: 400 };
+  ? { rampLevels: [1, 2, 4], rampSecs: 2, soakConc: 4, soakSecs: 6, bursts: [16, 32, 64], burstFleet: 4, microMs: 800, metricsAgents: 3, metricsCalls: 100, chainAgents: 3, chainDepth: 30 }
+  : { rampLevels: [1, 2, 4, 8, 16, 32, 64, 128, 256], rampSecs: 5, soakConc: availableParallelism(), soakSecs: 45, bursts: [32, 64, 128, 256, 512, 1024], burstFleet: 16, microMs: 3000, metricsAgents: 4, metricsCalls: 400, chainAgents: Number(process.env.CHAIN_AGENTS ?? 6), chainDepth: Number(process.env.CHAIN_DEPTH ?? 80) };
 
 function gitShort(dir) {
   try { return execFileSync('git', ['-C', dir, 'rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).trim(); }
@@ -73,6 +74,7 @@ async function main() {
       else if (name === 'soak') results.scenarios.soak = await runSoak({ concurrency: cfg.soakConc, durationSecs: cfg.soakSecs });
       else if (name === 'burst') results.scenarios.burst = await runBurst({ fleetSize: cfg.burstFleet, bursts: cfg.bursts });
       else if (name === 'metrics') results.scenarios.metrics = await runMetricsDogfood({ agents: cfg.metricsAgents, callsPerAgent: cfg.metricsCalls });
+      else if (name === 'chain') results.scenarios.chain = await runChainConcurrency({ agents: cfg.chainAgents, pipelineDepth: cfg.chainDepth });
       else { console.log(`  (unknown scenario "${name}" — skipped)`); continue; }
       console.log(`  ✓ ${name} in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
     } catch (e) {

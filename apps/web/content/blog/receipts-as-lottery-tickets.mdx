@@ -1,0 +1,61 @@
+---
+title: "Receipts as Lottery Tickets"
+description: "For as long as there's been money, we've built clever machines to keep each other honest — notched tally sticks, double-entry ledgers, and, in 1951, a Taiwanese lottery that turned every shopping receipt into a chance to win cash. Each one is a workaround for a problem cryptography can finally solve outright."
+date: "2026-07-19"
+---
+
+# Receipts as Lottery Tickets
+
+For as long as there has been money, there have been people fudging the books — and, right behind them, other people inventing ingenious machines to stop it. The history of finance is quietly also a history of *honesty machines*: contraptions, procedures, and incentives designed to make two parties who might both prefer to lie tell the same true story about what changed hands.
+
+Some of them are beautiful.
+
+In medieval England, the Exchequer settled debts with **tally sticks** — a notched length of wood, split down the middle so each party kept a half. You couldn't forge your half, because the notches *and the grain of the wood* had to match the other person's when they were put back together. Truth was enforced by physical complementarity: two records that only reconcile if neither was altered.
+
+In Renaissance Italy, merchants formalized **double-entry bookkeeping** — every transaction written twice, and the books only balance if both sides are honest. Fraud doesn't hide; it shows up as an imbalance.
+
+<HonestyMachinesDiagram step="history" />
+
+And in 1951, when neither audits nor appeals to honor were denting cash tax evasion, Taiwan tried something wonderfully lateral. It turned the receipt itself into a prize.
+
+## The lottery that fought tax evasion
+
+Taiwan's [Uniform Invoice Lottery](https://en.wikipedia.org/wiki/Uniform_Invoice) is one of the cleverest pieces of mechanism design in tax history. Every official receipt carries a number, and those numbers are entered into a periodic draw with real cash prizes. Suddenly a receipt isn't a scrap of paper — it's a lottery ticket. So consumers *want* it. They ask for it. And a merchant who wanted to pocket a cash sale off the books now has a customer standing at the counter asking for the very record that puts the sale *on* the books.
+
+The genius is game-theoretic. Cash tax evasion isn't really a standoff — it's a *collusion*. The seller offers "no receipt, no tax, cheaper for you," and the buyer happily agrees; both come out ahead and the state eats the loss. The lottery quietly changes the buyer's payoff. Now refusing the receipt means forfeiting a lottery ticket, so the buyer defects from the deal and becomes, unwittingly, a tax inspector. Nobody knows which receipt will win, so every receipt has to be real. It works because it enlists the counterparty against the fraud.
+
+<HonestyMachinesDiagram step="lottery" />
+
+It's elegant. It's also, when you look closely, a workaround — a brilliant patch over a gap that shouldn't need patching.
+
+## What the honesty machines have in common
+
+Tally sticks, double-entry, and the invoice lottery are separated by seven centuries, but they're all reaching for the same thing: a way to make the *recorded* truth hard to fake and hard to skip, when you can't simply trust the two parties to be honest.
+
+And each pays a price for it:
+
+- The **tally stick** reconciles two halves — but you have to physically hold both, and trust the Exchequer that keeps the master copy.
+- **Double-entry** catches imbalances — but only if someone audits the ledger, and only within one company's books, not across a deal between strangers.
+- The **lottery** recruits the buyer — but it's probabilistic (only some tickets win), it needs a government to run the draw and the receipt system, and it can only pull *onto* the books a sale that both parties would otherwise have hidden. It makes cheating *unattractive*, not *impossible*.
+
+Every one of them is the best honesty machine its era's technology allowed. What none of them could do — until now — is make the honest record the *only possible* record, checkable by anyone, trusting no one.
+
+## The cryptographic version
+
+That is exactly the thing cryptography is for, and it's what we built Auths to be.
+
+Auths is, in a sense, the tally stick and the lottery grown up. When two agents transact through it, each call produces a signed, hash-chained receipt. The buyer's meter and the seller's meter record the same event; the agent-signed running total and the on-chain settlement tie the two ledgers together, and an offline verifier re-derives the whole thing. It's **cross-party double-entry** — the buyer's books and the seller's books *cannot* disagree without the discrepancy being provable — and it's the tally stick's complementarity without the splinters: two records that only reconcile if neither was altered, except now "reconcile" means a hash chain checks out, and "altered" is mathematically detectable.
+
+It even keeps the lottery's psychological trick. A seller can never know *who* will re-derive their log, or *when* — and the chain is permanent, so any fudge is visible forever. You can't quietly roll back last week's revenue, because a ledger that jumps from ten thousand transactions a day to zero is a signed self-contradiction anyone can see. Uncertainty about *who's checking* enforces continuous honesty, the same way uncertainty about *which receipt wins* did — but with certainty instead of odds.
+
+<HonestyMachinesDiagram step="auths" />
+
+The difference is the whole point. The lottery makes lying a bad bet. Auths makes it impossible to lie *successfully* — for anything that runs through it — because there's no consistent false story you can tell that survives a stranger re-deriving the math. Collusion doesn't get defected; it gets *disarmed*.
+
+## The kicker
+
+Here's the part we can't resist pointing out. Because Auths receipts are already tamper-evident and re-derivable, you could build Taiwan's lottery itself *on top of them* — a **provably fair** draw over a set of receipts nobody can forge or omit, where anyone can verify the winner was chosen honestly and no ticket went missing. Taiwan's version still asks you to trust the government's draw. An Auths-native version would ask you to trust no one at all. Same beautiful game theory, with a cryptographic referee.
+
+Seventy-five years ago, the best tool available for making strangers tell the truth about money was a lottery. Two hundred years before that, a notched stick. Each was the honesty machine its century deserved. Ours is made of signatures and hash chains — and for the first time, the machine doesn't ask you to trust it. You can just check.
+
+*See how it works in practice: [Who Authorized This?](/blog/who-authorized-this)*
