@@ -9,7 +9,7 @@ export const metadata = constructMetadata({
 });
 
 /** The two posts closest to the wedge lead; everything else is the archive. */
-const LEAD_SLUGS = ['replacing-api-keys', 'how-we-audit-our-code'];
+const LEAD_SLUGS = ['agentic-commerce', 'who-authorized-this'];
 
 function PostList({ posts }: { posts: ContentFile[] }) {
   return (
@@ -49,9 +49,9 @@ function IndexMark({ n, title }: { n: string; title: string }) {
 
 export default function BlogIndexPage() {
   const posts = listContentFiles('blog');
-  const lead = LEAD_SLUGS.map((s) => posts.find((p) => p.slug[1] === s)).filter(
-    (p): p is ContentFile => p !== undefined,
-  );
+  const lead = LEAD_SLUGS.map((s) => posts.find((p) => p.slug[1] === s))
+    .filter((p): p is ContentFile => p !== undefined)
+    .sort((a, b) => (b.frontmatter.date ?? '').localeCompare(a.frontmatter.date ?? '')); // newest first
   const archive = posts.filter((p) => !LEAD_SLUGS.includes(p.slug[1]));
 
   return (

@@ -35,6 +35,10 @@ bun workspaces · Tailwind v4 · TypeScript.
   through the AuthPort.
 - **Spend/earnings figures** must come only from `verify-spend` re-derivation,
   never gateway- or seller-reported.
+- **Cited quotes in MDX** (`apps/web/content`) use the `<Quote text="…" name="…"
+  org="…" link="…" />` component — never markdown `>` blockquotes (Tailwind
+  Typography doubles the quote marks). `text` is required; `name`/`org`/`link` are
+  optional and `link` points at the `org` if given, else the `name`.
 
 ## Wrapping up a PR merge
 
