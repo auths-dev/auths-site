@@ -10,7 +10,9 @@ import {
   Dim,
   Allow,
   Deny,
+  BashLines,
 } from '@auths/ledger-ui';
+import { VERIFY_SPEND_CMD, VERIFY_TAMPERED_CMD } from '@/lib/demo-commands';
 
 const TITLE = 'Verify — proof your work passed, that anyone can re-check';
 const DESC =
@@ -126,17 +128,31 @@ export default function VerifyPage() {
             <InkTerminal
               label="an auditor who does not operate the agent"
               tag="offline"
-              copy="auths-mcp-gateway verify-spend --log spend.jsonl --registry ./registry --agent <agent> --root <root>"
+              copy={VERIFY_SPEND_CMD}
             >
-              <Prompt>auths-mcp-gateway verify-spend --log spend.jsonl \</Prompt>
-              <Prompt className="pl-4">
-                --registry ./registry --agent &lt;agent&gt; --root &lt;root&gt;
-              </Prompt>
+              <BashLines code={VERIFY_SPEND_CMD} />
               <Allow>consistent — 2 call(s), $12.00 re-derived from signed costs</Allow>
               <Dim className="pt-2"># the forged variant, caught</Dim>
-              <Prompt>auths-mcp-gateway verify-spend --log tampered.jsonl …</Prompt>
+              <BashLines code={VERIFY_TAMPERED_CMD} />
               <Deny>tampered-proof — 51017ad1… failed verification (exit 1)</Deny>
             </InkTerminal>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 pb-32">
+        <div className="mx-auto max-w-5xl border-t border-rule pt-16">
+          <h2 className="max-w-2xl font-display text-3xl font-medium tracking-tight text-ink sm:text-4xl">
+            Put the referee to work.
+          </h2>
+          <div className="mt-8 flex flex-wrap items-center gap-5">
+            <a
+              href="https://docs.auths.dev/mcp/quickstart"
+              className="rounded-sm bg-seal px-6 py-3 text-sm font-semibold text-paper transition-colors hover:bg-seal-deep"
+            >
+              Wrap your first agent
+            </a>
+            <InkLink href="https://github.com/auths-dev/verify">Add the check to your repo</InkLink>
           </div>
         </div>
       </section>

@@ -18,12 +18,18 @@ Related repos:
 
 ## 1. Problem (measured)
 
-A warm metered `paid_call` costs **~2.0–2.2 ms**. The measured per-call *primitives* —
-crypto (2 signs + 1 verify), the durable counter write, the spend-log append, and
-canonicalization — sum to only **~0.35 ms**. The remaining **~84% (~1.85 ms) is transport +
-gate orchestration**, and it is why the solo throughput ceiling barely moved (3,964 → 4,084
-calls/s) even after cold-start signing (#5), the in-memory counter (#2), and treasury
-keepalive (#4) landed. **#1 is now the binding constraint on single-node throughput.**
+A warm metered `paid_call` cost **~2.0–2.2 ms** in the initial study. Subtracting the measured
+primitives (crypto + durable write + spend-log append + canonicalization ≈ ~0.35 ms) left
+~1.85 ms unattributed, which the study loosely called "transport + orchestration."
+
+**That ~84% figure was a subtraction estimate, not a direct measurement — and Phase 0 (below)
+corrected it.** Once per-stage histograms were added AND a harness artifact was removed (the
+x402 *test* adapter re-read its settlement fixture from disk on every call, ~0.2 ms), transport
+turned out to be a **~20% minority**; per-call **CPU** — the auths stages + in-handler
+orchestration — dominates. The symptom that motivates #1 stands regardless: solo throughput
+barely moved (3,964 → 4,084 calls/s) after cold-start signing (#5), the in-memory counter (#2),
+and treasury keepalive (#4), so the ceiling is per-call work. **What that work actually is,
+Phase 0 now measures directly** — see the corrected budget in Phase 0.
 
 The overhead also drives the *shape* of the whole study: the gateway is one-agent-per-process
 over stdio, so "more throughput" means "more processes" — which is why the harness spawns 256
@@ -93,18 +99,32 @@ harness's `metrics` scenario scrapes them and computes the mean per-call budget,
 gap (caller-observed round-trip − handler time = the agent↔gateway pipe/JSON the handler
 cannot see from inside `call_tool`).
 
-**Measured (4 agents, mean ms/call):**
+**Measured (4 agents, mean ms/call — after Phase 1 AND after fixing a harness artifact, below):**
 
 | sign | gate | downstream | settle | spend_log | orchestration | transport | ≈ external |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 0.07 | 0.15 | 0.38 | 0.08 | 0.17 | 0.57 | 0.19 | ~1.6 |
+| 0.06 | 0.11 | **0.09** | 0.06 | 0.11 | 0.33 | 0.10 | ~1.0 |
 
-Stages + orchestration sum **exactly** to the handler time (acceptance met). The two largest
-slices are **`downstream`** (gateway↔adapter pipe + JSON + the adapter's per-call fixture read —
-Phase 3's target) and **`orchestration`** (in-handler clones, lock acquisitions, and the
-per-call `eprintln!` — Phase 1's target): ~0.57 ms/call is spent outside crypto/fs/downstream,
-in avoidable handler overhead. That is why Phase 1 (low-risk) is worth doing before the
-architecture commitments.
+Stages + orchestration sum **exactly** to the handler time (acceptance met).
+
+**Phase 0 is a go/no-go GATE, and it re-ordered the plan.** The initial premise — "~84% of a
+warm call is transport+orchestration" — was derived by *subtraction* (2.2 ms − ~0.35 ms
+primitives), **not measured**, and it was wrong in an important way: the perf harness's x402
+*test* adapter re-read and re-parsed its settlement fixture from disk on **every call**
+(~0.2 ms), and that harness artifact sat inside the `downstream` stage and the residual. Caching
+the fixture (`auths-mcp` `abb9b2d`) dropped `downstream` from ~0.25–0.38 ms to **0.09 ms**. The
+corrected picture:
+
+- **Transport is a minority** — `downstream` 0.09 + agent↔gateway 0.10 ≈ **0.19 ms (~20%)**, not
+  the dominant cost. So **Phase 3 (streamable-HTTP) is a smaller win than assumed and drops in
+  priority.**
+- **Per-call CPU dominates** — the auths stages (`sign`+`gate`+`settle`+`spend_log` ≈ 0.32 ms)
+  plus `orchestration` (≈ 0.33 ms; canonicalization + receipt build + async scheduling between
+  awaits). So **Phase 1 (in-handler hygiene) and shrinking the auths stages themselves are the
+  higher-value levers**; Phase 1's first pass already cut orchestration 0.57 → ~0.33 ms.
+
+This is exactly the re-prioritization Phase 0 exists to force: measure before committing to the
+architecture change, because the derived premise over-counted transport.
 
 ### Phase 1 — in-place hot-path hygiene — **IMPLEMENTED (first pass)**
 Done: the per-call verdict `eprintln!` (two synchronous stderr writes + a `format!` allocation)

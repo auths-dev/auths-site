@@ -5,12 +5,13 @@ import {
   SectionMark,
   InkTerminal,
   InkLink,
-  Prompt,
+  BashLines,
   Dim,
   Allow,
   Deny,
   DENY,
 } from '@auths/ledger-ui';
+import { VERIFY_SPEND_CMD, VERIFY_TAMPERED_CMD, DEMO_VERIFY_CMD } from '@/lib/demo-commands';
 
 const TITLE = 'Security model — what you have to trust, and what you don’t';
 const DESC =
@@ -96,22 +97,48 @@ export default function TrustPage() {
               <InkTerminal
                 label="a relying party who never ran the agent"
                 tag="offline"
-                copy="auths-mcp-gateway verify-spend --log spend.jsonl --registry ./registry --agent <agent> --root <root>"
+                copy={VERIFY_SPEND_CMD}
               >
                 <Dim># re-derive the spend from the signed receipts alone</Dim>
-                <Prompt>auths-mcp-gateway verify-spend --log spend.jsonl \</Prompt>
-                <Prompt className="pl-4">
-                  --registry ./registry --agent &lt;agent&gt; --root &lt;root&gt;
-                </Prompt>
+                <BashLines code={VERIFY_SPEND_CMD} />
                 <Allow>consistent — 2 call(s), $12.00 re-derived from signed costs</Allow>
                 <Dim className="pt-2"># flip one byte of a signed proof and re-run</Dim>
-                <Prompt>auths-mcp-gateway verify-spend --log tampered.jsonl …</Prompt>
+                <BashLines code={VERIFY_TAMPERED_CMD} />
                 <Deny>tampered-proof — 51017ad1… failed verification (exit 1)</Deny>
               </InkTerminal>
               <p className="mt-6 font-mono text-xs leading-5 text-ink-faint">
                 Every check fails closed: on any verdict but{' '}
                 <span className="text-ink">allowed</span>, the downstream tool is never invoked.
               </p>
+            </div>
+          </div>
+
+          <div className="mt-10 rounded-sm border border-rule bg-paper-deep/40 p-6">
+            <p className="max-w-2xl text-base leading-7 text-ink-soft">
+              Don&rsquo;t take the terminal above on faith. Download a real signed bundle and
+              re-derive the spend on your own machine &mdash; no account, no server.
+            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-4">
+              <a
+                href="/demo/demo-bundle.tgz"
+                download
+                className="rounded-sm bg-seal px-5 py-2.5 text-sm font-semibold text-paper transition-colors hover:bg-seal-deep"
+              >
+                Download the demo bundle
+              </a>
+              <InkLink href="https://docs.auths.dev/mcp/concepts/receipts">
+                What am I verifying?
+              </InkLink>
+            </div>
+            <div className="mt-6">
+              <InkTerminal
+                label="verify a real receipt, start to finish"
+                tag="offline"
+                copy={DEMO_VERIFY_CMD}
+              >
+                <BashLines code={DEMO_VERIFY_CMD} />
+                <Allow>consistent — 3 call(s), $0.00 re-derived from signed costs</Allow>
+              </InkTerminal>
             </div>
           </div>
         </div>

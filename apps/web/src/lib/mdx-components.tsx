@@ -5,6 +5,9 @@ import { SetupCeremonyDiagram } from '@/components/setup-ceremony-diagram';
 import { ApiKeyComparisonDiagram } from '@/components/api-key-comparison-diagram';
 import { ThreeLayerDiagram } from '@/components/three-layer-diagram';
 import { AgenticCommerceDiagram } from '@/components/agentic-commerce-diagram';
+import { AccountabilityDiagram } from '@/components/accountability-diagram';
+import { Quote } from '@/components/quote';
+import { HonestyMachinesDiagram } from '@/components/honesty-machines-diagram';
 
 type PreProps = ComponentPropsWithoutRef<'pre'>;
 
@@ -39,4 +42,7 @@ export const mdxComponents = {
   ApiKeyComparisonDiagram,
   ThreeLayerDiagram,
   AgenticCommerceDiagram,
+  AccountabilityDiagram,
+  Quote,
+  HonestyMachinesDiagram,
 };

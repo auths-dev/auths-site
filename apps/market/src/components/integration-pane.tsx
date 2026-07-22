@@ -3,12 +3,7 @@
 import { useState } from 'react';
 import { CodeBlock } from '@auths/ledger-ui';
 import type { Listing } from '@/lib/listings';
-
-function endpointCommand(listing: Listing): string {
-  return listing.endpoint.transport === 'stdio'
-    ? (listing.endpoint.command ?? '<command>')
-    : `npx -y mcp-remote ${listing.endpoint.url}`;
-}
+import { downstreamToken, endpointCommand, isSelfFetching } from '@/lib/integration';
 
 function cliSnippet(listing: Listing, testMode: boolean): string {
   const rail = listing.rails[0] ?? 'x402';
@@ -21,7 +16,7 @@ function cliSnippet(listing: Listing, testMode: boolean): string {
 
 function configSnippet(listing: Listing, testMode: boolean): string {
   const rail = listing.rails[0] ?? 'x402';
-  const downstream = endpointCommand(listing).split(' ');
+  const downstream = downstreamToken(listing).split(' ');
   const args = [
     '@auths-dev/mcp', 'wrap',
     '--scope', 'paid.call',
@@ -35,7 +30,12 @@ function configSnippet(listing: Listing, testMode: boolean): string {
   // One argument per line, indented to sit inside the config object — long
   // wrap invocations stay readable and diffable in a real mcp.json.
   const argsJson = JSON.stringify(['-y', ...args], null, 2).replace(/\n/g, '\n  ');
-  return `"${listing.slug}": {\n  "command": "npx",\n  "args": ${argsJson}\n}`;
+  const block = `"${listing.slug}": {\n  "command": "npx",\n  "args": ${argsJson}\n}`;
+  // A downstream the buyer must install first is never presented as if it runs
+  // on paste — the config carries the raw command, prefixed with an install note.
+  return isSelfFetching(listing)
+    ? block
+    : `// install ${listing.name} first (see the listing's docs link); the command below wraps the installed server\n${block}`;
 }
 
 /**
@@ -92,6 +92,15 @@ export function IntegrationPane({ listing }: { listing: Listing }) {
         The budget is yours: the gateway refuses any call that would cross it
         — usage-cap-exceeded — before this endpoint is ever invoked.
       </p>
+      {mode === 'test' ? (
+        <p className="mt-2 font-mono text-[12px] leading-5 text-ink-faint">
+          Test-mode uses sandbox rails — Stripe test + x402 base-sepolia. Without a
+          funded wallet and facilitator it settles a <em>recorded fixture</em>, not an
+          on-chain transaction: any tx hash you see is illustrative. To settle for real
+          on base-sepolia, add <code>--custody-credential</code> + a facilitator URL
+          (see the docs link on this listing).
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 /**
- * Live reads for the /network page — strictly through public surfaces: each
- * witness's `/health`. This page sees exactly what any stranger sees. Every
- * read is short-timeout and never throws: an unreachable witness renders as
+ * Live reads for the witness directory — strictly through public surfaces: each
+ * witness's `/health`. This sees exactly what any stranger sees. Every read is
+ * short-timeout and never throws: an unreachable witness renders as
  * unreachable, it does not take the page down.
  */
 
@@ -25,6 +25,13 @@ export interface ProbedWitness extends WitnessEntry {
 }
 
 /**
+ * The Next-augmented fetch init. Declaring it locally keeps this package free of
+ * a hard dependency on Next's global `RequestInit` augmentation — the field is
+ * a no-op in a plain-fetch runtime and the ISR hint in a Next one.
+ */
+type NextFetchInit = RequestInit & { next?: { revalidate?: number } };
+
+/**
  * Probe one witness's public health surface. The node answers `/health` in one
  * of two shapes depending on which role owns the route: the anchor role's
  * `{up: true, roles: […]}` or the KEL role's `{status: "ok", witness_did, …}` —
@@ -33,10 +40,11 @@ export interface ProbedWitness extends WitnessEntry {
 export async function probeWitness(entry: WitnessEntry): Promise<ProbedWitness> {
   if (!entry.url) return { ...entry, liveness: { state: 'standing-up' }, memberKey: null };
   try {
-    const res = await fetch(`${entry.url}/health`, {
+    const init: NextFetchInit = {
       signal: AbortSignal.timeout(2_500),
       next: { revalidate: 30 },
-    });
+    };
+    const res = await fetch(`${entry.url}/health`, init);
     if (!res.ok) return { ...entry, liveness: { state: 'unreachable' }, memberKey: null };
     const body = (await res.json()) as {
       up?: boolean;

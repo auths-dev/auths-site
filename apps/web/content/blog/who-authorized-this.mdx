@@ -1,0 +1,96 @@
+---
+title: "Who Authorized This?"
+description: "When an AI agent spends money it shouldn't have, who's liable? UK regulators are asking exactly that question — and it can't be answered until you can prove whether the agent stayed within the authority it was given. We built the layer that proves it: a signed mandate, a re-derivable verdict, and a receipt anyone can verify offline. AI-vendor and payments-vendor agnostic."
+date: "2026-07-19"
+---
+
+# Who Authorized This?
+
+In the last few weeks, the people who write the rules started asking the same question — out loud, in speeches, in a formal Treasury consultation. Not "will agents pay for things?" That's happening. The question underneath it:
+
+<Quote text="The core issue in relation to payments made by agentic AI is determining when a payment effected by agentic AI exceeds authority given by the payer, whether through hallucination or through the goal-oriented behaviour of agentic AI." name="Malcolm Dowden" org="Pinsent Masons" link="https://www.pinsentmasons.com/out-law/news/high-priority-establish-agentic-payment-protocols" />
+
+And the reason it's the *core* issue, from the same analysis:
+
+<Quote text="It would first be necessary to work out whether the system has exceeded the authority conferred on it by the payer before being able to address allocation of liability." />
+
+The Bank of England put it in terms of centuries-old agency law. Governor [Andrew Bailey](https://www.bankofengland.co.uk/speech/2026/july/andrew-bailey-speech-at-manison-house):
+
+<Quote text="Typically, in law a principal becomes responsible for an agent while the agent operates within the remit given to it by the principal. If the agent goes beyond that remit, or acts improperly, it becomes responsible." />
+
+Every one of these reduces to a single missing capability. Before you can assign liability, settle a dispute, or reverse a bad charge, you have to answer one factual question: **did the agent stay within the remit it was given?** Today, for autonomous payments, nobody can answer that with anything better than logs you have to trust.
+
+[HM Treasury](https://www.gov.uk/government/publications/ai-adoption-plan-financial-services/financial-services-ai-adoption-plan#agentic-payments-readiness-recommendation-10) named the fix a "high" priority — "defining clear legal constructs and **dispute mechanisms to unambiguously assign accountability** when autonomous agents transact." The Bank's deputy governor for financial stability, Sarah Breeden, named the whole problem set:
+
+<Quote text="The biggest issues are likely to be … how users securely give consent and authorisation to agents, especially for multiple transactions; how disputes are settled and liability assigned for erroneous or fraudulent transactions; and how authorities avoid fragmentation and walled gardens as AI firms and payment systems all develop protocols." name="Sarah Breeden" org="Bank of England" link="https://www.bankofengland.co.uk/speech/2026/june/sarah-breeden-panel-at-the-european-central-bank-forum-on-central-banking-2026" />
+
+She also closed the door on the easy answer: "relying on a human in the loop for all agent actions is unlikely to be realistic. More sophisticated governance and accountability frameworks may be needed."
+
+So: a bounded mandate, a way to prove whether each transaction stayed inside it, an evidence trail anyone can check, and *no walled garden*. That's a specification. **We built it.** Below is what it is and how it works.
+
+## The mandate: authority you can point to
+
+There are two questions here: what did the principal actually authorise, and did a given payment fall inside it? Auths answers both in cryptography, starting with the mandate.
+
+The principal — a person, or an org — signs a **mandate**: a delegation scoped to a capability, a hard budget cap, an optional allow-list of counterparties, and an expiry. It's signed by a root key that never leaves the device's Secure Enclave, and anchored in a tamper-evident key-event log. The agent spends *inside* that remit; it cannot widen it, because only the root key can, and doing so is itself a signed act.
+
+<AccountabilityDiagram step="mandate" />
+
+Crucially, the mandate is signed **below the model layer**. A prompt injection can talk an agent into anything, but it cannot forge the principal's signature or move the ceiling. The remit is a fact about keys, not a suggestion in a context window.
+
+## The verdict: did it stay in its lane?
+
+This is the question that has to be answered first. Every metered call is judged against the mandate — and the judgment is re-derived from the signed record, fail-closed, trusting no one. The result is one of a small, closed set of verdicts:
+
+<AccountabilityDiagram step="verdict" />
+
+An `authorized` call stayed inside the remit. Every other verdict names *exactly how* it went beyond it: `out-of-scope` (a capability it wasn't granted), `out-of-counterparty` (a payee outside the allow-list — the classic prompt-injection redirect, where a poisoned agent is steered to pay an attacker), `over-budget` (past the cap). That turns "the agent exceeded its authority" from an argument into a computable fact — and it's the thing everything downstream depends on. A dispute, a reversal, a decision about who's on the hook: each one first needs *going beyond the remit* to be a provable event, not a matter of opinion.
+
+## The receipt anyone can re-derive
+
+A verdict you have to trust is worthless in a dispute. So the output isn't a log line — it's an **EvidenceBundle**: the mandate, the calls, the settlement, and the verdict, signed and anchored "as of" a specific head. Hand it to anyone, and they re-derive the whole thing **offline** — the buyer, the vendor, or an auditor — without trusting Auths, the agent, or each other.
+
+<AccountabilityDiagram step="evidence" />
+
+There is exactly one implementation of that verification logic, and it's bound out to every language a builder actually uses — Rust, Python, JavaScript, WASM — so a bundle produced by one tool verifies identically everywhere. Nobody has to take a vendor's word for a number. If you can't reproduce it, we don't ask you to believe it.
+
+## When it goes wrong: computing the repayment
+
+Sometimes a bad transaction has to be reversed. Here Auths is deliberately *not* the money-mover — the same stance it takes on payments themselves: it never holds funds. It is the reversal **authority**.
+
+When a verdict shows the agent exceeded its remit, Auths resolves — from the signed evidence and the delegation chain — **who owes whom, and how much**: the full transaction for an out-of-remit payment, or just the overage past a cap. The repayment flows to the *principal*, not the ephemeral agent that made the call. Auths emits a signed `ReversalDetermination`; the rail — Stripe, an x402 refund, or a held escrow — executes it.
+
+<AccountabilityDiagram step="reversal" />
+
+Auths makes the repayment **decidable and computable**; it doesn't custody funds, and it doesn't invent the liability rule. Where a rail is final and can't claw a payment back, the determination stands as a *proven claim* — which is exactly why a pre-authorised hold (escrow) is the companion primitive, not an afterthought.
+
+## Agnostic by construction
+
+This is the part we care about most, because it's where the rest of the field goes the other way: *trust our registry, onboard to our control plane.*
+
+Auths is the opposite by construction:
+
+<AccountabilityDiagram step="agnostic" />
+
+- **AI-vendor agnostic.** The mandate and the signature live *below* the model. GPT, Claude, Llama, or something you trained yesterday — the remit and the proof are identical, because they don't depend on the model at all.
+- **Payments-vendor agnostic.** x402 and USDC, Stripe, or a rail that doesn't exist yet — the rail settles and reverses; Auths meters, judges, and proves. Swap the rail; the evidence is unchanged.
+- **Verifiable offline by anyone.** There is no Auths server you have to call to check a claim. The proof re-derives from the signed record with an open-source verifier, on an air-gapped machine if you like. If you're the one who has to settle a dispute, you don't take anyone's word for it — you re-run the check yourself. Re-derivable evidence, trusting no vendor, including us.
+
+That last property is the one a centralized "trust our registry" stack structurally cannot offer.
+
+## The shape of the answer
+
+The question at the top of this post was *who is in charge, and who's on the hook when it goes wrong?* The answer has a shape now:
+
+- **The principal, once, at the top** — a signed, bounded, revocable mandate.
+- **A verdict, on every call** — re-derivable proof of whether the agent stayed inside it.
+- **A receipt, for anyone** — offline-verifiable evidence, trusting no vendor.
+- **A repayment, computed not asserted** — the reversal owed, handed to the rail to execute.
+
+No walled garden. No model to trust. No operator holding the money. Just cryptography anyone can check.
+
+## Try it
+
+The accountability layer ships in the Auths tooling — the same bounded-agent gateway that meters and settles agent payments now produces the mandate, the verdict, and the re-derivable evidence behind them. To wire up your own bounded, provable agents:
+
+**[docs.auths.dev/docs/mcp](https://docs.auths.dev/docs/mcp)**

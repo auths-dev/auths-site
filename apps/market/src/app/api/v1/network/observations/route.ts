@@ -66,7 +66,10 @@ export async function GET(req: Request) {
         observed_at: r.observed_at,
         head: r.head,
         count: r.count,
-        cumulative_cents: r.cumulative_cents,
+        // An unanchored absolute is the seller's signed CLAIM, not a market
+        // fact — renamed and flagged so a reader never takes it for verified.
+        seller_claimed_cumulative_cents: r.cumulative_cents,
+        unwitnessed: r.anchor_tier !== 'witness',
         as_of: r.as_of,
         anchor_tier: r.anchor_tier,
         anchor_threshold: r.anchor_threshold,
