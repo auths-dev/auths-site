@@ -33,10 +33,17 @@ const GitCommitIcon = svg(
     <line x1="16" y1="12" x2="22.95" y2="12" />
   </>
 );
-const LockIcon = svg(
+const FingerprintIcon = svg(
   <>
-    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" />
+    <path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
+    <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" />
+    <path d="M2 12a10 10 0 0 1 18-6" />
+    <path d="M2 16h.01" />
+    <path d="M21.8 16c.2-2 .131-5.354 0-6" />
+    <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2" />
+    <path d="M8.65 22c.21-.66.45-1.32.57-2" />
+    <path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
   </>
 );
 const ShieldCheckIcon = svg(
@@ -64,7 +71,7 @@ export function SupplyChainMotionDiagram() {
       id: 'step-2',
       title: '2. Secure Enclave P-256',
       sub: 'Biometric Key Sign',
-      icon: LockIcon,
+      icon: FingerprintIcon,
       detail: simulationState === 'pass'
         ? 'Hardware key signs commit trailer with P-256 in-band multicodec key.'
         : 'Key revoked! Revocation check in controller KEL failed.',
