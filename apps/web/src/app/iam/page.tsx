@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { IamMotionDiagram } from '@/components/iam-motion-diagram';
+import { IamBiometricSection } from '@/components/iam-biometric-section';
 import { IamConfigSection } from '@/components/iam-config-section';
 
 export const metadata: Metadata = {
@@ -28,12 +29,14 @@ export default function IamPage() {
           </p>
 
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Link
-              href="/docs/iam"
+            <a
+              href="https://docs.auths.dev/"
+              target="_blank"
+              rel="noreferrer"
               className="bg-ink hover:bg-seal text-paper px-6 py-3 rounded-xl font-semibold text-sm transition-colors shadow-md"
             >
               Read Documentation
-            </Link>
+            </a>
             <a
               href="https://github.com/auths-dev/auths"
               target="_blank"
@@ -48,7 +51,10 @@ export default function IamPage() {
         {/* 1. Interactive Protocol Motion Diagram */}
         <IamMotionDiagram />
 
-        {/* 2. Tabbed Configuration & Annotated Parameter Cards */}
+        {/* 2. Zero Static Secrets & Touch ID IAM Section */}
+        <IamBiometricSection />
+
+        {/* 3. Tabbed Configuration & Annotated Parameter Cards */}
         <IamConfigSection />
       </div>
     </main>

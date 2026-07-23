@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { NetworkMotionDiagram } from '@/components/network-motion-diagram';
+import { NetworkQuorumSection } from '@/components/network-quorum-section';
 import { NetworkConfigSection } from '@/components/network-config-section';
 
 export const metadata: Metadata = {
@@ -28,12 +29,14 @@ export default function NetworkPage() {
           </p>
 
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Link
-              href="/docs/network"
+            <a
+              href="https://docs.auths.dev/"
+              target="_blank"
+              rel="noreferrer"
               className="bg-ink hover:bg-seal text-paper px-6 py-3 rounded-xl font-semibold text-sm transition-colors shadow-md"
             >
               Read Documentation
-            </Link>
+            </a>
             <a
               href="https://github.com/auths-dev/auths-network"
               target="_blank"
@@ -48,7 +51,10 @@ export default function NetworkPage() {
         {/* 1. Interactive Protocol Motion Diagram */}
         <NetworkMotionDiagram />
 
-        {/* 2. Tabbed Configuration & Annotated Parameter Cards */}
+        {/* 2. Anti-Equivocation Witness Quorum Section */}
+        <NetworkQuorumSection />
+
+        {/* 3. Tabbed Configuration & Annotated Parameter Cards */}
         <NetworkConfigSection />
       </div>
     </main>
