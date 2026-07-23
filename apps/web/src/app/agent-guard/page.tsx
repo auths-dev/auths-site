@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AgentGuardMotionDiagram } from '@/components/agent-guard-motion-diagram';
 import { AgentGuardConfigSection } from '@/components/agent-guard-config-section';
+import { AgentGuardMurmurSection } from '@/components/agent-guard-murmur-section';
 
 export const metadata: Metadata = {
   title: 'Auths Agent Guard — AI Agent Security & Spend Firewall',
@@ -28,12 +29,14 @@ export default function AgentGuardPage() {
           </p>
 
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Link
-              href="/docs/agent-guard"
+            <a
+              href="https://docs.auths.dev/"
+              target="_blank"
+              rel="noreferrer"
               className="bg-ink hover:bg-seal text-paper px-6 py-3 rounded-xl font-semibold text-sm transition-colors shadow-md"
             >
               Read Documentation
-            </Link>
+            </a>
             <a
               href="https://github.com/auths-dev/auths-mcp"
               target="_blank"
@@ -48,7 +51,10 @@ export default function AgentGuardPage() {
         {/* 1. Interactive Protocol Motion Diagram */}
         <AgentGuardMotionDiagram />
 
-        {/* 2. Tabbed Configuration & Annotated Parameter Cards */}
+        {/* 2. Encrypted Touch ID Approvals via Murmur Native App */}
+        <AgentGuardMurmurSection />
+
+        {/* 3. Tabbed Configuration & Annotated Parameter Cards */}
         <AgentGuardConfigSection />
       </div>
     </main>
