@@ -14,7 +14,7 @@ export function IamBiometricSection() {
             Ephemeral Touch ID Presentations for <span className="italic text-seal">SSH & Kubernetes</span>
           </h3>
           <p className="mt-3 text-xs md:text-sm text-ink-soft leading-relaxed">
-            Eliminate static SSH private keys like <code className="font-mono text-ink bg-paper px-1.5 py-0.5 rounded border border-rule">.ssh/id_rsa</code> and long-lived AWS IAM secret keys. Developers authenticate terminal access via on-demand Touch ID presentation challenges.
+            Eliminate static SSH private keys like <code className="font-mono text-ink bg-paper px-1.5 py-0.5 rounded border border-rule">.ssh/id_rsa</code> and long-lived AWS IAM secret keys. Developers authenticate terminal access via Touch ID.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-4 text-xs font-mono text-ink-soft">
             <span className="flex items-center gap-1.5">
