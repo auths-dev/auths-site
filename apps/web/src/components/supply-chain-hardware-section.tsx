@@ -33,7 +33,7 @@ export function SupplyChainHardwareSection() {
         <div className="md:col-span-5 bg-paper border border-rule rounded-xl p-4 font-mono text-xs shadow-xs">
           <div className="flex items-center justify-between text-[11px] text-ink-faint pb-3 mb-3 border-b border-rule">
             <span>CI_PROVENANCE_FLOW</span>
-            <span className="text-seal font-semibold">auths slsa generate</span>
+            <span className="text-seal font-semibold">SLSA L3 Provenance</span>
           </div>
           <div className="space-y-2 text-[11px] text-ink-soft">
             <div className="flex items-start gap-2">

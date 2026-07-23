@@ -18,10 +18,10 @@ export function NetworkQuorumSection() {
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-4 text-xs font-mono text-ink-soft">
             <span className="flex items-center gap-1.5">
-              <span className="text-seal font-bold">✓</span> 4 Trust Roles (anchor, kel, cosign, registry)
+              <span className="text-seal font-bold">✓</span> 4 Decentralized Trust Roles
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="text-seal font-bold">✓</span> Multi-Region Fly.io & Cloud KMS
+              <span className="text-seal font-bold">✓</span> Multi-Region & Cloud KMS
             </span>
             <span className="flex items-center gap-1.5">
               <span className="text-seal font-bold">✓</span> C2SP Witness Protocol
@@ -33,7 +33,7 @@ export function NetworkQuorumSection() {
         <div className="md:col-span-5 bg-paper border border-rule rounded-xl p-4 font-mono text-xs shadow-xs">
           <div className="flex items-center justify-between text-[11px] text-ink-faint pb-3 mb-3 border-b border-rule">
             <span>WITNESS_QUORUM_FLOW</span>
-            <span className="text-seal font-semibold">auths-witness-node</span>
+            <span className="text-seal font-semibold">Multi-Cloud Quorum</span>
           </div>
           <div className="space-y-2 text-[11px] text-ink-soft">
             <div className="flex items-start gap-2">
@@ -42,7 +42,7 @@ export function NetworkQuorumSection() {
             </div>
             <div className="flex items-start gap-2">
               <span className="text-seal font-bold">02</span>
-              <span>Witness checks anti-duplicity memory (HTTP 422)</span>
+              <span>Witness enforces anti-duplicity memory</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-seal font-bold">03</span>
