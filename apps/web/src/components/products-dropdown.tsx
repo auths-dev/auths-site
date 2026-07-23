@@ -45,7 +45,7 @@ export function ProductsDropdown() {
       onMouseLeave={() => setIsOpen(false)}
     >
       <button 
-        className="flex items-center gap-1 py-2 font-mono text-[13px] sm:text-sm text-ink-faint hover:text-ink transition-colors focus:outline-none"
+        className="flex items-center gap-1 py-3 font-mono text-[13px] sm:text-sm text-ink-faint hover:text-ink transition-colors focus:outline-none"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
       >
@@ -63,11 +63,11 @@ export function ProductsDropdown() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            initial={{ opacity: 0, y: 8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.98 }}
+            exit={{ opacity: 0, y: 6, scale: 0.98 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute left-1/2 -translate-x-1/2 mt-1 w-[600px] bg-paper-elevated border border-rule shadow-2xl rounded-xl p-4 z-50 grid grid-cols-2 gap-3"
+            className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[600px] bg-paper-elevated border border-rule shadow-2xl rounded-xl p-4 z-50 grid grid-cols-2 gap-3 opacity-100 backdrop-blur-none bg-[#FBF9F5]"
           >
             {PRODUCTS.map((prod) => (
               <Link
