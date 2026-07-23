@@ -10,7 +10,7 @@ export function AgentGuardMurmurSection() {
         <div className="md:col-span-7">
           <div className="inline-flex items-center gap-2 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider font-bold text-seal bg-seal/10 border border-seal/20 rounded-full mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-seal animate-pulse"></span>
-            <span>NATIVE MACOS APP · MURMUR INTEGRATION</span>
+            <span>NATIVE MACOS APP</span>
           </div>
           <h3 className="font-serif text-2xl md:text-3xl text-ink leading-tight">
             Encrypted Touch ID Approvals via <span className="italic text-seal">Murmur</span>
