@@ -42,7 +42,7 @@ export function IamBiometricSection() {
             </div>
             <div className="flex items-start gap-2">
               <span className="text-seal font-bold">02</span>
-              <span>Local daemon prompts Touch ID re-authentication</span>
+              <span>Local daemon prompts Touch ID</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-seal font-bold">03</span>
