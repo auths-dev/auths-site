@@ -9,7 +9,6 @@ const PRODUCTS = [
     title: 'Auths Agent Guard',
     tagline: 'AI Agent Security & Spend Firewall',
     desc: 'Pre-execution budget enforcement, MCP capability sandboxing, and cryptographically signed spend receipts.',
-    badge: 'Popular',
   },
   {
     slug: 'supply-chain',
@@ -35,7 +34,7 @@ export function ProductMatrix() {
   return (
     <section className="py-20 px-6 max-w-6xl mx-auto border-t border-rule">
       <div className="text-center mb-16">
-        <h2 className="font-serif text-3xl md:text-4xl text-ink">Commercial Product Suite</h2>
+        <h2 className="font-serif text-3xl md:text-4xl text-ink">Products</h2>
         <p className="mt-3 text-ink-soft text-sm md:text-base max-w-xl mx-auto">
           Built on the Auths protocol. Enterprise-ready governance, supply chain security, and zero-trust identity.
         </p>
@@ -52,13 +51,6 @@ export function ProductMatrix() {
             className="group relative bg-paper-elevated border border-rule hover:border-seal rounded-2xl p-8 transition-all duration-300 shadow-sm hover:shadow-xl flex flex-col justify-between"
           >
             <div>
-              <div className="flex items-center justify-end mb-4 min-h-[24px]">
-                {prod.badge && (
-                  <span className="text-[10px] font-mono uppercase tracking-wider font-bold bg-seal/10 text-seal px-2.5 py-1 rounded-full">
-                    {prod.badge}
-                  </span>
-                )}
-              </div>
               <h3 className="font-serif text-2xl text-ink mb-1 group-hover:text-seal transition-colors">
                 {prod.title}
               </h3>

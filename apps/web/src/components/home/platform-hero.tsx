@@ -6,16 +6,6 @@ import { motion } from 'motion/react';
 export function PlatformHero() {
   return (
     <section className="relative pt-28 pb-20 px-6 max-w-6xl mx-auto text-center">
-      {/* Trust pill */}
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-rule bg-paper-elevated text-xs font-mono text-ink-soft mb-8 shadow-xs"
-      >
-        <span className="w-2 h-2 rounded-full bg-seal animate-pulse"></span>
-        <span>Verified with Auths WASM v0.1.3</span>
-      </motion.div>
-
       {/* Editorial Headline */}
       <motion.h1 
         initial={{ opacity: 0, y: 15 }}
