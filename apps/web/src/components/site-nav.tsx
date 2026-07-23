@@ -1,23 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-
-const NAV_LINKS = [
-  { label: 'Product', href: '/' },
-  // The witness network now lives at its own explorer (see the external link
-  // below); the old /network page redirects there.
-  // { label: 'Verify', href: '/verify' }, // hidden for now — may return later
-  // Blog lives only in the footer now — see LedgerFooter defaults.
-] as const;
+import { ProductsDropdown } from './products-dropdown';
 
 /** One nav, one tone — the ledger's paper chrome on every page. */
 export function SiteNav() {
-  const pathname = usePathname();
-
-  const isActive = (href: string) =>
-    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
-
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-rule bg-paper/90 backdrop-blur-sm">
       <nav className="mx-auto flex h-14 max-w-[88rem] items-center justify-between px-6">
@@ -35,17 +22,7 @@ export function SiteNav() {
         </Link>
 
         <div className="flex items-center gap-4 sm:gap-6">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`font-mono text-[13px] transition-colors sm:text-sm ${
-                isActive(link.href) ? 'text-ink' : 'text-ink-faint hover:text-ink'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+          <ProductsDropdown />
 
           <a
             href="https://explorer.auths.dev"
