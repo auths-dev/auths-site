@@ -38,11 +38,3 @@ export const DEMO_VERIFY_CMD = [
   `  --agent ${DEMO_AGENT_DID} \\`,
   `  --root ${DEMO_ROOT_DID}`,
 ].join('\n');
-
-/** Stand up a witness node and prove conformance — the four lines the /network terminal shows. */
-export const RUN_WITNESS = [
-  'git clone https://github.com/auths-dev/auths',
-  'cd auths/deploy/witness',
-  'WITNESS_SEED=$(openssl rand -hex 32) docker compose up -d',
-  'cargo xtask witness-conformance --url http://127.0.0.1:3333',
-].join('\n');

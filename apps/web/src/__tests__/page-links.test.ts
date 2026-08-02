@@ -4,7 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..');
+const REPO = join(SRC, '../../..');
 const read = (rel: string): string => readFileSync(join(SRC, rel), 'utf8');
+const readRepo = (rel: string): string => readFileSync(join(REPO, rel), 'utf8');
 
 const landing = read('components/landing-ledger.tsx');
 const verify = read('app/verify/page.tsx');
@@ -39,5 +41,31 @@ describe('the /network cloud tiers have a conversion path', () => {
   it('offers a launch-notification mailto', () => {
     expect(network).toContain('mailto:network@auths.dev');
     expect(network).toContain('Notify me at launch');
+  });
+});
+
+describe('current Auths adoption links use the supported implementation', () => {
+  const currentSurfaces = [
+    'README.md',
+    'apps/web/next.config.ts',
+    'apps/web/src/components/site-nav.tsx',
+    'apps/web/src/components/landing-ledger.tsx',
+    'apps/web/src/app/iam/page.tsx',
+    'apps/web/src/app/supply-chain/page.tsx',
+    'apps/web/src/app/trust/page.tsx',
+    'apps/explorer/src/components/explorer-nav.tsx',
+    'apps/explorer/src/app/page.tsx',
+    'apps/explorer/src/app/evidence/page.tsx',
+    'packages/ledger-ui/src/ledger.tsx',
+  ];
+
+  it.each(currentSurfaces)('%s does not direct adopters to the predecessor repository', (path) => {
+    expect(readRepo(path)).not.toMatch(/https:\/\/github\.com\/auths-dev\/auths(?![-/])/);
+  });
+
+  it('links the primary navigation to the current repository', () => {
+    expect(read('components/site-nav.tsx')).toContain(
+      'href="https://github.com/auths-dev/auths-proof"',
+    );
   });
 });

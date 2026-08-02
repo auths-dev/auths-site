@@ -57,7 +57,7 @@ export default function EvidencePage() {
             <InkLink href={`${DOCS}/users/verify-an-anchored-attestation`}>
               How verifiers read freshness
             </InkLink>
-            <InkLink href="https://github.com/auths-dev/auths">The verifier source</InkLink>
+            <InkLink href="https://github.com/auths-dev/auths-proof">The verifier source</InkLink>
           </div>
         </div>
       </div>

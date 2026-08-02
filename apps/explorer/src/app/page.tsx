@@ -170,7 +170,7 @@ export default async function HomePage() {
             </p>
           </div>
           <div className="mt-8 flex flex-wrap gap-6">
-            <InkLink href="https://github.com/auths-dev/auths">See source on GitHub</InkLink>
+            <InkLink href="https://github.com/auths-dev/auths-proof">See source on GitHub</InkLink>
             <InkLink href={`${DOCS}/users/verify-an-anchored-attestation`}>
               How verifiers read freshness
             </InkLink>

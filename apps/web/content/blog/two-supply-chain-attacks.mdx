@@ -4,6 +4,8 @@ description: "Axios and LiteLLM were both hijacked via stolen publishing tokens.
 date: "2026-03-31"
 ---
 
+> **Historical implementation note:** This article describes the experimental `auths-dev/auths` predecessor and its `0.1.x` commands. Those commands are preserved as project history, not current installation guidance. For the current Auths implementation, SDK work, and release status, use [auths-dev/auths-proof](https://github.com/auths-dev/auths-proof).
+
 Yesterday, [Axios was hijacked](https://www.stepsecurity.io/blog/axios-compromised-on-npm-malicious-versions-drop-remote-access-trojan). A stolen npm token. Two poisoned releases. A cross-platform RAT deployed to machines running `npm install`. 100 million weekly downloads.
 
 Last week, [LiteLLM was backdoored](https://www.endorlabs.com/learn/teampcp-isnt-done). A compromised Trivy action exfiltrated a PyPI token from CI. The attacker published malicious versions directly to PyPI. Three-stage credential stealer. 95 million monthly downloads.

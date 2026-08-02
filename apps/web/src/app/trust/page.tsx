@@ -218,7 +218,7 @@ export default function TrustPage() {
             </p>
           </div>
           <div className="mt-8 flex flex-wrap gap-6">
-            <InkLink href="https://github.com/auths-dev/auths">Read the source</InkLink>
+            <InkLink href="https://github.com/auths-dev/auths-proof">Read the source</InkLink>
             <InkLink href="/blog/how-we-audit-our-code">How we audit our code</InkLink>
           </div>
         </div>

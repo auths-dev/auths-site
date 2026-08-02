@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
       { source: "/network", destination: "https://explorer.auths.dev", permanent: false },
       { source: "/explorer", destination: "/", permanent: false },
       { source: "/compare", destination: "/", permanent: false },
-      { source: "/community", destination: "https://github.com/auths-dev/auths", permanent: false },
+      { source: "/community", destination: "https://github.com/auths-dev/auths-proof", permanent: false },
       { source: "/docs/:path*", destination: "https://docs.auths.dev/", permanent: false },
     ];
   },

@@ -46,7 +46,7 @@ export function SiteNav() {
           </a>
 
           <a
-            href="https://github.com/auths-dev/auths"
+            href="https://github.com/auths-dev/auths-proof"
             target="_blank"
             rel="noopener noreferrer"
             className="text-ink-faint transition-colors hover:text-ink"

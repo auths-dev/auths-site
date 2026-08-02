@@ -165,7 +165,7 @@ const LEDGER_FOOTER_LINKS: readonly FooterLink[] = [
   { label: 'Security', href: 'https://auths.dev/trust' },
   { label: 'Market', href: 'https://market.auths.dev/' },
   { label: 'Docs', href: 'https://docs.auths.dev/' },
-  { label: 'GitHub', href: 'https://github.com/auths-dev/auths' },
+  { label: 'GitHub', href: 'https://github.com/auths-dev/auths-proof' },
 ];
 
 /** One shared footer, applied on every page by the root layout. */
