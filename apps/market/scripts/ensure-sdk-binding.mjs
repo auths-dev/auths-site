@@ -17,10 +17,14 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VERSION = '0.1.13';
 const here = dirname(fileURLToPath(import.meta.url));
 const appDir = join(here, '..');
 const require = createRequire(join(appDir, 'package.json'));
+const appManifest = JSON.parse(readFileSync(join(appDir, 'package.json'), 'utf8'));
+const VERSION = appManifest.dependencies?.['@auths-dev/sdk'];
+if (typeof VERSION !== 'string' || !/^\d+\.\d+\.\d+$/.test(VERSION)) {
+  throw new Error('ensure-sdk-binding: @auths-dev/sdk must be pinned to an exact version');
+}
 
 const platform = `${process.platform}-${process.arch}${
   process.platform === 'linux' ? '-gnu' : ''
