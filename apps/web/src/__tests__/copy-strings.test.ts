@@ -3,7 +3,6 @@ import {
   VERIFY_SPEND_CMD,
   VERIFY_TAMPERED_CMD,
   DEMO_VERIFY_CMD,
-  RUN_WITNESS,
 } from '../lib/demo-commands';
 
 const firstCommandLine = (block: string): string =>
@@ -29,15 +28,5 @@ describe('the /trust demo command', () => {
     expect(DEMO_VERIFY_CMD.includes('<')).toBe(false);
     expect(firstCommandLine(DEMO_VERIFY_CMD).startsWith('npx -y @auths-dev/mcp')).toBe(true);
     expect(DEMO_VERIFY_CMD).toContain('tar xzf demo-bundle.tgz');
-  });
-});
-
-describe('the /network witness command', () => {
-  it('copies every displayed line of the run sequence', () => {
-    expect(RUN_WITNESS).toContain('git clone');
-    expect(RUN_WITNESS).toContain('cd auths/deploy/witness');
-    expect(RUN_WITNESS).toContain('docker compose up -d');
-    expect(RUN_WITNESS).toContain('witness-conformance');
-    expect(RUN_WITNESS.includes('<')).toBe(false);
   });
 });

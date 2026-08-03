@@ -6,6 +6,8 @@ date: "2026-04-10"
 
 # Sigstore's Public Ledger, Without the Login Screen
 
+> **Historical implementation note:** This article describes the experimental `auths-dev/auths` predecessor and its `0.1.x` commands. Those commands are preserved as project history, not current installation guidance. For the current Auths implementation, SDK work, and release status, use [auths-dev/auths-proof](https://github.com/auths-dev/auths-proof).
+
 Today we landed our first entry on Sigstore's production Rekor transparency log. Index 1,271,709,852. A P-256 ECDSA signature over a DSSE envelope containing an auths attestation. Verifiable by anyone with `rekor-cli`.
 
 No OIDC token was involved. No Fulcio certificate was requested. No browser window opened. No corporate account was consulted.

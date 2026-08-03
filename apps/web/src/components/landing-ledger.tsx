@@ -654,14 +654,13 @@ export function LedgerCTA() {
             Read the docs
           </a>
           <a
-            href="https://github.com/auths-dev/auths"
+            href="https://github.com/auths-dev/auths-proof"
             className="font-mono text-sm text-ink-soft underline decoration-rule underline-offset-4 transition-colors hover:text-ink"
           >
-            github.com/auths-dev/auths
+            github.com/auths-dev/auths-proof
           </a>
         </motion.div>
       </div>
     </section>
   );
 }
-

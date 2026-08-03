@@ -1,6 +1,6 @@
 # auths-site
 
-Public portal for [Auths](https://github.com/auths-dev/auths) — a decentralized cryptographic identity and signing protocol for software supply chains.
+Public portal for [Auths](https://auths.dev). The current open-source implementation and SDK work live in [auths-dev/auths-proof](https://github.com/auths-dev/auths-proof).
 
 The site showcases zero-trust verification: a user drops a binary into their browser, a WebAssembly engine verifies a decentralized Ed25519 signature chain, and nothing is uploaded anywhere.
 

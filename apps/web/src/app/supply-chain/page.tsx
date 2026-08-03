@@ -38,7 +38,7 @@ export default function SupplyChainPage() {
               Read Documentation
             </a>
             <a
-              href="https://github.com/auths-dev/auths"
+              href="https://github.com/auths-dev/auths-proof"
               target="_blank"
               rel="noreferrer"
               className="bg-paper-elevated border border-rule hover:border-ink-faint text-ink px-6 py-3 rounded-xl font-semibold text-sm transition-colors"
